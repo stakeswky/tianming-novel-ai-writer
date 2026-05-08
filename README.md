@@ -1,4 +1,5 @@
 <img width="200" alt="QQ群" src="https://github.com/user-attachments/assets/8f98736b-b251-4279-8586-77e3b6c8b6c7" />
+
 # 天命 - AI 网文创作系统
 
 > **AI 不会天然记得一本千万字小说。天命做的事情是：把故事变成系统能管理的数据，让 AI 按数据写作。**
