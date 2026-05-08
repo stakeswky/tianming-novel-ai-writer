@@ -1,5 +1,8 @@
 <img width="200" alt="QQ群" src="https://github.com/user-attachments/assets/8f98736b-b251-4279-8586-77e3b6c8b6c7" />
-因为迭代速度太快，当前已经是2.8.7版
+因为迭代速度太快，最新版为2.8.7版，视频教程也是旧版的，不过差不多吧，无非就是功能差异变化的有点多。
+## 视频教程
+
+[B站：AI写作-天命 保姆级教程 — 新手也能写出资深作家水准的小说](https://www.bilibili.com/video/BV1CqXTBRETo/)
 
 # 天命 - AI 网文创作系统
 
