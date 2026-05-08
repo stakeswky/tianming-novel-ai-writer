@@ -1,9 +1,3 @@
-<img width="200" alt="QQ群" src="https://github.com/user-attachments/assets/8f98736b-b251-4279-8586-77e3b6c8b6c7" />
-因为迭代速度太快，最新版为2.8.7版，视频教程也是旧版的，不过差不多吧，无非就是功能差异变化的有点多。
-## 视频教程
-
-[B站：AI写作-天命 保姆级教程 — 新手也能写出资深作家水准的小说](https://www.bilibili.com/video/BV1CqXTBRETo/)
-
 # 天命 - AI 网文创作系统
 
 > **AI 不会天然记得一本千万字小说。天命做的事情是：把故事变成系统能管理的数据，让 AI 按数据写作。**
@@ -77,6 +71,16 @@
 | **生成闭环** | ⑦ 数据中心打包 → ⑧ 生成第一章 → ⑨ 统一校验修正 |
 
 前 6 步不是形式流程，而是在为 AI 建立可读取、可校验、可追踪的数据基础。
+
+## 视频教程
+
+[B站：AI写作-天命 保姆级教程 — 新手也能写出资深作家水准的小说](https://www.bilibili.com/video/BV1CqXTBRETo/)
+
+> 视频基于早期版本录制，最新版为 v2.8.7，核心流程一致，部分功能有增强。
+
+## 交流群
+
+<img width="200" alt="QQ群" src="https://github.com/user-attachments/assets/8f98736b-b251-4279-8586-77e3b6c8b6c7" />
 
 ## 功能模块
 
@@ -228,3 +232,4 @@ dotnet run --project Core/App/天命.csproj
 ## 许可证
 
 [MIT License](LICENSE)
+
