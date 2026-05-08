@@ -1,4 +1,5 @@
 <img width="200" alt="QQ群" src="https://github.com/user-attachments/assets/8f98736b-b251-4279-8586-77e3b6c8b6c7" />
+因为迭代速度太快，当前已经是2.8.7版
 
 # 天命 - AI 网文创作系统
 
