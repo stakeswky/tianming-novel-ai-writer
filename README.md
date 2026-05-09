@@ -229,6 +229,14 @@ dotnet run --project Core/App/天命.csproj
 
 详见 [Docs/开源说明.md](Docs/开源说明.md)，包含禁用保护系统、跳过登录授权、配置服务端地址等说明。
 
+## 🙏 致谢
+
+感谢真诚、友善、团结、专业的 Linuxdo 社区，让我学到了那么多有关 AI 相关知识。
+
+[![LinuxDo community](https://img.shields.io/badge/LinuxDo-community-blue)](https://linux.do)
+
+- [LinuxDo](https://linux.do) 学 ai, 上 L 站!
+
 ## 许可证
 
 [MIT License](LICENSE)
