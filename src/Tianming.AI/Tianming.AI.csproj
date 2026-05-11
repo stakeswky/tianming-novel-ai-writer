@@ -3,12 +3,15 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Tianming.ProjectData/Tianming.ProjectData.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.30.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,48 +35,5 @@
     <Compile Include="../../Services/Framework/AI/Core/KeyRotationTypes.cs" Link="Services/Framework/AI/Core/KeyRotationTypes.cs" />
     <Compile Include="../../Services/Framework/AI/Core/UserConfiguration.cs" Link="Services/Framework/AI/Core/UserConfiguration.cs" />
     <Compile Include="../../Services/Framework/AI/Monitoring/ApiCallRecord.cs" Link="Services/Framework/AI/Monitoring/ApiCallRecord.cs" />
-    <Compile Include="Core/ApiKeySecretStore.cs" />
-    <Compile Include="Core/ApiKeyRotationService.cs" />
-    <Compile Include="Core/ConfiguredAITextGenerationService.cs" />
-    <Compile Include="Core/FileAIConfigurationStore.cs" />
-    <Compile Include="Core/ModelNameSanitizer.cs" />
-    <Compile Include="Core/OpenAICompatibleChatClient.cs" />
-    <Compile Include="Monitoring/FileUsageStatisticsService.cs" />
-    <Compile Include="PromptManagement/FilePromptTemplateStore.cs" />
-    <Compile Include="PromptManagement/FilePromptVersionStore.cs" />
-    <Compile Include="PromptManagement/PromptGenerationCoreService.cs" />
-    <Compile Include="PromptManagement/PromptVersionTestRunner.cs" />
-    <Compile Include="SemanticKernel/Embedding/ITextEmbedder.cs" />
-    <Compile Include="SemanticKernel/Embedding/HashingTextEmbedder.cs" />
-    <Compile Include="SemanticKernel/ChatHistoryCompressionService.cs" />
-    <Compile Include="SemanticKernel/ExecutionEvent.cs" />
-    <Compile Include="SemanticKernel/TodoExecutionService.cs" />
-    <Compile Include="SemanticKernel/FileVectorChapterIndexAdapter.cs" />
-    <Compile Include="SemanticKernel/FileVectorSearchService.cs" />
-    <Compile Include="SemanticKernel/References/ReferenceCatalog.cs" />
-    <Compile Include="SemanticKernel/References/ReferenceExpansionService.cs" />
-    <Compile Include="SemanticKernel/References/ReferenceParser.cs" />
-    <Compile Include="SemanticKernel/Conversation/Config/ConversationDisplayPolicy.cs" />
-    <Compile Include="SemanticKernel/Conversation/Config/ConversationModeProfile.cs" />
-    <Compile Include="SemanticKernel/Conversation/Config/ConversationModeProfileCatalog.cs" />
-    <Compile Include="SemanticKernel/Conversation/Helpers/ConversationSummarizer.cs" />
-    <Compile Include="SemanticKernel/Conversation/Helpers/ExecutionTraceCollector.cs" />
-    <Compile Include="SemanticKernel/Conversation/Helpers/SingleChapterTaskDetector.cs" />
-    <Compile Include="SemanticKernel/Conversation/Helpers/ThinkingBlockParser.cs" />
-    <Compile Include="SemanticKernel/Conversation/Mapping/AgentModeMapper.cs" />
-    <Compile Include="SemanticKernel/Conversation/Mapping/AskModeMapper.cs" />
-    <Compile Include="SemanticKernel/Conversation/Mapping/IConversationMessageMapper.cs" />
-    <Compile Include="SemanticKernel/Conversation/Mapping/PlanModeMapper.cs" />
-    <Compile Include="SemanticKernel/Conversation/Models/ConversationMessage.cs" />
-    <Compile Include="SemanticKernel/Conversation/Models/MessagePayload.cs" />
-    <Compile Include="SemanticKernel/Conversation/Models/ThinkingBlock.cs" />
-    <Compile Include="SemanticKernel/Conversation/Parsing/ChapterDirectiveParser.cs" />
-    <Compile Include="SemanticKernel/Conversation/Parsing/ChineseNumberParser.cs" />
-    <Compile Include="SemanticKernel/Conversation/Parsing/IPlanParser.cs" />
-    <Compile Include="SemanticKernel/Conversation/Parsing/PlanStepNormalizer.cs" />
-    <Compile Include="SemanticKernel/Conversation/Parsing/PlanStepParser.cs" />
-    <Compile Include="SemanticKernel/Conversation/Thinking/TagBasedThinkingStrategy.cs" />
-    <Compile Include="SemanticKernel/Conversation/Thinking/ThinkingRouteResult.cs" />
-    <Compile Include="SemanticKernel/FileSessionStore.cs" />
   </ItemGroup>
 </Project>
