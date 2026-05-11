@@ -1,0 +1,111 @@
+using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
+using TM.Services.Framework.AI.SemanticKernel.Conversation.Models;
+
+namespace TM.Services.Framework.AI.SemanticKernel.Conversation.Parsing
+{
+    public class PlanStepParser : IPlanParser
+    {
+        private static readonly Regex StepPattern = new(
+            @"^[\*\s]*\*?\*?" +
+            @"(?:" +
+                @"(\d+)[\.、\)\:：]\s*(.+)" +
+                @"|" +
+                @"(?:步骤|Step|STEP)\s*(\d+|[一二三四五六七八九十百千万零壹贰叁肆伍陆柒捌玖拾佰仟萬两〇]+)[：:\s]+(.+)" +
+                @"|" +
+                @"第\s*(\d+|[一二三四五六七八九十百千万零壹贰叁肆伍陆柒捌玖拾佰仟萬两〇]+)\s*步[：:\s]+(.+)" +
+            @")" +
+            @"\*?\*?\s*$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        public IReadOnlyList<PlanStep> Parse(string content)
+        {
+            var result = new List<PlanStep>();
+            if (string.IsNullOrWhiteSpace(content))
+                return result;
+
+            var lines = content.Split('\n');
+            var currentIndex = 0;
+            var currentDetail = new StringBuilder();
+
+            foreach (var rawLine in lines)
+            {
+                var trimmed = rawLine.Trim();
+                var match = StepPattern.Match(trimmed);
+
+                if (match.Success)
+                {
+                    SavePreviousStep(result, currentIndex, currentDetail);
+
+                    var index = 0;
+                    var title = string.Empty;
+
+                    if (!string.IsNullOrEmpty(match.Groups[1].Value))
+                    {
+                        index = int.Parse(match.Groups[1].Value);
+                        title = match.Groups[2].Value;
+                    }
+                    else if (!string.IsNullOrEmpty(match.Groups[3].Value))
+                    {
+                        index = ChineseNumberParser.Parse(match.Groups[3].Value);
+                        title = match.Groups[4].Value;
+                    }
+                    else if (!string.IsNullOrEmpty(match.Groups[5].Value))
+                    {
+                        index = ChineseNumberParser.Parse(match.Groups[5].Value);
+                        title = match.Groups[6].Value;
+                    }
+
+                    title = CleanTitle(title);
+                    if (index > 0 && !string.IsNullOrEmpty(title) && title.Length > 2)
+                    {
+                        result.Add(new PlanStep { Index = index, Title = title });
+                        currentIndex = index;
+                        currentDetail.Clear();
+                        continue;
+                    }
+                }
+
+                if (currentIndex > 0 && !string.IsNullOrEmpty(trimmed))
+                    currentDetail.AppendLine(trimmed);
+            }
+
+            SavePreviousStep(result, currentIndex, currentDetail);
+            return result;
+        }
+
+        public int CountSteps(string content)
+        {
+            if (string.IsNullOrEmpty(content))
+                return 0;
+
+            if (!content.Contains("步骤") && !content.Contains("计划")
+                && !content.Contains("Step") && !content.Contains("**目标**")
+                && !Regex.IsMatch(content, @"^\s*\d+[\.、]", RegexOptions.Multiline))
+            {
+                return 0;
+            }
+
+            var count = 0;
+            foreach (var line in content.Split('\n'))
+            {
+                if (StepPattern.IsMatch(line.Trim()))
+                    count++;
+            }
+
+            return count;
+        }
+
+        private static void SavePreviousStep(List<PlanStep> result, int currentIndex, StringBuilder detail)
+        {
+            if (currentIndex > 0 && result.Count > 0)
+                result[^1].Detail = detail.ToString().Trim();
+        }
+
+        private static string CleanTitle(string title)
+        {
+            return title.Replace("**", string.Empty).Trim();
+        }
+    }
+}
