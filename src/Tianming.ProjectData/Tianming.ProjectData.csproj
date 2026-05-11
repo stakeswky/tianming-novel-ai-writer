@@ -1,0 +1,121 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Framework/Common/Helpers/Id/ShortIdGenerator.cs" Link="Framework/Common/Helpers/Id/ShortIdGenerator.cs" />
+    <Compile Include="../../Framework/Common/Models/IEnableable.cs" Link="Framework/Common/Models/IEnableable.cs" />
+    <Compile Include="../../Framework/Common/Models/ICategory.cs" Link="Framework/Common/Models/ICategory.cs" />
+    <Compile Include="../../Framework/Common/Models/IDataItem.cs" Link="Framework/Common/Models/IDataItem.cs" />
+    <Compile Include="../../Framework/Common/Models/IDependencyTracked.cs" Link="Framework/Common/Models/IDependencyTracked.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Tracking/ProtocolValidationResult.cs" Link="Services/Modules/ProjectData/Models/Tracking/ProtocolValidationResult.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Tracking/TrackingChangeModels.cs" Link="Services/Modules/ProjectData/Models/Tracking/TrackingChangeModels.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Publishing/PublishResult.cs" Link="Services/Modules/ProjectData/Models/Publishing/PublishResult.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Navigation/ModuleInfo.cs" Link="Services/Modules/ProjectData/Models/Navigation/ModuleInfo.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/ChangeDetection/ChangeStatus.cs" Link="Services/Modules/ProjectData/Models/ChangeDetection/ChangeStatus.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Validate/ValidationSummary/ModuleValidationResult.cs" Link="Services/Modules/ProjectData/Models/Validate/ValidationSummary/ModuleValidationResult.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Validate/ValidationSummary/ProblemItem.cs" Link="Services/Modules/ProjectData/Models/Validate/ValidationSummary/ProblemItem.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Validate/ValidationSummary/ValidationRules.cs" Link="Services/Modules/ProjectData/Models/Validate/ValidationSummary/ValidationRules.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Validate/ValidationSummary/ValidationSummaryCategory.cs" Link="Services/Modules/ProjectData/Models/Validate/ValidationSummary/ValidationSummaryCategory.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Validate/ValidationSummary/ValidationSummaryData.cs" Link="Services/Modules/ProjectData/Models/Validate/ValidationSummary/ValidationSummaryData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Validation/ValidationReport.cs" Link="Services/Modules/ProjectData/Models/Validation/ValidationReport.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Guides/ContextIdCollection.cs" Link="Services/Modules/ProjectData/Models/Guides/ContextIdCollection.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Common/BusinessDataBase.cs" Link="Services/Modules/ProjectData/Models/Common/BusinessDataBase.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Common/IContextStringProvider.cs" Link="Services/Modules/ProjectData/Models/Common/IContextStringProvider.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/ValidationContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/ValidationContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Aggregates/DesignData.cs" Link="Services/Modules/ProjectData/Models/Contexts/Aggregates/DesignData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Aggregates/GenerateData.cs" Link="Services/Modules/ProjectData/Models/Contexts/Aggregates/GenerateData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Design/TemplatesContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Design/TemplatesContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Design/WorldviewContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Design/WorldviewContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Design/CharacterContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Design/CharacterContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Design/FactionsContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Design/FactionsContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Design/LocationContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Design/LocationContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Design/PlotContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Design/PlotContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Generate/OutlineContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Generate/OutlineContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Generate/PlanningContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Generate/PlanningContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Generate/BlueprintContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Generate/BlueprintContext.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Templates/CreativeMaterialData.cs" Link="Services/Modules/ProjectData/Models/Design/Templates/CreativeMaterialData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Factions/FactionRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Factions/FactionRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Location/LocationRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Location/LocationRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Plot/PlotRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Plot/PlotRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineData.cs" Link="Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterData.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintData.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignData.cs" Link="Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Interfaces/IUnifiedValidationService.cs" Link="Services/Modules/ProjectData/Interfaces/IUnifiedValidationService.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Interfaces/IIndexable.cs" Link="Services/Modules/ProjectData/Interfaces/IIndexable.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Implementations/Generation/AIOutputParser.cs" Link="Services/Modules/ProjectData/Implementations/Generation/AIOutputParser.cs" />
+    <Compile Include="../../Services/Modules/VersionTracking/DependencyConfig.cs" Link="Services/Modules/VersionTracking/DependencyConfig.cs" />
+    <Compile Include="Framework/EntityNameNormalizeHelper.cs" />
+    <Compile Include="Generation/ChapterContentStore.cs" />
+    <Compile Include="Generation/ChapterGenerationPipeline.cs" />
+    <Compile Include="Generation/ChapterInfo.cs" />
+    <Compile Include="Generation/ChangesProtocolParser.cs" />
+    <Compile Include="Generation/ContentGenerationPreparer.cs" />
+    <Compile Include="Generation/GenerationGate.cs" />
+    <Compile Include="Generation/GenerationResult.cs" />
+    <Compile Include="Generation/FileGenerationStatisticsRecorder.cs" />
+    <Compile Include="Generation/GenerationStatisticsModels.cs" />
+    <Compile Include="Generation/GenerationStatisticsRecorder.cs" />
+    <Compile Include="Indexing/FileChapterKeywordIndex.cs" />
+    <Compile Include="Indexing/IChapterDerivedIndex.cs" />
+    <Compile Include="Modules/FileModuleDataStore.cs" />
+    <Compile Include="Navigation/WritingNavigationCatalog.cs" />
+    <Compile Include="Packaging/FileChangeDetectionStore.cs" />
+    <Compile Include="Packaging/FileModuleEnabledStore.cs" />
+    <Compile Include="Packaging/FilePackageBuilder.cs" />
+    <Compile Include="Packaging/FilePackageManifestStore.cs" />
+    <Compile Include="Packaging/FilePackagePublisher.cs" />
+    <Compile Include="Packaging/FilePackageStatisticsBuilder.cs" />
+    <Compile Include="Packaging/PackageModuleMappingCatalog.cs" />
+    <Compile Include="ProjectSystem/FileProjectManager.cs" />
+    <Compile Include="Tracking/ConsistencyIssue.cs" />
+    <Compile Include="Tracking/ConsistencyResult.cs" />
+    <Compile Include="Tracking/FactSnapshot.cs" />
+    <Compile Include="Tracking/FileChapterTrackingSink.cs" />
+    <Compile Include="Tracking/FileFactSnapshotGuideSource.cs" />
+    <Compile Include="Tracking/GateModels.cs" />
+    <Compile Include="Tracking/ChapterTrackingDispatcher.cs" />
+    <Compile Include="Tracking/GuideModels.cs" />
+    <Compile Include="Tracking/LedgerConsistencyChecker.cs" />
+    <Compile Include="Tracking/LedgerRuleSet.cs" />
+    <Compile Include="Tracking/LedgerRuleSetProvider.cs" />
+    <Compile Include="Tracking/PortableFactSnapshotExtractor.cs" />
+    <Compile Include="Validation/ContentDescriptionValidator.cs" />
+    <Compile Include="Validation/ContentEntityExtractor.cs" />
+    <Compile Include="Validation/ChapterRepairProblemHintBuilder.cs" />
+    <Compile Include="Validation/ChapterRepairPromptComposer.cs" />
+    <Compile Include="Validation/PortableChapterRepairService.cs" />
+    <Compile Include="Validation/BatchChapterValidationResultParser.cs" />
+    <Compile Include="Validation/BatchChapterValidationPromptComposer.cs" />
+    <Compile Include="Validation/BatchChapterValidationPromptContextResolver.cs" />
+    <Compile Include="Validation/ChapterAIValidationExecutor.cs" />
+    <Compile Include="Validation/ChapterValidationAIWorkflow.cs" />
+    <Compile Include="Validation/ChapterValidationBatchProcessor.cs" />
+    <Compile Include="Validation/ChapterValidationDesignContextResolver.cs" />
+    <Compile Include="Validation/ChapterValidationPromptInputBuilder.cs" />
+    <Compile Include="Validation/ChapterValidationPromptContextResolver.cs" />
+    <Compile Include="Validation/ChapterValidationPromptComposer.cs" />
+    <Compile Include="Validation/ChapterValidationProcessor.cs" />
+    <Compile Include="Validation/ChapterValidationResultParser.cs" />
+    <Compile Include="Validation/ChapterValidationPromptTemplate.cs" />
+    <Compile Include="Validation/FileValidationPersistenceAdapter.cs" />
+    <Compile Include="Validation/FileValidationReportStore.cs" />
+    <Compile Include="Validation/FileValidationSummaryStore.cs" />
+    <Compile Include="Validation/PortableUnifiedValidationService.cs" />
+    <Compile Include="Validation/PortableConsistencyReconciler.cs" />
+    <Compile Include="Validation/ValidationContextAIWorkflow.cs" />
+    <Compile Include="Validation/ValidationContextPromptSourceMapper.cs" />
+    <Compile Include="Validation/ValidationReportBuilder.cs" />
+    <Compile Include="Validation/VolumeValidationChapterSampler.cs" />
+    <Compile Include="Validation/VolumeValidationProcessor.cs" />
+    <Compile Include="Validation/VolumeValidationSummaryBuilder.cs" />
+    <Compile Include="VersionTracking/FileVersionTrackingService.cs" />
+  </ItemGroup>
+</Project>
