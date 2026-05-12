@@ -1,0 +1,12 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels"
+             x:Class="Tianming.Desktop.Avalonia.Views.WelcomeView"
+             x:DataType="vm:WelcomeViewModel">
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+    <TextBlock Text="欢迎使用天命" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center"/>
+    <TextBlock Text="新建一个项目开始写小说" Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Center"/>
+    <TextBox Text="{Binding NewProjectName, Mode=TwoWay}" Width="300" Watermark="项目名"/>
+    <Button Content="新建项目" Command="{Binding CreateProjectCommand}" HorizontalAlignment="Center"/>
+  </StackPanel>
+</UserControl>

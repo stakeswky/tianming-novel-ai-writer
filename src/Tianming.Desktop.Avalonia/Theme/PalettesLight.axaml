@@ -1,0 +1,21 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <SolidColorBrush x:Key="UnifiedBackground"   Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="ContentBackground"   Color="#F8FAFC"/>
+  <SolidColorBrush x:Key="SurfaceBackground"   Color="#F1F5F9"/>
+  <SolidColorBrush x:Key="BorderBrush"         Color="#E2E8F0"/>
+  <SolidColorBrush x:Key="TextPrimary"         Color="#1E293B"/>
+  <SolidColorBrush x:Key="TextSecondary"       Color="#64748B"/>
+  <SolidColorBrush x:Key="TextTertiary"        Color="#94A3B8"/>
+  <SolidColorBrush x:Key="HoverBackground"     Color="#F1F5F9"/>
+  <SolidColorBrush x:Key="ActiveBackground"    Color="#E2E8F0"/>
+  <SolidColorBrush x:Key="SelectedBackground"  Color="#DBEAFE"/>
+  <SolidColorBrush x:Key="PrimaryColor"        Color="#3B82F6"/>
+  <SolidColorBrush x:Key="PrimaryHover"        Color="#2563EB"/>
+  <SolidColorBrush x:Key="PrimaryActive"       Color="#1D4ED8"/>
+  <SolidColorBrush x:Key="SuccessColor"        Color="#22C55E"/>
+  <SolidColorBrush x:Key="WarningColor"        Color="#F59E0B"/>
+  <SolidColorBrush x:Key="DangerColor"         Color="#EF4444"/>
+  <SolidColorBrush x:Key="DangerHover"         Color="#DC2626"/>
+  <SolidColorBrush x:Key="InfoColor"           Color="#06B6D4"/>
+</ResourceDictionary>

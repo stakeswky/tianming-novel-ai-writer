@@ -1,0 +1,8 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels"
+             x:Class="Tianming.Desktop.Avalonia.Views.PlaceholderView"
+             x:DataType="vm:PlaceholderViewModel">
+  <TextBlock Text="{Binding Message}" Foreground="{DynamicResource TextTertiary}"
+             HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"/>
+</UserControl>
