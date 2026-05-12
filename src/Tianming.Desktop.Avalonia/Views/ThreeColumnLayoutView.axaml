@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels"
+             x:Class="Tianming.Desktop.Avalonia.Views.ThreeColumnLayoutView"
+             x:DataType="vm:ThreeColumnLayoutViewModel">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="{Binding LeftColumnWidth, Mode=TwoWay}" MinWidth="180"/>
+      <ColumnDefinition Width="4"/>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="4"/>
+      <ColumnDefinition Width="{Binding RightColumnWidth, Mode=TwoWay}" MinWidth="240"/>
+    </Grid.ColumnDefinitions>
+    <ContentControl Grid.Column="0" Content="{Binding LeftNav}"/>
+    <GridSplitter Grid.Column="1" Background="{DynamicResource BorderBrush}" ResizeDirection="Columns"/>
+    <ContentControl Grid.Column="2" Content="{Binding Center}"/>
+    <GridSplitter Grid.Column="3" Background="{DynamicResource BorderBrush}" ResizeDirection="Columns"/>
+    <ContentControl Grid.Column="4" Content="{Binding RightPanel}"/>
+  </Grid>
+</UserControl>

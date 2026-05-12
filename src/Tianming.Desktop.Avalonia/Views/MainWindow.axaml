@@ -1,0 +1,9 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels"
+        xmlns:v="using:Tianming.Desktop.Avalonia.Views"
+        x:Class="Tianming.Desktop.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}" Width="1200" Height="800">
+  <v:ThreeColumnLayoutView DataContext="{Binding Layout}"/>
+</Window>

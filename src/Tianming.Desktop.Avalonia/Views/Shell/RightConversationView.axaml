@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Shell"
+             x:Class="Tianming.Desktop.Avalonia.Views.Shell.RightConversationView"
+             x:DataType="vm:RightConversationViewModel">
+  <Border Background="{DynamicResource ContentBackground}" Padding="16">
+    <TextBlock Text="{Binding PlaceholderText}" Foreground="{DynamicResource TextTertiary}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  </Border>
+</UserControl>
