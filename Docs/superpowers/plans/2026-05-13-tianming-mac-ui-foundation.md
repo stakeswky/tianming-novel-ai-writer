@@ -6,7 +6,7 @@
 
 **Architecture:** 一次性出全套基建（Approach 1）。token 分 5 个 axaml（Colors/Typography/Spacing/Radii/Shadows）；primitives 用 `TemplatedControl` + ControlTheme，Lucide icon string token；chrome 用 `ExtendClientAreaToDecorationsHint`；status bar 走 probe 异步填充。亮色 only（删 `PalettesDark.axaml`）。
 
-**Tech Stack:** Avalonia 11.0.10 / CommunityToolkit.Mvvm 8.2.2 / xunit 2.9.2 / LiveChartsCore.SkiaSharpView.Avalonia / AvaloniaEdit 11.0.6 / Projektanker.Icons.Avalonia.Lucide 9.4.1 / Avalonia.Headless（新加）
+**Tech Stack:** Avalonia 11.0.10 / CommunityToolkit.Mvvm 8.2.2 / xunit 2.9.2 / LiveChartsCore.SkiaSharpView.Avalonia 2.0.2 / Avalonia.AvaloniaEdit 11.0.6 / Lucide.Avalonia 0.2.6 / Avalonia.Headless 11.0.10（新加）
 
 **Spec:** `Docs/superpowers/specs/2026-05-13-tianming-mac-ui-foundation-design.md`
 
@@ -103,19 +103,18 @@ Expected：`On branch mac-ui/foundation-2026-05-13`，working tree clean
 
 ## Phase 2 / NuGet 依赖追加
 
-### Task 3: 探明 LiveCharts2 Avalonia 11 兼容版本
+### Task 3: NuGet 包加包
 
-**Files:** 调研，无文件修改
+**Files:** csproj 修改
 
-- [ ] **Step 1: 查 LiveCharts2 最新可用版本**
+> **版本已校准**（2026-05-13 探测 nuget.org）：spec 原写的 4 个包里有 3 个有问题：
+> - `AvaloniaEdit` 包 id 错（应为 `Avalonia.AvaloniaEdit`）
+> - `Projektanker.Icons.Avalonia 9.4.1` 要求 Avalonia >= 11.1.3（与 11.0.10 冲突）
+> - `Projektanker.Icons.Avalonia.Lucide` 不存在
+> 
+> 已用 **`Lucide.Avalonia 0.2.6`**（独立轻量 Lucide-only 包）替代 Projektanker；LiveCharts2 用 stable **`2.0.2`** 替代原计划的 RC。
 
-```bash
-dotnet package search LiveChartsCore.SkiaSharpView.Avalonia --prerelease --take 5
-```
-
-记下输出里支持 Avalonia 11 的最新稳定 / RC 版本号，写到下一 Step 的 csproj 里。预期目前是 `2.0.0-rc5` 或更新；若 search 失败可直接到 nuget.org 看 `LiveChartsCore.SkiaSharpView.Avalonia` 的 Avalonia 11.x 兼容版。
-
-- [ ] **Step 2: csproj 加 3 个新包**
+- [ ] **Step 1: 主项目 csproj 加 3 个新包**
 
 打开 `src/Tianming.Desktop.Avalonia/Tianming.Desktop.Avalonia.csproj`，把第一个 `<ItemGroup>` 改成：
 
@@ -130,15 +129,14 @@ dotnet package search LiveChartsCore.SkiaSharpView.Avalonia --prerelease --take 
   <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
   <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
   <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-  <!-- 新加：LiveCharts2 / AvaloniaEdit / Lucide icons -->
-  <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="<step-1 调研得到的版本>" />
-  <PackageReference Include="AvaloniaEdit" Version="11.0.6" />
-  <PackageReference Include="Projektanker.Icons.Avalonia" Version="9.4.1" />
-  <PackageReference Include="Projektanker.Icons.Avalonia.Lucide" Version="9.4.1" />
+  <!-- 新加：LiveCharts2 / AvaloniaEdit / Lucide icons（版本已校准 2026-05-13） -->
+  <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.2" />
+  <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.0.6" />
+  <PackageReference Include="Lucide.Avalonia" Version="0.2.6" />
 </ItemGroup>
 ```
 
-- [ ] **Step 3: Test 项目加 Avalonia.Headless**
+- [ ] **Step 2: Test 项目加 Avalonia.Headless**
 
 打开 `tests/Tianming.Desktop.Avalonia.Tests/Tianming.Desktop.Avalonia.Tests.csproj`，把 PackageReferences 改成：
 
@@ -153,7 +151,7 @@ dotnet package search LiveChartsCore.SkiaSharpView.Avalonia --prerelease --take 
 </ItemGroup>
 ```
 
-- [ ] **Step 4: restore + build verify**
+- [ ] **Step 3: restore + build verify**
 
 ```bash
 dotnet restore Tianming.MacMigration.sln
@@ -162,9 +160,9 @@ dotnet build Tianming.MacMigration.sln -c Debug --nologo -v q
 
 Expected：`Build succeeded. 0 Warning(s) 0 Error(s)`。
 
-如果有 NU1605 downgrade 警告，再调 Microsoft.Extensions.DependencyInjection 等版本（按错误提示）。
+如果有 NU1605 downgrade 警告，按错误提示调 Microsoft.Extensions.DependencyInjection 等版本。
 
-- [ ] **Step 5: 跑现有 1156 测试基线确认未退化**
+- [ ] **Step 4: 跑现有 1156 测试基线确认未退化**
 
 ```bash
 dotnet test Tianming.MacMigration.sln -c Debug --nologo --no-build -v q 2>&1 | tail -10
@@ -172,16 +170,16 @@ dotnet test Tianming.MacMigration.sln -c Debug --nologo --no-build -v q 2>&1 | t
 
 Expected：1156 个测试通过（Framework 781 + ProjectData 218 + AI 144 + Avalonia 13）。
 
-- [ ] **Step 6: commit**
+- [ ] **Step 5: commit**
 
 ```bash
 git add src/Tianming.Desktop.Avalonia/Tianming.Desktop.Avalonia.csproj \
         tests/Tianming.Desktop.Avalonia.Tests/Tianming.Desktop.Avalonia.Tests.csproj
 git commit -m "build(deps): 加 LiveCharts2 / AvaloniaEdit / Lucide / Avalonia.Headless
 
-- LiveChartsCore.SkiaSharpView.Avalonia <version>: 后续图表渲染
-- AvaloniaEdit 11.0.6: CodeViewer primitive + M4.3 章节编辑器
-- Projektanker.Icons.Avalonia(.Lucide) 9.4.1: 全套 primitive 用 Lucide string token
+- LiveChartsCore.SkiaSharpView.Avalonia 2.0.2: 后续图表渲染
+- Avalonia.AvaloniaEdit 11.0.6: CodeViewer primitive + M4.3 章节编辑器
+- Lucide.Avalonia 0.2.6: 全套 primitive 用 Lucide string token
 - Avalonia.Headless(.XUnit) 11.0.10: shell / primitives UI 单元测试
 
 1156 测试基线保持通过。"

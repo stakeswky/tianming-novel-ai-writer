@@ -349,14 +349,16 @@ public enum StatusKind { Success, Warning, Danger, Info, Neutral }
 <!-- src/Tianming.Desktop.Avalonia/Tianming.Desktop.Avalonia.csproj -->
 <ItemGroup>
   <!-- 已有：Avalonia 11.0.10、CommunityToolkit.Mvvm 8.2.2、M.E.DI 8.0.1 / .Logging 8.0.0 -->
-  <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="<latest-stable-or-prerelease>" />
-  <PackageReference Include="AvaloniaEdit"                          Version="11.0.6" />
-  <PackageReference Include="Projektanker.Icons.Avalonia"           Version="9.4.1" />
-  <PackageReference Include="Projektanker.Icons.Avalonia.Lucide"    Version="9.4.1" />
+  <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.2" />
+  <PackageReference Include="Avalonia.AvaloniaEdit"                 Version="11.0.6" />
+  <PackageReference Include="Lucide.Avalonia"                       Version="0.2.6" />
 </ItemGroup>
 ```
 
-> LiveCharts2 Avalonia 11 兼容包版本在 spec 写作时尚未稳定。实施 step 1 用 `dotnet package search LiveChartsCore.SkiaSharpView.Avalonia --prerelease` 查最新可用：**优先稳定版**；若没有支持 Avalonia 11.0.x 的稳定版，**降级为最新 RC / 预览版**并在 commit message 里写明版本号与来源。AvaloniaEdit / Lucide 已稳定，按上面版本固化。
+> 包 id / 版本（基于真实 nuget.org 探测，2026-05-13 校准）：
+> - **LiveCharts2 = `LiveChartsCore.SkiaSharpView.Avalonia 2.0.2`** stable（依赖 Avalonia 11.0.0，与我们 11.0.10 兼容；不需要 RC）
+> - **AvaloniaEdit 包 id = `Avalonia.AvaloniaEdit 11.0.6`**（bare `AvaloniaEdit` id 只有 0.10.x 旧版，是另一个包）
+> - **Lucide 图标 = `Lucide.Avalonia 0.2.6`**（独立轻量 Lucide-only 包；放弃 Projektanker.Icons.Avalonia 因 9.4.1 要求 Avalonia 11.1.3+，且其 Lucide 子包 `Projektanker.Icons.Avalonia.Lucide` 实际不存在）
 
 ### 5.1 LiveCharts2 全局样式（启动时一次）
 
@@ -402,11 +404,10 @@ LiveChartsSettings.ConfigureTheme(t => t
 
 <Application.Styles>
   <FluentTheme/>
-  <icons:LucideIconStyles xmlns:icons="https://projektanker.com/icons/avalonia"/>
 </Application.Styles>
 ```
 
-用法：`<icons:Icon Value="search" Size="16"/>`，与 primitive 的 `IconGlyph: string` 直通。
+> **Lucide 用法**（`Lucide.Avalonia 0.2.6`）：包用 `LucideIcon` 控件 + `LucideIconKind` enum。每个 primitive 的 `IconGlyph: string` 属性接 Lucide 名称（如 `"home"` / `"search"` / `"folder-open"`），primitive 的 ControlTemplate 内部把字符串映射到 `LucideIcon`。具体映射方式（直接 attached property / converter / enum lookup）在 Phase 9 第一个用到 icon 的 primitive 实施时定型，spec 仅约定 string token 接口。
 
 ## 6. DI 装配与状态来源
 
