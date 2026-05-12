@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tianming.Framework", "src\T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tianming.Framework.Tests", "tests\Tianming.Framework.Tests\Tianming.Framework.Tests.csproj", "{47614B18-91EB-4E42-A97A-361AFD71DFC0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tianming.Desktop.Avalonia", "src\Tianming.Desktop.Avalonia\Tianming.Desktop.Avalonia.csproj", "{EBE5577C-298D-4A6C-A387-C4CC5F85B614}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{47614B18-91EB-4E42-A97A-361AFD71DFC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47614B18-91EB-4E42-A97A-361AFD71DFC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47614B18-91EB-4E42-A97A-361AFD71DFC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBE5577C-298D-4A6C-A387-C4CC5F85B614}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBE5577C-298D-4A6C-A387-C4CC5F85B614}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBE5577C-298D-4A6C-A387-C4CC5F85B614}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBE5577C-298D-4A6C-A387-C4CC5F85B614}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B4FA27A5-AB1B-4B41-BE2A-65E21FD487E7} = {416157A2-BA79-4530-A30C-918517F363F0}
@@ -60,5 +66,6 @@ Global
 		{7241BD39-DDCE-4FB4-BBC1-47605B8A6589} = {2CE58D40-2849-4D56-83EB-452246CE1103}
 		{F557D072-6923-412B-8EE7-4BE7346EFE0B} = {416157A2-BA79-4530-A30C-918517F363F0}
 		{47614B18-91EB-4E42-A97A-361AFD71DFC0} = {2CE58D40-2849-4D56-83EB-452246CE1103}
+		{EBE5577C-298D-4A6C-A387-C4CC5F85B614} = {416157A2-BA79-4530-A30C-918517F363F0}
 	EndGlobalSection
 EndGlobal
