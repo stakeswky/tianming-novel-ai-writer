@@ -30,6 +30,7 @@
 - PAC 脚本解析
 - Info.plist / entitlements / hardened runtime（M7 范畴，已砍）
 - ProtectionService / 反调试
+- v2.8.7 写作内核升级（追踪债务、人味润色、WAL、AI middleware、Agent 插件拆分等）—— 这些属于 M6，不混进平台层
 
 ### 1.3 决策
 
@@ -41,6 +42,7 @@
 | Q4 | 代理：PAC 脚本不解析，只读 `HTTPEnable`/`HTTPProxy`/`HTTPPort` 和 `HTTPSEnable`/`HTTPSProxy`/`HTTPSPort` |
 | Q5 | 主题监听：debounce 200ms；订阅 `AppleInterfaceThemeChangedNotification` + 初次启动时取一次当前值 |
 | Q6 | macOS 最低版本：**macOS 13 Ventura+**（与 M0 基线一致） |
+| Q7 | M5 是平台收尾，不承接业务内核；完成后进入 M6 v2.8.7 写作内核升级 |
 
 ## 2. 架构
 
@@ -192,4 +194,4 @@ public sealed class MacOSSystemAppearanceMonitor : ISystemAppearanceMonitor, IDi
 5. 系统偏好切换深/浅色 → 应用即时跟随
 6. macOS 顶部系统菜单栏能看到"天命"菜单 + ⌘Q / ⌘, / ⌘N / ⌘S 快捷键
 
-完成后……迁移就完成了，开写。
+完成后进入 M6（v2.8.7 写作内核升级）。M5 结束时应用已经能在 macOS 自用写作，M6 是把 v2.8.7 的长篇稳定性、生成质量、Agent 动手能力补齐。

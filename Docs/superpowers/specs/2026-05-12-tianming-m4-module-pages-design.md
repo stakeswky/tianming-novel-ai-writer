@@ -17,6 +17,7 @@
 - **M4.4 章节生成管道**：选章 → Fact Snapshot 预览 → 生成门禁 → CHANGES preview → 应用。
 - **M4.5 AI 对话面板（右栏）**：流式输出 + thinking 分流 + 引用 `@` 下拉 + Ask/Plan/Agent 三种模式 + 会话历史。这是右栏实装，M3 只占位。
 - **M4.6 AI 模型 / 提示词管理**：模型管理、API Key 配置（写 Keychain）、提示词 CRUD、用量统计。提示词版本测试降级：保留 portable 能力但 UI 只做单版本运行。
+- **M4.7 v2.8.7 入口预留**：只做可见入口与状态位，不做内核重写；把 HumanizeRules、CHANGES Canonicalizer、分层校验、WAL、一键成书、Agent 写工程能力放入 M6。
 
 ### 1.2 不做
 
@@ -25,6 +26,7 @@
 - 蓝图图形化视图 —— 先列表凑合，你要的画图体验不如白板
 - 系统偏好页面（字体管理器、主题设计器、定时主题、日志输出、数据清理、系统监控等）—— 真需要时单开偏好窗口，M4 不铺
 - 编辑器复杂能力（Diff 查看、多光标、代码折叠、内联 AI 补全）—— AvaloniaEdit 默认能力先用着
+- v2.8.7 写作内核升级 —— M4 只做入口和 UI 展示骨架，真正实现放 M6
 - 多 Wave / 多 agent 并行 —— 一人写，按子里程碑串行
 
 ### 1.3 决策
@@ -38,6 +40,7 @@
 | Q5 | 对话流式绑定：`IAsyncEnumerable<ChatStreamDelta>` → `ObservableCollection`，每 16ms flush |
 | Q6 | 标签页持久化：`editor_tabs.json` 存 open/active/cursor；切项目清空 |
 | Q7 | API Key 写入：M4.6 调 `IApiKeySecretStore`；真 Keychain 在 M5，M4 先用临时内存/明文 JSON 存（本机自用，等 M5 替换） |
+| Q8 | v2.8.7 能力在 M4 只做“能看到、能挂接、能替换”的 UI 契约，业务实现统一推到 M6 |
 
 ## 2. 架构
 
@@ -90,6 +93,19 @@ Controls/
 - 导航走 `INavigationService`，不直接 `new Window`
 - 不引入 Avalonia 命名空间（除少量 `Dispatcher` / `Visual` 帮助）
 
+### 2.4 v2.8.7 入口映射
+
+| v2.8.7 能力 | M4 只做什么 | M6 真正实现什么 |
+|---|---|---|
+| 维度漂移 / 遗漏 / Deadline / Pledge / SecretReveal | `FactSnapshotView` 增加“追踪债务/约束”空状态和问题列表槽位 | 扩展 Tracking 模型、提取器、重建订阅和告警 |
+| HumanizeRules + 双通道润色 | `ChapterPipelinePage` 增加“润色”步骤占位和字数偏差提示位 | 本地规则、在线润色、专用润色 API、分段重试 |
+| CHANGES Canonicalizer | `ChangesPreview` 支持显示“原始/归一化”两列，但 M4 可先只显示原始 | 实现归一化、重要性校正、协议保留 |
+| 分层抽样 + 向量定位校验 | `ValidationIssueList` 支持章节定位、向量命中摘要字段 | 校验子系统拆分、抽样策略、向量联动 |
+| 一键成书 + 断点续跑 | 生成规划页预留 `generate.oneclick` PageKey 和按钮禁用态 | 10 步流水线、前置补全、断点续跑、短篇蓝图 |
+| WAL / 里程碑压缩 / 卷级归档 | 编辑器和 pipeline 展示“恢复中/可恢复草稿”状态位 | 章节写入 WAL、恢复控制器、归档与压缩 |
+| AI middleware / 多模型路由 | `ai.models` 增加任务类型槽位：对话、正文、润色、校验 | 7 层 middleware、路由、降级、能力探测 |
+| Agent 写工程能力 | `ToolCallCard` 支持“待确认变更”视觉状态 | WorkspacePlugin / DataEditPlugin / ContentEditPlugin |
+
 ## 3. 工作拆分
 
 **每个子里程碑独立串行**，跑通后再进下一个：
@@ -120,6 +136,7 @@ Commit：`feat(ui): M4.1 设计模块 6 页`。
 ### M4.4 章节生成管道串联（~半天）
 
 - 把 M4.2 的 pipeline 页与 M4.3 编辑器打通：生成完成 → 自动打开编辑器标签
+- 增加 M6 预留状态：润色步骤、CHANGES 归一化状态、WAL 可恢复状态均可显示“未启用”
 - Commit：`feat(ui): M4.4 章节生成闭环`
 
 ### M4.5 AI 对话面板（~3 天）
@@ -129,11 +146,13 @@ Commit：`feat(ui): M4.1 设计模块 6 页`。
 3. `PlanStepListView` + Plan 模式执行路径 ~3 小时
 4. `ToolCallCard` + Agent 模式工具调用展示 ~3 小时
 5. 会话历史抽屉 + `FileSessionStore` 接线 ~3 小时
-6. Commit：`feat(ui): M4.5 AI 对话面板三模式`
+6. `ToolCallCard` 增加“待确认变更”状态，为 M6 DataEditPlugin / ContentEditPlugin 做 UI 契约
+7. Commit：`feat(ui): M4.5 AI 对话面板三模式`
 
 ### M4.6 AI 管理（~1.5 天）
 
 - `ModelManagementPage` / `ApiKeysPage` / `PromptManagementPage` / `UsageStatisticsPage` 串行 ~10 小时
+- 任务类型槽位先建起来：Chat / Writing / Polish / Validation；M6 再接真实多模型路由
 - Commit：`feat(ui): M4.6 AI 模型/提示词/用量`
 
 ## 4. 测试
@@ -158,6 +177,7 @@ Commit：`feat(ui): M4.1 设计模块 6 页`。
 3. 全流程手工走通：新建项目 → 填 5 大规则 → 写大纲分卷章节 → 生成章节 → 编辑器里修改 → 保存
 4. 对话面板 Ask 模式至少能与 OpenAI-compatible endpoint 完整对话 1 次
 5. API Key 在 `ai.keys` 页填入能保存（M5 改接 Keychain 前可明文 JSON）
-6. 你自己用完一章从头到尾顺 — 这个最重要
+6. M6 预留入口可见但不误导：未实现能力显示“未启用/待 M6”，不出现假可用按钮
+7. 你自己用完一章从头到尾顺 — 这个最重要
 
 完成后进入 M5（Keychain + 系统代理）。

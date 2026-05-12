@@ -35,6 +35,7 @@
 | Q5 | 样式：`Avalonia.Themes.Fluent` 基底 + 简单 accent 覆盖 |
 | Q6 | 窗口状态：`~/Library/Application Support/Tianming/window_state.json` 存位置/尺寸/三栏比例 |
 | Q7 | 启动项目：有上次打开的就进主窗口；否则 Welcome |
+| Q8 | v2.8.7 升级点不塞进 M3；M3 只留下稳定扩展点，后续由 M4/M6 承接 |
 
 ## 2. 架构
 
@@ -164,6 +165,16 @@ Program.Main
 ```
 
 关闭：`MainWindow.Closing` → `WindowStateStore.Save` → `IAsyncDisposable` cleanup。
+
+### 2.7 v2.8.7-ready 扩展点
+
+M3 不实现 `v2.8.7-升级说明.txt` 里的业务内核升级，但 shell 必须给后续计划留稳定入口：
+
+- `PageKeys` / `PageRegistry` 的命名要能直接扩展 M4 页面与 M6 内核页面，避免后面重命名导航协议。
+- 右栏 `RightConversationView` 只做占位，但 `DataContext` 与布局边界要按 M4.5 对话面板预留，后续接 Ask / Plan / Agent 三模式时不改主窗口。
+- `ChapterPipelinePage`、`AI 管理`、`校验报告`、`Agent 工具调用确认` 等页面不在 M3 创建，但 M3 的导航服务必须支持这些 PageKey 后续注册。
+- `AppHost` 的 DI 约定要允许 M6 替换或追加写作内核服务，例如 HumanizeRules、CHANGES Canonicalizer、WAL、ContextService 子系统、AI middleware，而不要求 UI 层直接 new service。
+- `DispatcherScheduler` 要作为 portable 异步任务进入 UI 的唯一通道；后续流式生成、校验日志、Agent 工具调用进度都走这里。
 
 ## 3. 工作拆分
 
