@@ -351,14 +351,17 @@ public enum StatusKind { Success, Warning, Danger, Info, Neutral }
   <!-- 已有：Avalonia 11.0.10、CommunityToolkit.Mvvm 8.2.2、M.E.DI 8.0.1 / .Logging 8.0.0 -->
   <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.2" />
   <PackageReference Include="Avalonia.AvaloniaEdit"                 Version="11.0.6" />
-  <PackageReference Include="Lucide.Avalonia"                       Version="0.2.6" />
 </ItemGroup>
 ```
 
 > 包 id / 版本（基于真实 nuget.org 探测，2026-05-13 校准）：
-> - **LiveCharts2 = `LiveChartsCore.SkiaSharpView.Avalonia 2.0.2`** stable（依赖 Avalonia 11.0.0，与我们 11.0.10 兼容；不需要 RC）
-> - **AvaloniaEdit 包 id = `Avalonia.AvaloniaEdit 11.0.6`**（bare `AvaloniaEdit` id 只有 0.10.x 旧版，是另一个包）
-> - **Lucide 图标 = `Lucide.Avalonia 0.2.6`**（独立轻量 Lucide-only 包；放弃 Projektanker.Icons.Avalonia 因 9.4.1 要求 Avalonia 11.1.3+，且其 Lucide 子包 `Projektanker.Icons.Avalonia.Lucide` 实际不存在）
+> - **LiveCharts2 = `LiveChartsCore.SkiaSharpView.Avalonia 2.0.2`** stable（依赖 Avalonia 11.0.0，与我们 11.0.10 兼容）
+> - **AvaloniaEdit 包 id = `Avalonia.AvaloniaEdit 11.0.6`**（bare `AvaloniaEdit` id 只有 0.10.x 旧版）
+> - **Lucide 图标包基建不引入**：探测了 3 个候选都不兼容 Avalonia 11.0.10 + net8.0：
+>   - `Projektanker.Icons.Avalonia.Lucide` 不存在；`Projektanker.Icons.Avalonia 9.4.1` 要 Avalonia 11.1.3+
+>   - `Lucide.Avalonia` (0.1.0–0.2.6) 全部要 Avalonia >= 11.2.2，0.2.4+ 还只支持 net10.0
+>   - `IconPacks.Avalonia.Lucide` (1.0–2.0) 全部要 Avalonia >= 11.0.13（小步升级可达，但本基建不做）
+>   - **决策**：基建保留 primitives `IconGlyph: string` API 契约（Lucide 名 `"home"`/`"search"`），渲染暂用 `TextBlock`（AppChrome 已用 emoji 占位）；Sub-plan 2 真消费图标时单独决策（升 Avalonia 11.0.13 + IconPacks.Avalonia.Lucide / 切 net10.0 + Lucide.Avalonia / Unicode 占位）
 
 ### 5.1 LiveCharts2 全局样式（启动时一次）
 

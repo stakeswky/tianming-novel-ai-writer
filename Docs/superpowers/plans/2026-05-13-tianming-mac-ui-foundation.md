@@ -6,7 +6,7 @@
 
 **Architecture:** 一次性出全套基建（Approach 1）。token 分 5 个 axaml（Colors/Typography/Spacing/Radii/Shadows）；primitives 用 `TemplatedControl` + ControlTheme，Lucide icon string token；chrome 用 `ExtendClientAreaToDecorationsHint`；status bar 走 probe 异步填充。亮色 only（删 `PalettesDark.axaml`）。
 
-**Tech Stack:** Avalonia 11.0.10 / CommunityToolkit.Mvvm 8.2.2 / xunit 2.9.2 / LiveChartsCore.SkiaSharpView.Avalonia 2.0.2 / Avalonia.AvaloniaEdit 11.0.6 / Lucide.Avalonia 0.2.6 / Avalonia.Headless 11.0.10（新加）
+**Tech Stack:** Avalonia 11.0.10 / CommunityToolkit.Mvvm 8.2.2 / xunit 2.9.2 / LiveChartsCore.SkiaSharpView.Avalonia 2.0.2 / Avalonia.AvaloniaEdit 11.0.6 / Avalonia.Headless 11.0.10（新加）。**Lucide 图标包基建不引入**（候选都不兼容 Avalonia 11.0.10 + net8.0），primitives `IconGlyph: string` API 保留，渲染暂用 TextBlock；Sub-plan 2 真用图标时单独决策。
 
 **Spec:** `Docs/superpowers/specs/2026-05-13-tianming-mac-ui-foundation-design.md`
 
@@ -107,14 +107,12 @@ Expected：`On branch mac-ui/foundation-2026-05-13`，working tree clean
 
 **Files:** csproj 修改
 
-> **版本已校准**（2026-05-13 探测 nuget.org）：spec 原写的 4 个包里有 3 个有问题：
-> - `AvaloniaEdit` 包 id 错（应为 `Avalonia.AvaloniaEdit`）
-> - `Projektanker.Icons.Avalonia 9.4.1` 要求 Avalonia >= 11.1.3（与 11.0.10 冲突）
-> - `Projektanker.Icons.Avalonia.Lucide` 不存在
-> 
-> 已用 **`Lucide.Avalonia 0.2.6`**（独立轻量 Lucide-only 包）替代 Projektanker；LiveCharts2 用 stable **`2.0.2`** 替代原计划的 RC。
+> **版本已校准**（2026-05-13，nuget.org 两轮探测）：
+> - `LiveChartsCore.SkiaSharpView.Avalonia 2.0.2` stable
+> - `Avalonia.AvaloniaEdit 11.0.6`（注意 `Avalonia.` 前缀；bare `AvaloniaEdit` 只有 0.10.x）
+> - **Lucide 图标包基建不引入**：所有候选 (`Projektanker.Icons.Avalonia.Lucide` 不存在 / `Lucide.Avalonia` 要 Avalonia 11.2.2+ / `IconPacks.Avalonia.Lucide` 要 Avalonia 11.0.13+) 都跟 Avalonia 11.0.10 + net8.0 不兼容（详见 spec §5）。primitives 的 `IconGlyph: string` API 保留约定（取 Lucide 名 `"home"`/`"search"`），渲染暂用 TextBlock；Sub-plan 2 真用图标时单独决策。
 
-- [ ] **Step 1: 主项目 csproj 加 3 个新包**
+- [ ] **Step 1: 主项目 csproj 加 2 个新包**
 
 打开 `src/Tianming.Desktop.Avalonia/Tianming.Desktop.Avalonia.csproj`，把第一个 `<ItemGroup>` 改成：
 
@@ -129,10 +127,9 @@ Expected：`On branch mac-ui/foundation-2026-05-13`，working tree clean
   <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
   <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
   <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-  <!-- 新加：LiveCharts2 / AvaloniaEdit / Lucide icons（版本已校准 2026-05-13） -->
+  <!-- 新加：LiveCharts2 / AvaloniaEdit（版本已校准 2026-05-13） -->
   <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.2" />
   <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.0.6" />
-  <PackageReference Include="Lucide.Avalonia" Version="0.2.6" />
 </ItemGroup>
 ```
 
@@ -175,12 +172,14 @@ Expected：1156 个测试通过（Framework 781 + ProjectData 218 + AI 144 + Ava
 ```bash
 git add src/Tianming.Desktop.Avalonia/Tianming.Desktop.Avalonia.csproj \
         tests/Tianming.Desktop.Avalonia.Tests/Tianming.Desktop.Avalonia.Tests.csproj
-git commit -m "build(deps): 加 LiveCharts2 / AvaloniaEdit / Lucide / Avalonia.Headless
+git commit -m "build(deps): 加 LiveCharts2 / AvaloniaEdit / Avalonia.Headless
 
 - LiveChartsCore.SkiaSharpView.Avalonia 2.0.2: 后续图表渲染
 - Avalonia.AvaloniaEdit 11.0.6: CodeViewer primitive + M4.3 章节编辑器
-- Lucide.Avalonia 0.2.6: 全套 primitive 用 Lucide string token
 - Avalonia.Headless(.XUnit) 11.0.10: shell / primitives UI 单元测试
+
+Lucide 图标包暂不引入（所有候选都不兼容 Avalonia 11.0.10 + net8.0），
+primitives IconGlyph: string API 保留约定，Sub-plan 2 单独决策。
 
 1156 测试基线保持通过。"
 ```
