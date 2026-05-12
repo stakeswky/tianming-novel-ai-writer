@@ -52,6 +52,7 @@
     <Compile Include="SemanticKernel/Embedding/HashingTextEmbedder.cs" />
     <Compile Include="SemanticKernel/Embedding/EmbeddingSettings.cs" />
     <Compile Include="SemanticKernel/Embedding/OnnxTextEmbedder.cs" />
+    <Compile Include="SemanticKernel/Embedding/OnnxEmbedderFactory.cs" />
     <Compile Include="SemanticKernel/ChatHistoryCompressionService.cs" />
     <Compile Include="SemanticKernel/ExecutionEvent.cs" />
     <Compile Include="SemanticKernel/TodoExecutionService.cs" />
