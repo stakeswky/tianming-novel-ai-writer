@@ -12,14 +12,19 @@
 
 ## Scope Alignment（对 spec 的务实调整）
 
-Spec 列了 4 项（SK 升级 / OnnxEmbedder / LocalFileFetcher / OpenAI-compatible 联调）。对齐当前仓实际状态后：
+Spec 列了 4 项（SK 升级 / OnnxEmbedder / LocalFileFetcher / OpenAI-compatible 联调）。对齐当前仓实际状态与 M1 已定架构边界后：
 
-- **SK 升级 — 跳过**。当前 `src/Tianming.AI/Tianming.AI.csproj` 没有 `Microsoft.SemanticKernel` PackageReference。目录 `SemanticKernel/` 只是命名约定，内容是 portable 自包含代码（`ITextEmbedder` / `ThinkingBlockParser` 等），不依赖 SK 包。没有包可升。
-- **LocalFileFetcher — 推到 M4 再做**。`IBookSourceFetcher` / `PortableBookAnalysisService` 均未在仓里存在；智能拆书整套 portable 服务尚未抽离，单建 LocalFileFetcher 接口无下游消费者。自用场景 M4 真要用"本地文件导入拆书"UI 时再顺手端口。
-- **OnnxTextEmbedder — 做**。下文 Task 1-5。
-- **OpenAI-compatible 手工联调 — 做**。下文 Task 6。
+- **SK 升级 — 不做，保持跨平台层 SK-free（架构决策，非"仓无包所以跳过"）**。背景：
+  - 旧 WPF 通过 `Core/App/Build/Dependencies.props:20` 锁定 `Microsoft.SemanticKernel 1.73.0`，并在 `Services/Framework/AI/SemanticKernel/`（SKChatService / NovelAgent / ThinkingStreamWrapper / ChatHistoryCompressionService / 3 个 KernelFunction Plugin / PlanModeFilter 等）与 `Framework/UI/Workspace/RightPanel/Conversation/` 下共 17 个 .cs 文件深度使用 `Kernel` / `ChatHistory` / `IChatCompletionService` / `ChatCompletionAgent` / `KernelFunction` / `IFunctionInvocationFilter`
+  - **M1 端口跨平台层时有意断开了 SK 依赖**：`src/Tianming.AI/`、`src/Tianming.ProjectData/`、`src/Tianming.Framework/` 三个 portable 项目**零** SK 引用；`src/Tianming.AI/SemanticKernel/` 目录只是命名沿用，实际是自研抽象（`ITextEmbedder`、`ThinkingBlockParser`、`ConversationModeProfileCatalog`、mapper 们等）
+  - 跨平台 AI 出站边界由 `src/Tianming.AI/Core/OpenAICompatibleChatClient.cs`（纯 HTTP + SSE）承担，`CompleteAsync` 与 `StreamAsync` 已覆盖非流式/流式，对接任何 OpenAI-兼容 endpoint（DeepSeek / Qwen / OpenAI / Claude 代理 / LM Studio / Ollama 等）
+  - **M2 技术口径钉死**：跨平台层不引入 SK 包。未来若某项能力（如 SK Agent / KernelFilter / RAG Plugin 栈）确有独特价值且无法用自研边界等价替换，再单独立项讨论，不塞进 M2
+  - **M4.5 AI 对话面板实施启示**：WPF SK-based service（`SKChatService` / `NovelAgent` / `ThinkingStreamWrapper` / 3 个 Plugin / `PlanModeFilter`）**不搬**；M4.5 要新建 `ConversationOrchestrator`（或等效编排类），基于 M1 已端口的 `ConversationModeProfileCatalog` / `TagBasedThinkingStrategy` / `AgentModeMapper` / `AskModeMapper` / `PlanModeMapper` 零件 + `OpenAICompatibleChatClient` 组合，不依赖 `Kernel` / `ChatHistory` / `ChatCompletionAgent`。这是 M4.5 的前置架构决策，写进 M4 plan 的 Scope Alignment
+- **LocalFileFetcher — 推到 M4 再做**。`IBookSourceFetcher` / `PortableBookAnalysisService` 均未在仓里存在；智能拆书整套 portable 服务尚未抽离，单建 LocalFileFetcher 接口无下游消费者。自用场景 M4 真要用"本地文件导入拆书"UI 时再顺手端口
+- **OnnxTextEmbedder — 做**。下文 Task 1-5
+- **OpenAI-compatible 手工联调 — 做**。下文 Task 6
 
-这个调整让 M2 聚焦到唯一真缺的能力（真向量搜索）并保留最小联调确认。其余推到后续里程碑，符合"不用搞那么复杂，我自己用的"的范围声明。
+这个调整让 M2 聚焦到唯一真缺的能力（真向量搜索）并钉死 AI 调用边界的架构口径，其余推到后续里程碑。
 
 ## File Structure
 

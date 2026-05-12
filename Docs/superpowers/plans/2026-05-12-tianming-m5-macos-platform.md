@@ -2,6 +2,29 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+## 适用场景声明
+
+**M5 目标：让作者本人在自己的 macOS 机器上能长期顺手使用天命。**
+
+**M5 不覆盖的场景（给他人安装 / 对外分发）：**
+
+若未来要把天命做成可分发的 macOS 应用（如发 TestFlight / Mac App Store / 自托管 DMG 给朋友装），以下能力**不在 M5，需要单独立项（暂定 M7 "macOS 分发"）**：
+
+| 分发场景要求 | M5 是否做 | 未来在何处补 |
+|---|---|---|
+| URL Scheme（`tianming://...`）| 不做 | M7 |
+| 文件关联（双击 `.tianming` 项目文件启动）| 不做 | M7 |
+| 用户通知（章节生成完成弹通知）| 不做 | M7 |
+| 开机自启 / 后台驻留 | 不做（自用不需要） | M7 |
+| Entitlements 声明（网络 / 文件访问 / Keychain 权限）| 不做 | M7 |
+| Hardened Runtime（代码完整性 / JIT 禁用等）| 不做 | M7 |
+| App Sandbox | 不做 | M7 |
+| 代码签名 + Notarization（Gatekeeper 不拦截）| 不做 | M7 |
+| DMG / pkg 打包 / 自动更新 | 不做 | M7 |
+| 全局快捷键 / 状态栏托盘 / 语音输入等附加能力 | 不做（spec 已剔除） | 视需要再加 |
+
+**为什么现在不做：** 自用场景下，从 Xcode 命令行 `dotnet run --project src/Tianming.Desktop.Avalonia` 启动即可；绕 Gatekeeper 的方式（右键打开、自签）对单机单用户毫无摩擦。分发场景才需要付出这些复杂度的代价，而"给别人用"不是当前目标。先把 M4 闭环做扎实，真要分发时再做 M7。
+
 **Goal:** 补齐 M4 已假设但实际缺失的两项 macOS 能力——系统代理读取（AI 请求走本机代理）与应用主菜单（⌘Q / ⌘N / ⌘, / ⌘S 等系统快捷键），并把 `WindowStateStore` / `AppPaths` 等 M3 建立的基础设施做最终打磨。Keychain 与系统外观监听在 M1 已完整（shell 实现），自用场景保留现状。
 
 **Architecture:** 从 `SystemConfiguration.framework` 通过 `scutil --proxy` shell 命令读系统代理字典（不做 P/Invoke，保持"能 shell 就 shell"的决策），解析为 `ProxyPolicy`；`HttpClient` 组装 `SocketsHttpHandler { Proxy = AvaloniaSystemHttpProxy }`，`AI` 命名空间下所有出站 HTTP 都走这个代理。应用主菜单走 Avalonia 11.x 内置的 `NativeMenu` xaml，不写 P/Invoke——Avalonia 自动转换成 macOS 系统菜单栏（AppKit 负责渲染）。
