@@ -148,26 +148,41 @@ public class WorldRulesService : ModuleServiceBase<WorldRulesCategory, WorldRule
 
 **验收：** 六个 service 各通过 3+ 测试；合计 ≥ 18 新测试；`dotnet test` 全过
 
-**Commit（可分 6 次或合成 1 次，建议按 service 一次 commit 一个）：**
+**Commit（每 service 一次 commit，共 6 次）：**
 - `feat(projectdata): 端口 WorldRulesService + 测试`
-- ...同样的 6 条
+- `feat(projectdata): 端口 CharacterRulesService + 测试`
+- `feat(projectdata): 端口 FactionRulesService + 测试`
+- `feat(projectdata): 端口 LocationRulesService + 测试`
+- `feat(projectdata): 端口 PlotRulesService + 测试`
+- `feat(projectdata): 端口 CreativeMaterialsService + 测试`
 
 ### Task M4.0.3：端口四个 Generation services + ChapterPipeline
 
 **Files:**
-- Create: `src/Tianming.ProjectData/Modules/Generate/Outline/`
-- Create: `src/Tianming.ProjectData/Modules/Generate/VolumeDesign/`
-- Create: `src/Tianming.ProjectData/Modules/Generate/ChapterPlanning/`
-- Create: `src/Tianming.ProjectData/Modules/Generate/ContentConfig/`
+- Create: `src/Tianming.ProjectData/Modules/Generate/Outline/` 整组（OutlineService + OutlineCategory + OutlineData）
+- Create: `src/Tianming.ProjectData/Modules/Generate/VolumeDesign/` 整组
+- Create: `src/Tianming.ProjectData/Modules/Generate/ChapterPlanning/` 整组
+- Create: `src/Tianming.ProjectData/Modules/Generate/ContentConfig/` 整组
 - Create: `src/Tianming.ProjectData/Generation/ChapterGenerationPipeline.cs`
-- Create: 对应测试
-- Modify: csproj + ServiceCollectionExtensions
+- Create: `tests/Tianming.ProjectData.Tests/Modules/Generate/` 对应 4 组测试
+- Create: `tests/Tianming.ProjectData.Tests/Generation/ChapterGenerationPipelineTests.cs`
+- Modify: `src/Tianming.ProjectData/Tianming.ProjectData.csproj` + `src/Tianming.ProjectData/ServiceCollectionExtensions.cs`
 
-**核心职责：** 同 M4.0.2 模板；`ChapterGenerationPipeline` 需先探索旧实现的 entry method 签名再端口
+**核心职责：** 前 4 组与 M4.0.2 同模板（ModuleServiceBase 派生 + CRUD + 测试）。`ChapterGenerationPipeline` 是独立实体，不继承 ModuleServiceBase：
+
+**开工前置（M4.0.3 Step 0）：** 用 Explore subagent 确认 `ChapterGenerationPipeline` 真实类名与入口方法。预期有三种结果，按结果进入不同路径：
+- (A) 已存在于 `src/Tianming.AI/` 或 `src/Tianming.ProjectData/` 下 → 跳过此 task，直接 Task M4.2.2 消费
+- (B) 存在于 `Modules/Generate/` 或 `Services/` 下旧 WPF 目录 → 按"端口"模板做：复制 + 去 WPF 依赖 + 改到 portable namespace + 加 Compile Include + 单测
+- (C) 不存在（旧版没实现管道化，可能是散装生成代码）→ 新建 `ChapterGenerationPipeline` 类，暴露 `Task<PipelineResult> RunAsync(ChapterId id, CancellationToken ct)`，内部分"加载 Fact Snapshot → 组 prompt → 调 IChatClient → 解析 CHANGES → 应用"五步；每步各 1 测试
 
 **验收：** 新测试 ≥ 16 条；`dotnet test` 全过
 
-**Commit：** 按 service 分组 4-5 次 commit
+**Commit（每 service 一次，ChapterGenerationPipeline 单独一次，共 5 次）：**
+- `feat(projectdata): 端口 OutlineService + 测试`
+- `feat(projectdata): 端口 VolumeDesignService + 测试`
+- `feat(projectdata): 端口 ChapterService (章节规划) + 测试`
+- `feat(projectdata): 端口 ContentConfigService + 测试`
+- `feat(projectdata): ChapterGenerationPipeline 端口/实现 + 测试`
 
 ### M4.0 Gate：端口后基线
 
@@ -315,7 +330,7 @@ public partial class WorldRulesViewModel : CategoryDataPageViewModel
 - Modify: `src/Tianming.Desktop.Avalonia/Tianming.Desktop.Avalonia.csproj` 加 NuGet `Avalonia.AvaloniaEdit`（或 `AvaloniaEdit` stable）
 - Create: `src/Tianming.Desktop.Avalonia/Controls/MarkdownEditor.axaml` + `.cs`
 - Create: `ViewModels/Controls/MarkdownEditorViewModel.cs`
-- Create: `tests/.../MarkdownEditorViewModelTests.cs`
+- Create: `tests/Tianming.Desktop.Avalonia.Tests/Controls/MarkdownEditorViewModelTests.cs`
 
 **核心职责：** AvaloniaEdit `TextEditor` 包装；加基础 Markdown 语法高亮（通过 `AvaloniaEdit.Highlighting.HighlightingManager.Instance.RegisterHighlighting`）；暴露 `Text` / `IsModified` / `WordCount` / `CaretOffset` 双向绑定属性；自动保存草稿（每 2 秒 debounce 写 `<project>/.drafts/<chapterId>.md`）；快捷键 ⌘+S / ⌘+B（加粗）/ ⌘+I（斜体）
 

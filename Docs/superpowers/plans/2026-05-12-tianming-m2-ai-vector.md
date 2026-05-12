@@ -738,7 +738,7 @@ var request = new OpenAICompatibleChatRequest
 };
 
 Console.WriteLine("=== 非流式 ===");
-var result = await client.ChatAsync(request, CancellationToken.None);
+var result = await client.CompleteAsync(request, CancellationToken.None);
 Console.WriteLine($"Success={result.Success} Status={result.StatusCode}");
 Console.WriteLine($"Content: {result.Content}");
 Console.WriteLine($"Tokens: prompt={result.PromptTokens} completion={result.CompletionTokens} total={result.TotalTokens}");
@@ -757,15 +757,15 @@ await foreach (var chunk in client.StreamAsync(request, CancellationToken.None))
 Console.WriteLine($"\n收到 {chunks} 个流式分片。");
 ```
 
-注意：脚本里调用的是 `OpenAICompatibleChatClient.ChatAsync` / `StreamAsync`。如果这俩方法名与真实类不一致，按真实类签名调整（实际类见 `src/Tianming.AI/Core/OpenAICompatibleChatClient.cs`）。
+注意：脚本里调用的是 `OpenAICompatibleChatClient.CompleteAsync`（非流式）与 `StreamAsync`（流式）。这两个方法已在 `src/Tianming.AI/Core/OpenAICompatibleChatClient.cs:114 / :162` 定义，直接用。
 
-- [ ] **Step 6.2：确认 OpenAICompatibleChatClient 的公开 API 对齐**
+- [ ] **Step 6.2：确认 API 名未变（防御性）**
 
 ```bash
 grep -n "public.*Task\|public.*IAsyncEnumerable" src/Tianming.AI/Core/OpenAICompatibleChatClient.cs
 ```
 
-若公开的是 `SendAsync` 而非 `ChatAsync`，或流式方法叫 `StreamChatAsync`，按实际修改脚本里的方法名。
+Expected: 看到 `public async Task<OpenAICompatibleChatResult> CompleteAsync(...)` 和 `public async IAsyncEnumerable<OpenAICompatibleStreamChunk> StreamAsync(...)`。若名称已改，按实际修改脚本里的方法名。
 
 - [ ] **Step 6.3：build 确保 DLL 存在**
 
