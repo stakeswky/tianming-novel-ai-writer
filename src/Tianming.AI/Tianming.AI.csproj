@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.2" />
+    <PackageReference Include="FastBertTokenizer" Version="1.0.28" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="../../Framework/Common/Models/IEnableable.cs" Link="Framework/Common/Models/IEnableable.cs" />
     <Compile Include="../../Framework/Common/Models/IDataItem.cs" Link="Framework/Common/Models/IDataItem.cs" />
     <Compile Include="../../Framework/Common/Models/ICategory.cs" Link="Framework/Common/Models/ICategory.cs" />
