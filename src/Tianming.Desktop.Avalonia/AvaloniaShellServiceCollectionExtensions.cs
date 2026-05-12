@@ -1,0 +1,58 @@
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using TM.Framework.Appearance;
+using Tianming.Desktop.Avalonia.Infrastructure;
+using Tianming.Desktop.Avalonia.Navigation;
+using Tianming.Desktop.Avalonia.Theme;
+using Tianming.Desktop.Avalonia.ViewModels;
+using Tianming.Desktop.Avalonia.ViewModels.Shell;
+using Tianming.Desktop.Avalonia.Views;
+using Tianming.Desktop.Avalonia.Views.Shell;
+
+namespace Tianming.Desktop.Avalonia;
+
+public static class AvaloniaShellServiceCollectionExtensions
+{
+    public static IServiceCollection AddAvaloniaShell(this IServiceCollection s)
+    {
+        // Infra
+        s.AddSingleton(AppPaths.Default);
+        s.AddSingleton(sp => new WindowStateStore(
+            System.IO.Path.Combine(sp.GetRequiredService<AppPaths>().AppSupportDirectory, "window_state.json")));
+        s.AddSingleton<AppLifecycle>();
+        s.AddSingleton<DispatcherScheduler>();
+
+        // Theme
+        s.AddSingleton<PortableThemeState>(_ => new PortableThemeState());
+        s.AddSingleton<PortableThemeStateController>(sp =>
+        {
+            var state = sp.GetRequiredService<PortableThemeState>();
+            var bridge = sp.GetRequiredService<ThemeBridge>();
+            return new PortableThemeStateController(state, bridge.ApplyAsync);
+        });
+        s.AddSingleton<ThemeBridge>();
+
+        // Navigation
+        s.AddSingleton<PageRegistry>(_ => RegisterPages(new PageRegistry()));
+        s.AddSingleton<INavigationService, NavigationService>();
+
+        // ViewModels
+        s.AddSingleton<MainWindowViewModel>();
+        s.AddSingleton<ThreeColumnLayoutViewModel>();
+        s.AddSingleton<LeftNavViewModel>();
+        s.AddSingleton<RightConversationViewModel>();
+        s.AddTransient<WelcomeViewModel>();
+        s.AddTransient<PlaceholderViewModel>();
+
+        return s;
+    }
+
+    private static PageRegistry RegisterPages(PageRegistry reg)
+    {
+        reg.Register<WelcomeViewModel,     WelcomeView>(PageKeys.Welcome);
+        reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Dashboard);
+        reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Settings);
+        return reg;
+    }
+}
