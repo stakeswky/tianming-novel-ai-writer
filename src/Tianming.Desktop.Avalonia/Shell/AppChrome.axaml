@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:shell="using:Tianming.Desktop.Avalonia.Shell"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
              x:Class="Tianming.Desktop.Avalonia.Shell.AppChrome"
              x:DataType="shell:AppChromeViewModel"
              Height="36">
@@ -16,33 +17,10 @@
       </Grid.ColumnDefinitions>
 
       <!-- Breadcrumb 居中区 -->
-      <ItemsControl Grid.Column="1" ItemsSource="{Binding Segments}"
-                    VerticalAlignment="Center">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <StackPanel Orientation="Horizontal" Spacing="6"/>
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate DataType="shell:BreadcrumbSegment">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <Button Classes="ghost"
-                      Command="{Binding $parent[ItemsControl].((shell:AppChromeViewModel)DataContext).NavigateCommand}"
-                      CommandParameter="{Binding}"
-                      Padding="4,2"
-                      IsHitTestVisible="{Binding Target, Converter={x:Static ObjectConverters.IsNotNull}}">
-                <TextBlock Text="{Binding Label}"
-                           FontSize="{DynamicResource FontSizeCaption}"
-                           Foreground="{DynamicResource TextSecondaryBrush}"/>
-              </Button>
-              <TextBlock Text=" · "
-                         FontSize="{DynamicResource FontSizeCaption}"
-                         Foreground="{DynamicResource TextTertiaryBrush}"
-                         VerticalAlignment="Center"/>
-            </StackPanel>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+      <controls:BreadcrumbBar Grid.Column="1"
+                              Segments="{Binding Segments}"
+                              NavigateCommand="{Binding NavigateCommand}"
+                              VerticalAlignment="Center"/>
 
       <!-- 右侧 icon 按钮组（搜索 / 通知 / 用户）—— 暂用 emoji 占位，Sub-plan 2 接 Lucide icon -->
       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
