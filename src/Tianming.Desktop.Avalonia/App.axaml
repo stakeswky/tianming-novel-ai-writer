@@ -19,5 +19,11 @@
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/CommonStyles.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/Button.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/TextBox.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/ComboBox.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/ListBox.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/DataGrid.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/ScrollBar.axaml"/>
   </Application.Styles>
 </Application>
