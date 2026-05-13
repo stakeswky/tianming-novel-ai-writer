@@ -1,0 +1,5 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Tianming.Desktop.Avalonia.Controls.CodeViewer">
+  <!-- 内容由 .cs 设置（_editor）；这里仅作为 axaml 一对一文件存在用于 XAML compile -->
+</UserControl>
