@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -25,6 +26,8 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _selectedMode = "ask";
     [ObservableProperty] private string _inputDraft = string.Empty;
     [ObservableProperty] private bool _isStreaming;
+    [ObservableProperty] private SessionListItemVm? _selectedHistoryItem;
+    [ObservableProperty] private bool _isHistoryOpen;
 
     public ObservableCollection<SegmentItem> ModeSegments { get; } = new()
     {
@@ -34,6 +37,7 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
     };
 
     public ObservableCollection<ConversationBubbleVm> SampleBubbles { get; } = new();
+    public ObservableCollection<SessionListItemVm> SessionHistory { get; } = new();
 
     public ConversationPanelViewModel(bool seedSamples = true)
     {
@@ -121,6 +125,68 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         InputDraft = string.Empty;
         IsStreaming = false;
         _emitter?.Start(SampleBubbles);
+    }
+
+    [RelayCommand]
+    private async Task LoadHistoryAsync()
+    {
+        if (_sessionStore == null)
+            return;
+
+        var sessions = await _sessionStore.ListSessionsAsync();
+        SessionHistory.Clear();
+        foreach (var session in sessions)
+        {
+            SessionHistory.Add(new SessionListItemVm
+            {
+                Id = session.Id,
+                Title = string.IsNullOrEmpty(session.Title) ? "（未命名会话）" : session.Title,
+                UpdatedAt = session.UpdatedAt,
+                MessageCount = session.MessageCount,
+            });
+        }
+
+        IsHistoryOpen = true;
+    }
+
+    [RelayCommand]
+    private async Task LoadSessionAsync(string sessionId)
+    {
+        if (_orchestrator == null || _sessionStore == null)
+            return;
+
+        _cts?.Cancel();
+        var session = await _sessionStore.LoadSessionAsync(sessionId);
+        if (session == null)
+            return;
+
+        _currentSession = session;
+        SampleBubbles.Clear();
+        foreach (var message in session.History)
+        {
+            SampleBubbles.Add(new ConversationBubbleVm
+            {
+                Role = message.Role == TM.Services.Framework.AI.SemanticKernel.Conversation.Models.ConversationRole.User
+                    ? ConversationRole.User
+                    : ConversationRole.Assistant,
+                Content = message.Summary,
+                Timestamp = message.Timestamp,
+            });
+        }
+
+        IsHistoryOpen = false;
+    }
+
+    [RelayCommand]
+    private async Task DeleteSessionAsync(string sessionId)
+    {
+        if (_sessionStore == null)
+            return;
+
+        await _sessionStore.DeleteSessionAsync(sessionId);
+        var item = SessionHistory.FirstOrDefault(session => session.Id == sessionId);
+        if (item != null)
+            SessionHistory.Remove(item);
     }
 
     private static ChatMode ParseChatMode(string mode)

@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Conversation"
+             x:Class="Tianming.Desktop.Avalonia.Controls.ConversationHistoryDrawer">
+  <Border Background="{DynamicResource SurfacePanelBrush}"
+          Padding="12"
+          CornerRadius="{DynamicResource RadiusMd}">
+    <DockPanel>
+      <TextBlock DockPanel.Dock="Top"
+                 Text="会话历史"
+                 FontSize="{DynamicResource FontSizeH3}"
+                 FontWeight="{DynamicResource FontWeightSemibold}"
+                 Margin="0,0,0,8"/>
+      <ListBox Name="SessionList"
+               ItemsSource="{Binding Sessions, RelativeSource={RelativeSource AncestorType=controls:ConversationHistoryDrawer}}"
+               SelectedItem="{Binding SelectedSession, RelativeSource={RelativeSource AncestorType=controls:ConversationHistoryDrawer}, Mode=TwoWay}"
+               Background="Transparent"
+               BorderThickness="0">
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="vm:SessionListItemVm">
+            <StackPanel Margin="0,4" Spacing="2">
+              <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextPrimaryBrush}"/>
+              <TextBlock Text="{Binding UpdatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                         FontSize="{DynamicResource FontSizeCaption}"
+                         Foreground="{DynamicResource TextTertiaryBrush}"/>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+  </Border>
+</UserControl>
