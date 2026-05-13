@@ -30,10 +30,12 @@ using Tianming.Desktop.Avalonia.Shell;
 using Tianming.Desktop.Avalonia.Theme;
 using Tianming.Desktop.Avalonia.ViewModels;
 using Tianming.Desktop.Avalonia.ViewModels.Design;
+using Tianming.Desktop.Avalonia.ViewModels.Editor;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using Tianming.Desktop.Avalonia.Views;
 using Tianming.Desktop.Avalonia.Views.Design;
+using Tianming.Desktop.Avalonia.Views.Editor;
 using Tianming.Desktop.Avalonia.Views.Generate;
 using Tianming.Desktop.Avalonia.Views.Shell;
 
@@ -50,6 +52,16 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton<AppLifecycle>();
         s.AddSingleton<DispatcherScheduler>();
         s.AddSingleton<ICurrentProjectService, CurrentProjectService>();
+
+        // M4.3 章节编辑器基础设施
+        s.AddSingleton<ITimerScheduler, DispatcherTimerScheduler>();
+        s.AddSingleton<IChapterDraftStore>(sp =>
+        {
+            var paths = sp.GetRequiredService<AppPaths>();
+            return new FileChapterDraftStore(System.IO.Path.Combine(paths.AppSupportDirectory, "Drafts"));
+        });
+        s.AddSingleton<AutoSaveScheduler>(sp =>
+            new AutoSaveScheduler(sp.GetRequiredService<ITimerScheduler>(), System.TimeSpan.FromSeconds(2)));
 
         // M5：系统代理 → HttpClient 装配
         // AI 命名空间所有出站 HTTP 都走这个 named client，自动读 macOS 系统代理设置。
@@ -153,6 +165,13 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<BlueprintViewModel>();
         s.AddTransient<ChapterPipelineViewModel>();
 
+        // M4.3 章节编辑器 VM
+        s.AddTransient<EditorWorkspaceViewModel>(sp =>
+            new EditorWorkspaceViewModel(
+                projectId: "default",
+                sp.GetRequiredService<IChapterDraftStore>(),
+                sp.GetRequiredService<AutoSaveScheduler>()));
+
         return s;
     }
 
@@ -161,6 +180,9 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<WelcomeViewModel,     WelcomeView>(PageKeys.Welcome);
         reg.Register<DashboardViewModel,   DashboardView>(PageKeys.Dashboard);
         reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Settings);
+
+        // M4.3 章节编辑器
+        reg.Register<EditorWorkspaceViewModel, EditorWorkspaceView>(PageKeys.Editor);
 
         // M4.1：6 设计页（VM 不同，View 全部用 DesignModulePage）
         reg.Register<WorldRulesViewModel,        DesignModulePage>(PageKeys.DesignWorld);
