@@ -35,6 +35,7 @@ public partial class App : Application
 
             var vm = Services.GetRequiredService<MainWindowViewModel>();
             var window = new MainWindow { DataContext = vm };
+            _ = vm.StatusBar.RefreshProbesAsync();
 
             var savedState = lifecycle.LoadInitialWindowState();
             window.Width  = savedState.Width;
