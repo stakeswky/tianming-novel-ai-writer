@@ -59,6 +59,7 @@
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/NavRail.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SidebarTreeItem.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/ProjectCard.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/DataGridRowCell.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
