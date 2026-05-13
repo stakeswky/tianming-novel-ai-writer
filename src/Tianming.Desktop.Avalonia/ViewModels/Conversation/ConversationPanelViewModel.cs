@@ -1,9 +1,11 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tianming.Desktop.Avalonia.Controls;
+using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
 
@@ -118,6 +120,43 @@ public partial class ConversationPanelViewModel : ObservableObject
 
 public sealed class BulkEmitter
 {
+    private readonly IDispatcherScheduler _scheduler;
+    private readonly Queue<ChatStreamDelta> _pending = new();
+    private readonly object _lock = new();
+    private ObservableCollection<ConversationBubbleVm>? _bubbles;
+    private IDisposable? _handle;
+
+    public BulkEmitter()
+        : this(new ImmediateDispatcherScheduler())
+    {
+    }
+
+    public BulkEmitter(IDispatcherScheduler scheduler)
+    {
+        _scheduler = scheduler;
+    }
+
+    public void Start(ObservableCollection<ConversationBubbleVm> bubbles)
+    {
+        _bubbles = bubbles;
+        _handle?.Dispose();
+        _handle = _scheduler.ScheduleRecurring(TimeSpan.FromMilliseconds(16), Flush);
+    }
+
+    public void Stop()
+    {
+        _handle?.Dispose();
+        _handle = null;
+        lock (_lock)
+            _pending.Clear();
+    }
+
+    public void Enqueue(ChatStreamDelta delta)
+    {
+        lock (_lock)
+            _pending.Enqueue(delta);
+    }
+
     public void Apply(ObservableCollection<ConversationBubbleVm> bubbles, ChatStreamDelta delta)
     {
         if (bubbles == null)
@@ -144,6 +183,25 @@ public sealed class BulkEmitter
         }
     }
 
+    private void Flush()
+    {
+        if (_bubbles == null)
+            return;
+
+        ChatStreamDelta[] batch;
+        lock (_lock)
+        {
+            if (_pending.Count == 0)
+                return;
+
+            batch = _pending.ToArray();
+            _pending.Clear();
+        }
+
+        foreach (var delta in batch)
+            Apply(_bubbles, delta);
+    }
+
     private static ConversationBubbleVm EnsureAssistantBubble(ObservableCollection<ConversationBubbleVm> bubbles)
     {
         if (bubbles.Count > 0 && bubbles[^1].Role == ConversationRole.Assistant)
@@ -156,5 +214,19 @@ public sealed class BulkEmitter
         };
         bubbles.Add(assistant);
         return assistant;
+    }
+
+    private sealed class ImmediateDispatcherScheduler : IDispatcherScheduler
+    {
+        public IDisposable ScheduleRecurring(TimeSpan interval, Action callback) => new Disposable();
+
+        public void Post(Action callback) => callback();
+
+        private sealed class Disposable : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+        }
     }
 }
