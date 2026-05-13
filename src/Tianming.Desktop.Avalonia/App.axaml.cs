@@ -66,8 +66,9 @@ public partial class App : Application
 
     /// <summary>
     /// 启动时配置 LiveCharts2 全局主题：5 个 palette 颜色 + PingFang SC 中文字体。
-    /// 用 2.0.2 API：AddSkiaSharp + HasTextSettings(TextSettings) + HasTheme(Action&lt;Theme&gt;)。
-    /// （HasGlobalSKTypeface 在 2.0.2 中已 [Obsolete]，改走 TextSettings.DefaultTypeface。）
+    /// LiveCharts 2.0.2 正确入口：AddLightTheme(Action&lt;Theme&gt;)（base theme 含所有 builder
+    /// 实装，再用 callback 覆盖 palette）。早先 HasTheme(Action&lt;Theme&gt;) 是空白 Theme，
+    /// 内部 builder lambda 默认 throw NotImplementedException，chart load 时崩溃。
     /// </summary>
     private static void ConfigureLiveCharts()
     {
@@ -75,8 +76,9 @@ public partial class App : Application
 
         LiveCharts.Configure(settings => settings
             .AddSkiaSharp()
+            .AddDefaultMappers()
             .HasTextSettings(new TextSettings { DefaultTypeface = typeface })
-            .HasTheme(theme =>
+            .AddLightTheme(theme =>
             {
                 theme.Colors = new[]
                 {
