@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.AI"
+             x:Class="Tianming.Desktop.Avalonia.Views.AI.ApiKeysPage"
+             x:DataType="vm:ApiKeysViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="800" d:DesignHeight="600">
+  <ScrollViewer Padding="24">
+    <StackPanel Spacing="20">
+
+      <!-- 新增 Key -->
+      <controls:SectionCard Header="新增 API Key" Subtitle="选择 Provider 并输入密钥">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,*">
+            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
+              <TextBlock Text="Provider" FontSize="12" FontWeight="SemiBold"/>
+              <ComboBox ItemsSource="{Binding Providers}"
+                        SelectedItem="{Binding SelectedProviderItem}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding ProviderName}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4" Margin="8,0,0,0">
+              <TextBlock Text="API Key" FontSize="12" FontWeight="SemiBold"/>
+              <TextBox Text="{Binding NewKeyInput}" Watermark="粘贴 API Key"/>
+            </StackPanel>
+          </Grid>
+          <Button Content="保存 Key" Command="{Binding SaveKeyCommand}"
+                  HorizontalAlignment="Right"
+                  Classes="accent"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <!-- 已配置 Key 列表 -->
+      <controls:SectionCard Header="已配置密钥" Subtitle="按 Provider 分组显示 API Key">
+        <StackPanel Spacing="8">
+          <ItemsControl ItemsSource="{Binding Providers}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="16"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border BorderBrush="{DynamicResource BorderSubtleBrush}"
+                      BorderThickness="1"
+                      CornerRadius="8"
+                      Padding="12">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="{Binding ProviderName}"
+                             FontSize="14" FontWeight="SemiBold"/>
+                  <ItemsControl ItemsSource="{Binding Keys}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Spacing="6"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="*,120,80,80">
+                          <TextBlock Grid.Column="0" Text="{Binding ConfigName}"
+                                     VerticalAlignment="Center"/>
+                          <TextBlock Grid.Column="1" Text="{Binding MaskedKey}"
+                                     VerticalAlignment="Center"
+                                     FontFamily="monospace"
+                                     Foreground="{DynamicResource TextSecondaryBrush}"/>
+                          <CheckBox Grid.Column="2"
+                                    Content="启用"
+                                    IsChecked="{Binding IsEnabled}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                          <Button Grid.Column="3" Content="删除"
+                                  Click="OnDeleteKeyClick"
+                                  Tag="{Binding Id}"
+                                  Classes="danger"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center"/>
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Text="还没有配置任何密钥"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   HorizontalAlignment="Center"
+                   Margin="0,20"
+                   IsVisible="{Binding HasNoKeys}"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
