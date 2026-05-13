@@ -1,0 +1,48 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+  <ControlTheme x:Key="{x:Type controls:SidebarTreeItem}" TargetType="controls:SidebarTreeItem">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel>
+          <Border x:Name="PART_Row"
+                  Padding="6,4"
+                  CornerRadius="{DynamicResource RadiusSm}">
+            <DockPanel LastChildFill="True">
+              <!-- 缩进 spacer：每层 16px -->
+              <Border DockPanel.Dock="Left"
+                      Width="{TemplateBinding Depth, Converter={x:Static controls:DepthToWidthConverter.Instance}}"/>
+              <TextBlock DockPanel.Dock="Left" Width="14"
+                         Text="{TemplateBinding IsExpanded, Converter={x:Static controls:ExpandedToChevronConverter.Instance}}"
+                         FontSize="{DynamicResource FontSizeCaption}"
+                         Foreground="{DynamicResource TextTertiaryBrush}"
+                         VerticalAlignment="Center"
+                         IsVisible="{TemplateBinding Children, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              <TextBlock DockPanel.Dock="Left"
+                         Text="{TemplateBinding IconGlyph}"
+                         Width="16"
+                         Margin="0,0,6,0"
+                         FontSize="{DynamicResource FontSizeBody}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         VerticalAlignment="Center"
+                         IsVisible="{TemplateBinding IconGlyph, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              <ContentPresenter DockPanel.Dock="Right" Content="{TemplateBinding Trailing}" VerticalAlignment="Center"/>
+              <TextBlock Text="{TemplateBinding Label}"
+                         FontSize="{DynamicResource FontSizeBody}"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         VerticalAlignment="Center"/>
+            </DockPanel>
+          </Border>
+
+          <!-- 子节点 -->
+          <ItemsControl ItemsSource="{TemplateBinding Children}"
+                        IsVisible="{TemplateBinding IsExpanded}"/>
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^[IsSelected=True] /template/ Border#PART_Row">
+      <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

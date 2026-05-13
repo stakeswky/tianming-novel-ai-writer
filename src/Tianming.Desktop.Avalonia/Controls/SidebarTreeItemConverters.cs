@@ -1,0 +1,23 @@
+using System;
+using System.Globalization;
+using Avalonia.Data.Converters;
+
+namespace Tianming.Desktop.Avalonia.Controls;
+
+internal sealed class DepthToWidthConverter : IValueConverter
+{
+    public static readonly DepthToWidthConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is int d ? d * 16.0 : 0.0;
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+internal sealed class ExpandedToChevronConverter : IValueConverter
+{
+    public static readonly ExpandedToChevronConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is bool b && b ? "▾" : "▸";
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
