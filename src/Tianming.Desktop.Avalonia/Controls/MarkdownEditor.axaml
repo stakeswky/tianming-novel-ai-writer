@@ -1,0 +1,5 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Tianming.Desktop.Avalonia.Controls.MarkdownEditor">
+  <!-- 内容由 .cs 设置（_editor）；axaml 仅作 1:1 文件存在用于 XAML compile -->
+</UserControl>
