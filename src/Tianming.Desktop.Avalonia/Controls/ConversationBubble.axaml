@@ -26,7 +26,6 @@
             <SelectableTextBlock Text="{TemplateBinding ContentText}"
                                  FontSize="{DynamicResource FontSizeBody}"
                                  Foreground="{DynamicResource TextPrimaryBrush}"
-                                 LineHeight="{DynamicResource LineHeightRelaxed}"
                                  TextWrapping="Wrap"/>
 
             <!-- References (chips) -->

@@ -20,8 +20,10 @@
   <FontWeight x:Key="FontWeightSemibold">SemiBold</FontWeight>
   <FontWeight x:Key="FontWeightBold">Bold</FontWeight>
 
-  <!-- Line height multipliers -->
-  <x:Double x:Key="LineHeightTight">1.2</x:Double>
-  <x:Double x:Key="LineHeightNormal">1.5</x:Double>
-  <x:Double x:Key="LineHeightRelaxed">1.7</x:Double>
+  <!-- Line height — Avalonia TextBlock.LineHeight 是绝对像素，不是倍数。这些 token 是按
+       FontSizeBody=13 算出来的常用行高（tight≈1.2x / normal≈1.5x / relaxed≈1.7x）。
+       配大字号（H1/H2）时直接给数字或新增 token，不要套用这套。 -->
+  <x:Double x:Key="LineHeightTight">16</x:Double>
+  <x:Double x:Key="LineHeightNormal">20</x:Double>
+  <x:Double x:Key="LineHeightRelaxed">22</x:Double>
 </ResourceDictionary>
