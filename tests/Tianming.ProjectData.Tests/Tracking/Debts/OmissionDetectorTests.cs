@@ -33,4 +33,29 @@ public class OmissionDetectorTests
         var debt = Assert.Single(debts);
         Assert.Equal(TrackingDebtCategory.Omission, debt.Category);
     }
+
+    [Fact]
+    public async Task Skips_when_expected_setup_is_for_another_chapter()
+    {
+        var detector = new OmissionDetector();
+        var ctx = new TrackingDebtDetectionContext
+        {
+            Foreshadowings = new ForeshadowingStatusGuide
+            {
+                Foreshadowings = new()
+                {
+                    ["fs-1"] = new ForeshadowingStatusEntry
+                    {
+                        Name = "金鳞匕首",
+                        IsSetup = false,
+                        ExpectedSetupChapter = "vol1_ch6",
+                    },
+                },
+            },
+        };
+
+        var debts = await detector.DetectAsync("vol1_ch5", new ChapterChanges(), new FactSnapshot(), ctx);
+
+        Assert.Empty(debts);
+    }
 }
