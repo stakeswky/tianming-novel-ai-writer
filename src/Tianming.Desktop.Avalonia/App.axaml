@@ -48,6 +48,8 @@
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Shadows.axaml"/>
         <!-- 2. 旧 palette 兼容（PalettesLight 现在 internally MergedDictionaries 了 Colors.axaml） -->
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/PalettesLight.axaml"/>
+        <!-- 3. Controls (primitives ControlTheme) -->
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/BadgePill.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
