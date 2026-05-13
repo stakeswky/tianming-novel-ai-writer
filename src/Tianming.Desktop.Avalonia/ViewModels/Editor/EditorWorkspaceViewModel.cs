@@ -32,10 +32,6 @@ public sealed partial class EditorWorkspaceViewModel : ObservableObject
         _projectId = projectId ?? throw new ArgumentNullException(nameof(projectId));
         _draftStore = draftStore ?? throw new ArgumentNullException(nameof(draftStore));
         _autoSave = autoSave ?? throw new ArgumentNullException(nameof(autoSave));
-
-        // 启动给一个示例草稿 tab，让 dotnet run 切到草稿页时可见非空内容。
-        AddTab("ch-001", "第 1 章 蒙学开篇");
-        ActiveEditor!.LoadContent("# 第 1 章 蒙学开篇\n\n清晨，少年推开木门——");
     }
 
     // AddTab 用 2 个参数，无法直接生成 RelayCommand；保持为公开方法。
@@ -46,6 +42,21 @@ public sealed partial class EditorWorkspaceViewModel : ObservableObject
         var item = new ChapterTabItem(chapterId, title, IsDirty: false, IsActive: true);
         Tabs.Add(item);
         ActivateTab(item);
+    }
+
+    /// <summary>
+    /// M4.4：打开指定章节 tab。若已存在则激活，否则新建。
+    /// </summary>
+    public void OpenChapter(string chapterId, string? title = null)
+    {
+        var existing = Tabs.FirstOrDefault(t => t.ChapterId == chapterId);
+        if (existing != null)
+        {
+            ActivateTab(existing);
+            return;
+        }
+        var displayTitle = title ?? $"第 {chapterId} 章";
+        AddTab(chapterId, displayTitle);
     }
 
     [RelayCommand]

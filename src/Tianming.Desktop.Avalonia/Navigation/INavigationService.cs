@@ -8,6 +8,7 @@ public interface INavigationService
 {
     PageKey? CurrentKey { get; }
     object?  CurrentViewModel { get; }
+    object?  LastParameter { get; }
     bool     CanGoBack { get; }
 
     Task NavigateAsync(PageKey key, object? parameter = null, CancellationToken ct = default);

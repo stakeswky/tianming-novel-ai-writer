@@ -1,8 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Generate"
              x:Class="Tianming.Desktop.Avalonia.Views.Generate.ChapterPipelinePage"
              x:CompileBindings="False"
+             x:DataType="vm:ChapterPipelineViewModel"
              FontFamily="{DynamicResource FontUI}">
   <DockPanel LastChildFill="True" Background="{DynamicResource SurfaceCanvasBrush}">
     <!-- 顶栏：标题 + M4.4 接入提示 badge -->
@@ -26,13 +28,13 @@
 
       <!-- ① 启用章节 -->
       <controls:SectionCard Grid.Column="0" Header="① 启用章节" Subtitle="选择待生成章节">
-        <ListBox ItemsSource="{Binding MockChapters}"
+        <ListBox ItemsSource="{Binding Chapters}"
                  SelectedItem="{Binding SelectedChapter, Mode=TwoWay}"
                  Background="Transparent"
                  BorderThickness="0">
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding}" Margin="0,4"/>
+              <TextBlock Text="{Binding DisplayName}" Margin="0,4"/>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
@@ -92,15 +94,22 @@
       <!-- ⑤ 操作历史 -->
       <controls:SectionCard Grid.Column="8" Header="⑤ 操作历史" Subtitle="执行日志">
         <DockPanel LastChildFill="True">
-          <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Spacing="6" Margin="0,8,0,0">
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Spacing="6" Margin="0 8 0 0">
             <Button Classes="primary"
                     Content="开始生成"
                     HorizontalAlignment="Stretch"
-                    IsEnabled="{Binding IsPipelineImplemented}"/>
+                    Command="{Binding GenerateCommand}"
+                    IsEnabled="{Binding !IsGenerating}"/>
             <Button Classes="ghost"
                     Content="应用到章节"
                     HorizontalAlignment="Stretch"
-                    IsEnabled="{Binding IsPipelineImplemented}"/>
+                    Command="{Binding ApplyCommand}"
+                    IsEnabled="{Binding CanApply}"/>
+          </StackPanel>
+          <StackPanel DockPanel.Dock="Top" Margin="0 4 0 8" Spacing="4">
+            <TextBlock Text="{Binding GateResultMessage}"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       TextWrapping="Wrap"/>
           </StackPanel>
           <TextBlock Text="（暂无历史）"
                      Foreground="{DynamicResource TextTertiaryBrush}"

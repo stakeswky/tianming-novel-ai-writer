@@ -10,20 +10,31 @@ namespace Tianming.Desktop.Avalonia.Tests.ViewModels.Editor;
 public class EditorWorkspaceViewModelTests
 {
     [Fact]
-    public void New_workspace_has_one_default_tab()
+    public void New_workspace_starts_empty()
     {
         var vm = NewWorkspace();
-        Assert.Single(vm.Tabs);
-        Assert.NotNull(vm.ActiveTab);
+        Assert.Empty(vm.Tabs);
+        Assert.Null(vm.ActiveTab);
     }
 
     [Fact]
-    public void Default_tab_chapterId_and_title_are_set()
+    public void OpenChapter_creates_and_activates_tab()
     {
         var vm = NewWorkspace();
-        Assert.NotNull(vm.ActiveTab);
-        Assert.False(string.IsNullOrEmpty(vm.ActiveTab!.ChapterId));
-        Assert.False(string.IsNullOrEmpty(vm.ActiveTab!.Title));
+        vm.OpenChapter("ch-001", "第 1 章 测试");
+        Assert.Single(vm.Tabs);
+        Assert.Equal("ch-001", vm.ActiveTab!.ChapterId);
+        Assert.Equal("第 1 章 测试", vm.ActiveTab.Title);
+    }
+
+    [Fact]
+    public void OpenChapter_existing_activates_without_duplicate()
+    {
+        var vm = NewWorkspace();
+        vm.OpenChapter("ch-001", "第 1 章");
+        vm.OpenChapter("ch-001", "Different Title");
+        Assert.Single(vm.Tabs);
+        Assert.Equal("第 1 章", vm.ActiveTab!.Title);
     }
 
     [Fact]
@@ -31,7 +42,7 @@ public class EditorWorkspaceViewModelTests
     {
         var vm = NewWorkspace();
         vm.AddTab("ch-2", "第 2 章");
-        Assert.Equal(2, vm.Tabs.Count);
+        Assert.Single(vm.Tabs);
         Assert.Equal("ch-2", vm.ActiveTab!.ChapterId);
     }
 
@@ -45,7 +56,7 @@ public class EditorWorkspaceViewModelTests
 
         vm.CloseTab(vm.ActiveTab);
 
-        Assert.Equal(2, vm.Tabs.Count);
+        Assert.Single(vm.Tabs);
         Assert.NotNull(vm.ActiveTab);
     }
 
