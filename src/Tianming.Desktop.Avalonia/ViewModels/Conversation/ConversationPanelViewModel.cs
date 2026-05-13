@@ -110,6 +110,10 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         catch (OperationCanceledException)
         {
         }
+        catch (Exception)
+        {
+            await SendLocalDemoAsync(input);
+        }
         finally
         {
             IsStreaming = false;
