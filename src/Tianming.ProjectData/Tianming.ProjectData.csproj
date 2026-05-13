@@ -43,6 +43,7 @@
     <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Generate/BlueprintContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Generate/BlueprintContext.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Templates/CreativeMaterialData.cs" Link="Services/Modules/ProjectData/Models/Design/Templates/CreativeMaterialData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Factions/FactionRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Factions/FactionRulesData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Location/LocationRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Location/LocationRulesData.cs" />
