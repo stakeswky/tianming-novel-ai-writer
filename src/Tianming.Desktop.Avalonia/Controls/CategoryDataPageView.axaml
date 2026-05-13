@@ -1,0 +1,102 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             x:Class="Tianming.Desktop.Avalonia.Controls.CategoryDataPageView"
+             x:CompileBindings="False"
+             FontFamily="{DynamicResource FontUI}">
+  <Grid ColumnDefinitions="220, 4, 280, 4, *">
+    <!-- 左：分类列表 -->
+    <Border Grid.Column="0" Background="{DynamicResource SurfaceCanvasBrush}" Padding="12">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="6">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="{Binding PageIcon}"
+                       FontSize="{DynamicResource FontSizeH2}"
+                       VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding PageTitle}"
+                       FontSize="{DynamicResource FontSizeH2}"
+                       FontWeight="{DynamicResource FontWeightSemibold}"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+          <Button Classes="ghost"
+                  Content="+ 新建分类"
+                  HorizontalAlignment="Stretch"
+                  Command="{Binding AddCategoryWithDefaultNameCommand}"/>
+        </StackPanel>
+        <ListBox ItemsSource="{Binding Categories}"
+                 SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                 Background="Transparent"
+                 BorderThickness="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                <TextBlock Text="{Binding Icon}" Width="20"
+                           VerticalAlignment="Center"
+                           FontSize="{DynamicResource FontSizeBody}"/>
+                <TextBlock Text="{Binding Name}"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <GridSplitter Grid.Column="1" Background="{DynamicResource BorderBrush}" ResizeDirection="Columns"/>
+
+    <!-- 中：条目列表 -->
+    <Border Grid.Column="2" Background="{DynamicResource SurfaceCanvasBrush}" Padding="12">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="6">
+          <TextBlock Text="条目"
+                     FontSize="{DynamicResource FontSizeBody}"
+                     FontWeight="{DynamicResource FontWeightSemibold}"
+                     Foreground="{DynamicResource TextSecondaryBrush}"/>
+          <Button Classes="ghost"
+                  Content="+ 在当前分类新建"
+                  HorizontalAlignment="Stretch"
+                  Command="{Binding AddNewItemInCurrentCategoryCommand}"/>
+        </StackPanel>
+        <ListBox Name="ItemsList"
+                 ItemsSource="{Binding Items}"
+                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                 Background="Transparent"
+                 BorderThickness="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Margin="0,2" Spacing="2">
+                <TextBlock Text="{Binding Name}"
+                           FontSize="{DynamicResource FontSizeBody}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding Category}"
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <GridSplitter Grid.Column="3" Background="{DynamicResource BorderBrush}" ResizeDirection="Columns"/>
+
+    <!-- 右：动态表单（code-behind 构建） -->
+    <Border Grid.Column="4" Background="{DynamicResource SurfacePanelBrush}" Padding="16">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+          <Button Classes="primary"
+                  Content="保存"
+                  Command="{Binding UpdateSelectedItemCommand}"/>
+          <Button Classes="ghost"
+                  Content="删除"
+                  Command="{Binding DeleteSelectedItemCommand}"/>
+        </StackPanel>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Name="FormHost" Spacing="10"/>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+  </Grid>
+</UserControl>
