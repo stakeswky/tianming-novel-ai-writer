@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:shell="using:Tianming.Desktop.Avalonia.Shell"
+             x:Class="Tianming.Desktop.Avalonia.Shell.AppStatusBar"
+             x:DataType="shell:AppStatusBarViewModel"
+             Height="28">
+  <Border Background="{DynamicResource SurfaceSubtleBrush}"
+          BorderBrush="{DynamicResource BorderSubtleBrush}"
+          BorderThickness="0,1,0,0">
+    <Grid Margin="12,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- 左侧 indicators -->
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+        <TextBlock Text="{Binding DotNetRuntime}"
+                   FontSize="{DynamicResource FontSizeCaption}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   VerticalAlignment="Center"/>
+
+        <!-- 占位用 TextBlock 表示 status；Task 25 起 StatusBarItem primitive 接管 -->
+        <TextBlock Text="{Binding LocalMode.Label}"
+                   FontSize="{DynamicResource FontSizeCaption}"
+                   Foreground="{DynamicResource StatusSuccessBrush}"
+                   VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding KeychainStatus.Label}"
+                   FontSize="{DynamicResource FontSizeCaption}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   VerticalAlignment="Center"
+                   ToolTip.Tip="{Binding KeychainStatus.Tooltip}"/>
+        <TextBlock Text="{Binding OnnxStatus.Label}"
+                   FontSize="{DynamicResource FontSizeCaption}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   VerticalAlignment="Center"
+                   ToolTip.Tip="{Binding OnnxStatus.Tooltip}"/>
+      </StackPanel>
+
+      <!-- 右侧项目路径 -->
+      <TextBlock Grid.Column="2"
+                 Text="{Binding CurrentProjectPath}"
+                 FontSize="{DynamicResource FontSizeCaption}"
+                 Foreground="{DynamicResource TextTertiaryBrush}"
+                 VerticalAlignment="Center"
+                 IsVisible="{Binding CurrentProjectPath, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+    </Grid>
+  </Border>
+</UserControl>
