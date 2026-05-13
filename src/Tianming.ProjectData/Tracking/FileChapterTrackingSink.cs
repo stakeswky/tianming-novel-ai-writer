@@ -272,6 +272,29 @@ namespace TM.Services.Modules.ProjectData.Implementations
             await SaveAsync(VolumeFile("item_state_guide", chapterId), guide).ConfigureAwait(false);
         }
 
+        public async Task RecordTrackingDebtsAsync(string chapterId, IReadOnlyList<TrackingDebt> debts)
+        {
+            if (debts == null || debts.Count == 0)
+                return;
+
+            var volume = ParseVolume(chapterId);
+            var merged = (await LoadTrackingDebtsAsync(volume).ConfigureAwait(false)).ToList();
+            merged.RemoveAll(debt => string.Equals(debt.ChapterId, chapterId, StringComparison.OrdinalIgnoreCase));
+            merged.AddRange(debts);
+
+            await SaveAsync(DebtFile(volume), merged).ConfigureAwait(false);
+        }
+
+        public async Task<IReadOnlyList<TrackingDebt>> LoadTrackingDebtsAsync(int volume)
+        {
+            var path = Path.Combine(_rootDirectory, DebtFile(volume));
+            if (!File.Exists(path))
+                return Array.Empty<TrackingDebt>();
+
+            var json = await File.ReadAllTextAsync(path).ConfigureAwait(false);
+            return JsonSerializer.Deserialize<List<TrackingDebt>>(json, _jsonOptions) ?? new List<TrackingDebt>();
+        }
+
         public async Task RemoveCharacterStateAsync(string chapterId)
         {
             var guide = await LoadAsync<CharacterStateGuide>(VolumeFile("character_state_guide", chapterId)).ConfigureAwait(false);
@@ -405,6 +428,11 @@ namespace TM.Services.Modules.ProjectData.Implementations
         private static string VolumeFile(string prefix, string chapterId)
         {
             return $"{prefix}_vol{ParseVolume(chapterId)}.json";
+        }
+
+        private static string DebtFile(int volume)
+        {
+            return $"tracking_debts_vol{volume}.json";
         }
 
         private static int ParseVolume(string chapterId)

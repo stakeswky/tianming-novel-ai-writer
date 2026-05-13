@@ -80,6 +80,8 @@ namespace TM.Services.Modules.ProjectData.Implementations
         Task UpdateTimeProgressionAsync(string chapterId, TimeProgressionChange change);
         Task UpdateCharacterMovementsAsync(string chapterId, List<CharacterMovementChange> movements);
         Task UpdateItemStateAsync(string chapterId, ItemTransferChange change);
+        Task RecordTrackingDebtsAsync(string chapterId, IReadOnlyList<TrackingDebt> debts);
+        Task<IReadOnlyList<TrackingDebt>> LoadTrackingDebtsAsync(int volume);
         Task RemoveCharacterStateAsync(string chapterId);
         Task RemoveConflictProgressAsync(string chapterId);
         Task RemovePlotPointsAsync(string chapterId);

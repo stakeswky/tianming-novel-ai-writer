@@ -561,6 +561,8 @@ public class ChapterGenerationPipelineTests
 
         public Task UpdateCharacterMovementsAsync(string chapterId, List<CharacterMovementChange> movements) => Task.CompletedTask;
         public Task UpdateItemStateAsync(string chapterId, ItemTransferChange change) => Task.CompletedTask;
+        public Task RecordTrackingDebtsAsync(string chapterId, IReadOnlyList<TrackingDebt> debts) => Task.CompletedTask;
+        public Task<IReadOnlyList<TrackingDebt>> LoadTrackingDebtsAsync(int volume) => Task.FromResult<IReadOnlyList<TrackingDebt>>(Array.Empty<TrackingDebt>());
         public Task RemoveCharacterStateAsync(string chapterId) => Task.CompletedTask;
         public Task RemoveConflictProgressAsync(string chapterId) => Task.CompletedTask;
         public Task RemovePlotPointsAsync(string chapterId) => Task.CompletedTask;
@@ -584,6 +586,8 @@ public class ChapterGenerationPipelineTests
         public Task UpdateTimeProgressionAsync(string chapterId, TimeProgressionChange change) => Task.CompletedTask;
         public Task UpdateCharacterMovementsAsync(string chapterId, List<CharacterMovementChange> movements) => Task.CompletedTask;
         public Task UpdateItemStateAsync(string chapterId, ItemTransferChange change) => Task.CompletedTask;
+        public Task RecordTrackingDebtsAsync(string chapterId, IReadOnlyList<TrackingDebt> debts) => Task.CompletedTask;
+        public Task<IReadOnlyList<TrackingDebt>> LoadTrackingDebtsAsync(int volume) => Task.FromResult<IReadOnlyList<TrackingDebt>>(Array.Empty<TrackingDebt>());
         public Task RemoveCharacterStateAsync(string chapterId) => throw new InvalidOperationException("tracking cleanup failed");
         public Task RemoveConflictProgressAsync(string chapterId) => Task.CompletedTask;
         public Task RemovePlotPointsAsync(string chapterId) => Task.CompletedTask;
