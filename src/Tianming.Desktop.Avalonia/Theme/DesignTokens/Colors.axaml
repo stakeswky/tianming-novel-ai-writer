@@ -1,0 +1,62 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Brand / Accent -->
+  <Color x:Key="AccentBase">#06B6D4</Color>
+  <Color x:Key="AccentHover">#0891B2</Color>
+  <Color x:Key="AccentPressed">#0E7490</Color>
+  <Color x:Key="AccentSubtle">#CFFAFE</Color>
+  <Color x:Key="AccentForeground">#FFFFFF</Color>
+
+  <!-- Neutral surfaces -->
+  <Color x:Key="SurfaceBase">#FFFFFF</Color>
+  <Color x:Key="SurfaceCanvas">#F8FAFC</Color>
+  <Color x:Key="SurfaceSubtle">#F1F5F9</Color>
+  <Color x:Key="SurfaceMuted">#E2E8F0</Color>
+  <Color x:Key="BorderSubtle">#E5E7EB</Color>
+  <Color x:Key="BorderStrong">#CBD5E1</Color>
+
+  <!-- Text -->
+  <Color x:Key="TextPrimary">#0F172A</Color>
+  <Color x:Key="TextSecondary">#475569</Color>
+  <Color x:Key="TextTertiary">#94A3B8</Color>
+  <Color x:Key="TextOnAccent">#FFFFFF</Color>
+
+  <!-- Semantic / status -->
+  <Color x:Key="StatusSuccess">#10B981</Color>
+  <Color x:Key="StatusSuccessSubtle">#D1FAE5</Color>
+  <Color x:Key="StatusWarning">#F59E0B</Color>
+  <Color x:Key="StatusWarningSubtle">#FEF3C7</Color>
+  <Color x:Key="StatusDanger">#EF4444</Color>
+  <Color x:Key="StatusDangerSubtle">#FEE2E2</Color>
+  <Color x:Key="StatusInfo">#3B82F6</Color>
+  <Color x:Key="StatusInfoSubtle">#DBEAFE</Color>
+  <Color x:Key="StatusNeutral">#6B7280</Color>
+  <Color x:Key="StatusNeutralSubtle">#F3F4F6</Color>
+
+  <!-- *Brush 同名 + Brush 后缀 -->
+  <SolidColorBrush x:Key="AccentBaseBrush"            Color="{StaticResource AccentBase}"/>
+  <SolidColorBrush x:Key="AccentHoverBrush"           Color="{StaticResource AccentHover}"/>
+  <SolidColorBrush x:Key="AccentPressedBrush"         Color="{StaticResource AccentPressed}"/>
+  <SolidColorBrush x:Key="AccentSubtleBrush"          Color="{StaticResource AccentSubtle}"/>
+  <SolidColorBrush x:Key="AccentForegroundBrush"      Color="{StaticResource AccentForeground}"/>
+  <SolidColorBrush x:Key="SurfaceBaseBrush"           Color="{StaticResource SurfaceBase}"/>
+  <SolidColorBrush x:Key="SurfaceCanvasBrush"         Color="{StaticResource SurfaceCanvas}"/>
+  <SolidColorBrush x:Key="SurfaceSubtleBrush"         Color="{StaticResource SurfaceSubtle}"/>
+  <SolidColorBrush x:Key="SurfaceMutedBrush"          Color="{StaticResource SurfaceMuted}"/>
+  <SolidColorBrush x:Key="BorderSubtleBrush"          Color="{StaticResource BorderSubtle}"/>
+  <SolidColorBrush x:Key="BorderStrongBrush"          Color="{StaticResource BorderStrong}"/>
+  <SolidColorBrush x:Key="TextPrimaryBrush"           Color="{StaticResource TextPrimary}"/>
+  <SolidColorBrush x:Key="TextSecondaryBrush"         Color="{StaticResource TextSecondary}"/>
+  <SolidColorBrush x:Key="TextTertiaryBrush"          Color="{StaticResource TextTertiary}"/>
+  <SolidColorBrush x:Key="TextOnAccentBrush"          Color="{StaticResource TextOnAccent}"/>
+  <SolidColorBrush x:Key="StatusSuccessBrush"         Color="{StaticResource StatusSuccess}"/>
+  <SolidColorBrush x:Key="StatusSuccessSubtleBrush"   Color="{StaticResource StatusSuccessSubtle}"/>
+  <SolidColorBrush x:Key="StatusWarningBrush"         Color="{StaticResource StatusWarning}"/>
+  <SolidColorBrush x:Key="StatusWarningSubtleBrush"   Color="{StaticResource StatusWarningSubtle}"/>
+  <SolidColorBrush x:Key="StatusDangerBrush"          Color="{StaticResource StatusDanger}"/>
+  <SolidColorBrush x:Key="StatusDangerSubtleBrush"    Color="{StaticResource StatusDangerSubtle}"/>
+  <SolidColorBrush x:Key="StatusInfoBrush"            Color="{StaticResource StatusInfo}"/>
+  <SolidColorBrush x:Key="StatusInfoSubtleBrush"      Color="{StaticResource StatusInfoSubtle}"/>
+  <SolidColorBrush x:Key="StatusNeutralBrush"         Color="{StaticResource StatusNeutral}"/>
+  <SolidColorBrush x:Key="StatusNeutralSubtleBrush"   Color="{StaticResource StatusNeutralSubtle}"/>
+</ResourceDictionary>
