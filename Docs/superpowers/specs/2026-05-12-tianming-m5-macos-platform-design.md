@@ -195,3 +195,12 @@ public sealed class MacOSSystemAppearanceMonitor : ISystemAppearanceMonitor, IDi
 6. macOS 顶部系统菜单栏能看到"天命"菜单 + ⌘Q / ⌘, / ⌘N / ⌘S 快捷键
 
 完成后进入 M6（v2.8.7 写作内核升级）。M5 结束时应用已经能在 macOS 自用写作，M6 是把 v2.8.7 的长篇稳定性、生成质量、Agent 动手能力补齐。
+
+## 7. Mac_UI 视觉真值源
+
+| M5 模块 | 参考图 | 伪代码 |
+|---|---|---|
+| 偏好 / 平台能力 | `Mac_UI/images/10-macos-preferences-platform.png` | `Mac_UI/pseudocode/10-macos-preferences-platform.md` |
+
+应用主菜单（NativeMenu）的命令绑定在 M5；菜单结构已在 Sub-plan 1 stub。视觉参考图 10 同时覆盖 Keychain / 代理 / 主题 / 外观 4 类配置块。
+
