@@ -31,6 +31,7 @@ public partial class LeftNavViewModel : ObservableObject
         {
             new(PageKeys.Welcome,   "欢迎",     "home"),
             new(PageKeys.Dashboard, "仪表盘",   "layout-dashboard"),
+            new(PageKeys.Editor,    "草稿",     "📝"),
         }));
 
         Groups.Add(new NavRailGroup("设计", new List<NavRailItem>
