@@ -180,4 +180,25 @@ public class DesignTokensTests
             Assert.IsType<Thickness>(v);
         }
     }
+
+    private static IResourceDictionary LoadRadii()
+    {
+        EnsureAvaloniaInitialized();
+        var include = new ResourceInclude((Uri?)null)
+        {
+            Source = new Uri("avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Radii.axaml")
+        };
+        return include.Loaded;
+    }
+
+    [Fact]
+    public void Radii_AllKeysResolveAsCornerRadius()
+    {
+        var dict = LoadRadii();
+        foreach (var k in new[] { "RadiusSm", "RadiusMd", "RadiusLg", "RadiusXl", "RadiusFull" })
+        {
+            Assert.True(dict.TryGetResource(k, null, out var v));
+            Assert.IsType<CornerRadius>(v);
+        }
+    }
 }
