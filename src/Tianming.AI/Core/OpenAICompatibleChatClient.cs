@@ -24,6 +24,9 @@ public sealed class OpenAICompatibleChatRequest
     public List<OpenAICompatibleChatMessage> Messages { get; set; } = new();
     public double? Temperature { get; set; }
     public int? MaxTokens { get; set; }
+
+    /// <summary>可选的工具声明列表（OpenAI function calling）。</summary>
+    public List<OpenAICompatibleToolDefinition>? Tools { get; set; }
 }
 
 public sealed class OpenAICompatibleChatResult
@@ -37,7 +40,34 @@ public sealed class OpenAICompatibleChatResult
     public int? TotalTokens { get; set; }
 }
 
-public sealed record OpenAICompatibleStreamChunk(string Content, string? FinishReason = null);
+public sealed record OpenAICompatibleStreamChunk(
+    string Content,
+    string? FinishReason = null,
+    IReadOnlyList<OpenAICompatibleToolCall>? ToolCalls = null,
+    string? Role = null);
+
+/// <summary>工具调用声明，用于 OpenAI /v1/chat/completions 请求的 tools 字段。</summary>
+public sealed class OpenAICompatibleToolDefinition
+{
+    public string Type { get; set; } = "function";
+    public OpenAICompatibleFunctionDefinition Function { get; set; } = new();
+}
+
+public sealed class OpenAICompatibleFunctionDefinition
+{
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Parameters { get; set; } = string.Empty; // JSON string
+}
+
+/// <summary>从流式响应中解析出的 tool_call。</summary>
+public sealed class OpenAICompatibleToolCall
+{
+    public string Id { get; set; } = string.Empty;
+    public string Type { get; set; } = "function";
+    public string FunctionName { get; set; } = string.Empty;
+    public string Arguments { get; set; } = string.Empty;
+}
 
 public sealed class OpenAICompatibleChatException : InvalidOperationException
 {
@@ -221,6 +251,22 @@ public sealed class OpenAICompatibleChatClient
         if (stream)
             body["stream"] = true;
 
+        if (request.Tools is { Count: > 0 })
+        {
+            body["tools"] = request.Tools
+                .Select(t => new Dictionary<string, object?>
+                {
+                    ["type"] = t.Type,
+                    ["function"] = new Dictionary<string, string>
+                    {
+                        ["name"] = t.Function.Name,
+                        ["description"] = t.Function.Description,
+                        ["parameters"] = t.Function.Parameters
+                    }
+                })
+                .ToList();
+        }
+
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, BuildChatCompletionsUri(request.BaseUrl))
         {
             Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
@@ -298,19 +344,59 @@ public sealed class OpenAICompatibleChatClient
                     ? finishReasonElement.GetString()
                     : null;
 
-            if (!choice.TryGetProperty("delta", out var delta)
-                || !delta.TryGetProperty("content", out var content)
-                || content.ValueKind != JsonValueKind.String)
+            // Try to parse tool_calls from delta
+            List<OpenAICompatibleToolCall>? toolCalls = null;
+            if (choice.TryGetProperty("delta", out var delta))
             {
-                return false;
+                if (delta.TryGetProperty("tool_calls", out var toolCallsElement)
+                    && toolCallsElement.ValueKind == JsonValueKind.Array
+                    && toolCallsElement.GetArrayLength() > 0)
+                {
+                    toolCalls = new List<OpenAICompatibleToolCall>();
+                    foreach (var tc in toolCallsElement.EnumerateArray())
+                    {
+                        var call = new OpenAICompatibleToolCall();
+                        if (tc.TryGetProperty("id", out var idEl) && idEl.ValueKind == JsonValueKind.String)
+                            call.Id = idEl.GetString() ?? string.Empty;
+                        if (tc.TryGetProperty("type", out var typeEl) && typeEl.ValueKind == JsonValueKind.String)
+                            call.Type = typeEl.GetString() ?? "function";
+                        if (tc.TryGetProperty("function", out var funcEl))
+                        {
+                            if (funcEl.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
+                                call.FunctionName = nameEl.GetString() ?? string.Empty;
+                            if (funcEl.TryGetProperty("arguments", out var argsEl) && argsEl.ValueKind == JsonValueKind.String)
+                                call.Arguments = argsEl.GetString() ?? string.Empty;
+                        }
+                        toolCalls.Add(call);
+                    }
+                }
+
+                // Also try to get role from delta
+                string? role = null;
+                if (delta.TryGetProperty("role", out var roleEl) && roleEl.ValueKind == JsonValueKind.String)
+                    role = roleEl.GetString();
+
+                // Parse content as before
+                if (delta.TryGetProperty("content", out var content)
+                    && content.ValueKind == JsonValueKind.String)
+                {
+                    var text = content.GetString() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        chunk = new OpenAICompatibleStreamChunk(text, finishReason, toolCalls, role);
+                        return true;
+                    }
+                }
+
+                // If we have tool_calls but no content, still yield the chunk
+                if (toolCalls is { Count: > 0 })
+                {
+                    chunk = new OpenAICompatibleStreamChunk(string.Empty, finishReason, toolCalls, role);
+                    return true;
+                }
             }
 
-            var text = content.GetString() ?? string.Empty;
-            if (string.IsNullOrEmpty(text))
-                return false;
-
-            chunk = new OpenAICompatibleStreamChunk(text, finishReason);
-            return true;
+            return false;
         }
         catch (JsonException)
         {
