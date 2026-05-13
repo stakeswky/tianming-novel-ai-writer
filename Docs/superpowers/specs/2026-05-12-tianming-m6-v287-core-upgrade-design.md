@@ -569,3 +569,20 @@ Commit：`feat(core): add package precheck and backup`。
 9. 打包前预检能报告未提交 WAL / staged edits / 高危校验问题，备份恢复 dry-run 不写盘。
 
 完成后，macOS 自用版不只是“迁移可用”，而是补齐 v2.8.7 对长篇稳定性、生成质量和 Agent 动手能力的核心承诺。
+
+## 7. Mac_UI 视觉真值源
+
+M6 9 个子里程碑对应参考图：
+
+| 子里程碑 | 参考图 | 伪代码 |
+|---|---|---|
+| M6.1 Tracking 债务 + FactSnapshot 拆分 | （新建无对应图，参考 06 章节生成管道侧栏） | — |
+| M6.2 HumanizeRules + CHANGES Canonicalizer | `Mac_UI/images/06-chapter-generation-pipeline.png` (CHANGES 区) | `Mac_UI/pseudocode/06-chapter-generation-pipeline.md` |
+| M6.3 WAL + 生成恢复 | `Mac_UI/images/06-chapter-generation-pipeline.png` (进度区) | 同上 |
+| M6.4 校验分层 + 向量定位 | `Mac_UI/images/08-unified-validation-report.png` | `Mac_UI/pseudocode/08-unified-validation-report.md` |
+| M6.5 ContextService 拆分 | （无 UI，纯 service） | — |
+| M6.6 AI middleware + 多模型路由 | `Mac_UI/images/09-ai-models-api-key-usage.png` (用量统计/路由) | `Mac_UI/pseudocode/09-ai-models-api-key-usage.md` |
+| M6.7 Agent 插件 + ToolCallCard 待确认 | `Mac_UI/images/07-ai-conversation-panel.png` (Agent 模式) | `Mac_UI/pseudocode/07-ai-conversation-panel.md` |
+| M6.8 一键成书 + 内容提炼 | （新建无对应图） | — |
+| M6.9 打包预检 + 备份 | （新建无对应图） | — |
+
