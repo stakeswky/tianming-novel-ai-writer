@@ -1,0 +1,34 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+  <ControlTheme x:Key="{x:Type controls:SegmentedTabs}" TargetType="controls:SegmentedTabs">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{DynamicResource SurfaceSubtleBrush}"
+                CornerRadius="{DynamicResource RadiusMd}"
+                Padding="2">
+          <ItemsControl ItemsSource="{TemplateBinding Items}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="2"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="controls:SegmentItem">
+                <Button Classes="ghost"
+                        Command="{Binding $parent[controls:SegmentedTabs].SelectCommand}"
+                        CommandParameter="{Binding Key}"
+                        Padding="12,4"
+                        CornerRadius="{DynamicResource RadiusSm}">
+                  <TextBlock Text="{Binding Label}"
+                             FontSize="{DynamicResource FontSizeSecondary}"
+                             FontWeight="{DynamicResource FontWeightMedium}"/>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

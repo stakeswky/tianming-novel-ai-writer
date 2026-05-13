@@ -54,6 +54,7 @@
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SectionCard.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/StatsCard.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SearchBox.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SegmentedTabs.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
