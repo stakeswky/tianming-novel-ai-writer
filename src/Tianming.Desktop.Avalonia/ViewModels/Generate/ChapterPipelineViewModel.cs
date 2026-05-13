@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using TM.Services.Modules.ProjectData.Models.Generate.ChapterPlanning;
+using TM.Services.Modules.ProjectData.Modules.Schema;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Messaging;
 using Tianming.Desktop.Avalonia.Navigation;
@@ -18,6 +21,7 @@ public sealed partial class ChapterPipelineViewModel : ObservableObject
 {
     private readonly INavigationService _navigation;
     private readonly ChapterGenerationStore _generationStore;
+    private readonly ModuleDataAdapter<ChapterCategory, ChapterData> _chapterAdapter;
 
     public string PageTitle => "章节生成管道";
     public string PageIcon  => "⚙️";
@@ -25,15 +29,10 @@ public sealed partial class ChapterPipelineViewModel : ObservableObject
     /// <summary>M4.4 已接入真实管道。</summary>
     public bool IsPipelineImplemented => true;
 
-    /// <summary>左侧"启用章节"列：mock 列表，M4.4 替换为 ChapterPlanning 数据。</summary>
-    public ObservableCollection<string> MockChapters { get; } = new()
-    {
-        "第 1 章 风起青萍",
-        "第 2 章 相遇",
-        "第 3 章 决意",
-    };
+    /// <summary>左侧"启用章节"列：来自 ChapterPlanning 的真实章节规划项。</summary>
+    public ObservableCollection<ChapterPipelineChapterItem> Chapters { get; } = new();
 
-    [ObservableProperty] private string? _selectedChapter;
+    [ObservableProperty] private ChapterPipelineChapterItem? _selectedChapter;
     [ObservableProperty] private bool _isGenerating;
     [ObservableProperty] private bool _canApply;
     [ObservableProperty] private string? _gateResultMessage;
@@ -54,10 +53,31 @@ public sealed partial class ChapterPipelineViewModel : ObservableObject
 
     public string PipelineDisabledHint => "M4.4 串联 ChapterGenerationPipeline 后启用";
 
-    public ChapterPipelineViewModel(INavigationService navigation, ChapterGenerationStore generationStore)
+    public ChapterPipelineViewModel(
+        INavigationService navigation,
+        ChapterGenerationStore generationStore,
+        ModuleDataAdapter<ChapterCategory, ChapterData> chapterAdapter)
     {
         _navigation = navigation;
         _generationStore = generationStore;
+        _chapterAdapter = chapterAdapter;
+    }
+
+    public async Task LoadChaptersAsync()
+    {
+        await _chapterAdapter.LoadAsync().ConfigureAwait(false);
+        Chapters.Clear();
+
+        foreach (var chapter in _chapterAdapter.GetData()
+                     .Where(chapter => chapter.IsEnabled)
+                     .OrderBy(chapter => chapter.ChapterNumber == 0 ? int.MaxValue : chapter.ChapterNumber)
+                     .ThenBy(chapter => chapter.Name))
+        {
+            Chapters.Add(ChapterPipelineChapterItem.From(chapter));
+        }
+
+        if (SelectedChapter == null && Chapters.Count > 0)
+            SelectedChapter = Chapters[0];
     }
 
     /// <summary>
@@ -67,18 +87,18 @@ public sealed partial class ChapterPipelineViewModel : ObservableObject
     [RelayCommand]
     private async Task GenerateAsync()
     {
-        if (string.IsNullOrWhiteSpace(SelectedChapter))
+        if (SelectedChapter == null)
         {
             GateResultMessage = "请先从左侧选择一个章节";
             return;
         }
 
-        var chapterId = ExtractChapterId(SelectedChapter);
+        var chapterId = SelectedChapter.ChapterId;
 
         // M4.4 覆盖保护：已生成的章节需要确认
         if (_generationStore.IsGenerated(chapterId) && !OverwriteConfirmed)
         {
-            GateResultMessage = $"⚠️ 章节「{SelectedChapter}」已生成，是否覆盖？（再次点击「开始生成」确认覆盖）";
+            GateResultMessage = $"⚠️ 章节「{SelectedChapter.DisplayName}」已生成，是否覆盖？（再次点击「开始生成」确认覆盖）";
             OverwriteConfirmed = true;
             return;
         }
@@ -91,7 +111,7 @@ public sealed partial class ChapterPipelineViewModel : ObservableObject
         await Task.Delay(500);
 
         GeneratedContent = $"M4.4: Generated content for {chapterId}";
-        GateResultMessage = $"生成完成：{SelectedChapter}";
+        GateResultMessage = $"生成完成：{SelectedChapter.DisplayName}";
         CanApply = true;
         IsGenerating = false;
     }
@@ -102,25 +122,35 @@ public sealed partial class ChapterPipelineViewModel : ObservableObject
     [RelayCommand]
     private async Task ApplyAsync()
     {
-        if (!CanApply || string.IsNullOrWhiteSpace(SelectedChapter))
+        if (!CanApply || SelectedChapter == null)
             return;
 
-        var chapterId = ExtractChapterId(SelectedChapter);
+        var chapterId = SelectedChapter.ChapterId;
         _generationStore.MarkGenerated(chapterId);
         WeakReferenceMessenger.Default.Send(new ChapterAppliedEvent(chapterId));
         await _navigation.NavigateAsync(PageKeys.Editor, chapterId);
     }
+}
 
-    /// <summary>从章节名称字符串提取 ID（如 "第 2 章 相遇" → "ch-002"）。</summary>
-    private static string ExtractChapterId(string chapterName)
+public sealed class ChapterPipelineChapterItem
+{
+    public string ChapterId { get; init; } = string.Empty;
+    public string DisplayName { get; init; } = string.Empty;
+    public ChapterData Source { get; init; } = new();
+
+    public static ChapterPipelineChapterItem From(ChapterData chapter)
     {
-        var start = chapterName.IndexOf('第');
-        if (start < 0) return "ch-unknown";
-        var end = chapterName.IndexOf('章');
-        if (end < 0) return "ch-unknown";
-        var numStr = chapterName.Substring(start + 1, end - start - 1).Trim();
-        if (int.TryParse(numStr, out var num))
-            return $"ch-{num:D3}";
-        return "ch-unknown";
+        var displayName = !string.IsNullOrWhiteSpace(chapter.Name)
+            ? chapter.Name
+            : chapter.ChapterNumber > 0 && !string.IsNullOrWhiteSpace(chapter.ChapterTitle)
+                ? $"第 {chapter.ChapterNumber} 章 {chapter.ChapterTitle}"
+                : chapter.ChapterTitle;
+
+        return new ChapterPipelineChapterItem
+        {
+            ChapterId = chapter.Id,
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? chapter.Id : displayName,
+            Source = chapter,
+        };
     }
 }

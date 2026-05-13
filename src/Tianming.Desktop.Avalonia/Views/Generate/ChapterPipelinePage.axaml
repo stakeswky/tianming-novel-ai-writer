@@ -28,13 +28,13 @@
 
       <!-- ① 启用章节 -->
       <controls:SectionCard Grid.Column="0" Header="① 启用章节" Subtitle="选择待生成章节">
-        <ListBox ItemsSource="{Binding MockChapters}"
+        <ListBox ItemsSource="{Binding Chapters}"
                  SelectedItem="{Binding SelectedChapter, Mode=TwoWay}"
                  Background="Transparent"
                  BorderThickness="0">
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding}" Margin="0,4"/>
+              <TextBlock Text="{Binding DisplayName}" Margin="0,4"/>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>

@@ -173,7 +173,8 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<ChapterPipelineViewModel>(sp =>
             new ChapterPipelineViewModel(
                 sp.GetRequiredService<INavigationService>(),
-                sp.GetRequiredService<ChapterGenerationStore>()));
+                sp.GetRequiredService<ChapterGenerationStore>(),
+                sp.GetRequiredService<ModuleDataAdapter<ChapterCategory, ChapterData>>()));
 
         // M4.3 章节编辑器 VM
         s.AddTransient<EditorWorkspaceViewModel>(sp =>
