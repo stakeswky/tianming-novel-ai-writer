@@ -25,6 +25,18 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton<AppLifecycle>();
         s.AddSingleton<DispatcherScheduler>();
 
+        // M5：系统代理 → HttpClient 装配
+        // AI 命名空间所有出站 HTTP 都走这个 named client，自动读 macOS 系统代理设置。
+        s.AddSingleton<AvaloniaSystemHttpProxy>();
+        s.AddHttpClient("tianming")
+            .ConfigurePrimaryHttpMessageHandler(sp => new System.Net.Http.SocketsHttpHandler
+            {
+                Proxy = sp.GetRequiredService<AvaloniaSystemHttpProxy>(),
+                UseProxy = true,
+            });
+        s.AddSingleton<System.Net.Http.HttpClient>(sp =>
+            sp.GetRequiredService<System.Net.Http.IHttpClientFactory>().CreateClient("tianming"));
+
         // Theme
         s.AddSingleton<PortableThemeState>(_ => new PortableThemeState());
         s.AddSingleton<PortableThemeStateController>(sp =>

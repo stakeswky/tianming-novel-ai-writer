@@ -1,9 +1,11 @@
+using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Tianming.Desktop.Avalonia;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
 using Tianming.Desktop.Avalonia.Shell;
 using Tianming.Desktop.Avalonia.ViewModels;
+using TM.Framework.Platform;
 using Xunit;
 
 namespace Tianming.Desktop.Avalonia.Tests.DI;
@@ -54,5 +56,15 @@ public class AppHostTests
         using var sp = (ServiceProvider)AppHost.Build();
         Assert.NotNull(sp.GetRequiredService<AppChromeViewModel>());
         Assert.NotNull(sp.GetRequiredService<AppStatusBarViewModel>());
+    }
+
+    [Fact]
+    public void Build_ResolvesSystemProxyService_AndHttpClient()
+    {
+        using var sp = (ServiceProvider)AppHost.Build();
+        Assert.NotNull(sp.GetRequiredService<IPortableSystemProxyService>());
+        Assert.NotNull(sp.GetRequiredService<AvaloniaSystemHttpProxy>());
+        Assert.NotNull(sp.GetRequiredService<IHttpClientFactory>());
+        Assert.NotNull(sp.GetRequiredService<HttpClient>());
     }
 }
