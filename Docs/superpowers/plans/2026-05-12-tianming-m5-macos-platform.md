@@ -935,6 +935,10 @@ git commit -m "feat(shell): macOS 应用主菜单（NativeMenu + ⌘Q/⌘N/⌘O/
 
 ## Task 5：M5 验收文档
 
+> Round 3 replay note (2026-05-14): `Docs/macOS迁移/M5-人工验收.md` 已在 `main` 存在，本轮
+> 重点是刷新自动化覆盖数字、补充当前机器的代理 smoke 信息，并把“系统外观监听已接上但 UI
+> 仍 forced Light”的真实状态写清楚，避免把占位能力记成已完成的 UI 跟随。
+
 **Files:**
 - Create: `Docs/macOS迁移/M5-人工验收.md`
 
@@ -984,6 +988,10 @@ git commit -m "docs(m5): 人工验收清单"
 ---
 
 ## Task 6：最终收尾
+
+> Round 3 replay note (2026-05-14): 本轮按派单要求执行到 build/test/matrix/history 收尾，
+> 但不执行 Step 6.5 push。最终输出仍需包含全量 build/test 尾部、plan Task 0-6 状态、
+> 偏离点处置，以及本分支新增 commit 列表。
 
 - [ ] **Step 6.1：全量测试**
 
