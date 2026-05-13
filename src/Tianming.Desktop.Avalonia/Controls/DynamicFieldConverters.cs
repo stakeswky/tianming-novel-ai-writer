@@ -34,3 +34,24 @@ public sealed class FieldTypeEqualsConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>int ↔ string 双向转换器（Number 字段 TextBox 用）。
+/// 设计：0 显示为空串；非法字符串回退到 0 不抛。</summary>
+public sealed class NumberStringConverter : IValueConverter
+{
+    public static readonly NumberStringConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is null) return string.Empty;
+        if (value is int i) return i == 0 ? string.Empty : i.ToString(culture);
+        if (value is long l) return l == 0 ? string.Empty : l.ToString(culture);
+        return value.ToString() ?? string.Empty;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string s || string.IsNullOrWhiteSpace(s)) return 0;
+        return int.TryParse(s, NumberStyles.Integer, culture, out var n) ? n : 0;
+    }
+}
