@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -165,7 +166,9 @@ public sealed class ConversationOrchestrator
     }
 
     private async IAsyncEnumerable<ChatStreamDelta> StreamAskAsync(
-        List<OpenAICompatibleChatMessage> messages, ConversationSession session, CancellationToken ct)
+        List<OpenAICompatibleChatMessage> messages,
+        ConversationSession session,
+        [EnumeratorCancellation] CancellationToken ct)
     {
         var request = BuildRequest(messages);
         var fullContent = "";
@@ -222,7 +225,10 @@ public sealed class ConversationOrchestrator
     }
 
     private async IAsyncEnumerable<ChatStreamDelta> StreamPlanAsync(
-        List<OpenAICompatibleChatMessage> messages, string userInput, ConversationSession session, CancellationToken ct)
+        List<OpenAICompatibleChatMessage> messages,
+        string userInput,
+        ConversationSession session,
+        [EnumeratorCancellation] CancellationToken ct)
     {
         var request = BuildRequest(messages);
         var fullContent = "";
@@ -289,7 +295,9 @@ public sealed class ConversationOrchestrator
     }
 
     private async IAsyncEnumerable<ChatStreamDelta> StreamAgentAsync(
-        List<OpenAICompatibleChatMessage> messages, ConversationSession session, CancellationToken ct)
+        List<OpenAICompatibleChatMessage> messages,
+        ConversationSession session,
+        [EnumeratorCancellation] CancellationToken ct)
     {
         // Build tool definitions
         var toolDefinitions = _tools.Count > 0
