@@ -58,6 +58,7 @@
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterData.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintData.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignData.cs" Link="Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignCategory.cs" Link="Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Interfaces/IUnifiedValidationService.cs" Link="Services/Modules/ProjectData/Interfaces/IUnifiedValidationService.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Interfaces/IIndexable.cs" Link="Services/Modules/ProjectData/Interfaces/IIndexable.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Implementations/Generation/AIOutputParser.cs" Link="Services/Modules/ProjectData/Implementations/Generation/AIOutputParser.cs" />
