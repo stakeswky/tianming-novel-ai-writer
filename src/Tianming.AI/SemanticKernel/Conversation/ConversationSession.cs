@@ -12,10 +12,10 @@ namespace TM.Services.Framework.AI.SemanticKernel.Conversation;
 /// </summary>
 public sealed class ConversationSession
 {
-    public string Id { get; } = ShortIdGenerator.New("S");
+    public string Id { get; set; } = ShortIdGenerator.New("S");
     public ChatMode Mode { get; set; }
     public string? Title { get; set; }
-    public DateTime CreatedAt { get; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>持久化的历史消息列表（user + assistant）。</summary>
     public List<ConversationMessage> History { get; } = new();

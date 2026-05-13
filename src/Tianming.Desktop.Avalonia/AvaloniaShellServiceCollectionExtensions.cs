@@ -7,6 +7,11 @@ using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
 using TM.Services.Framework.AI.Core;
 using TM.Services.Framework.AI.Monitoring;
 using TM.Services.Framework.AI.SemanticKernel;
+using TM.Services.Framework.AI.SemanticKernel.Conversation;
+using TM.Services.Framework.AI.SemanticKernel.Conversation.Mapping;
+using TM.Services.Framework.AI.SemanticKernel.Conversation.Parsing;
+using TM.Services.Framework.AI.SemanticKernel.Conversation.Thinking;
+using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools;
 using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
@@ -210,6 +215,37 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<ApiKeysViewModel>();
         s.AddTransient<PromptManagementViewModel>();
         s.AddTransient<UsageStatisticsViewModel>();
+
+        // M4.5+ AI 对话面板：编排器、工具与会话持久化。
+        s.AddSingleton<OpenAICompatibleChatClient>(sp =>
+            new OpenAICompatibleChatClient(sp.GetRequiredService<System.Net.Http.HttpClient>()));
+        s.AddSingleton<TagBasedThinkingStrategy>();
+        s.AddSingleton<AskModeMapper>();
+        s.AddSingleton<IPlanParser, PlanStepParser>();
+        s.AddSingleton<PlanModeMapper>(sp =>
+            new PlanModeMapper(sp.GetRequiredService<IPlanParser>()));
+        s.AddSingleton<AgentModeMapper>();
+        s.AddSingleton<IFileSessionStore>(sp =>
+        {
+            var paths = sp.GetRequiredService<AppPaths>();
+            return new FileSessionStore(Path.Combine(paths.AppSupportDirectory, "Sessions"));
+        });
+        s.AddSingleton<IConversationTool>(sp =>
+            new LookupDataTool(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IConversationTool>(sp =>
+            new ReadChapterTool(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IConversationTool>(sp =>
+            new SearchReferencesTool(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<ConversationOrchestrator>(sp =>
+            new ConversationOrchestrator(
+                sp.GetRequiredService<OpenAICompatibleChatClient>(),
+                sp.GetRequiredService<TagBasedThinkingStrategy>(),
+                sp.GetRequiredService<IFileSessionStore>(),
+                sp.GetServices<IConversationTool>(),
+                sp.GetRequiredService<AskModeMapper>(),
+                sp.GetRequiredService<PlanModeMapper>(),
+                sp.GetRequiredService<AgentModeMapper>(),
+                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
 
         // M4.3 章节编辑器 VM
         s.AddTransient<EditorWorkspaceViewModel>(sp =>
