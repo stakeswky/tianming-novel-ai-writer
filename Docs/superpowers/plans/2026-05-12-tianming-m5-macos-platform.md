@@ -75,6 +75,14 @@
 
 ## Task 0：基线确认
 
+> Round 3 replay note (2026-05-14): 本轮按最新派单改用 `/Users/jimmy/Downloads/tianming-m5`
+> worktree，而不是旧的 `.worktrees/m2-parallel` 路径。基线已复跑：
+> `git log main --oneline | head -5` 看到 `155aeaf / e69528d / 1e2494f / ff69853`；
+> `dotnet test Tianming.MacMigration.sln --nologo -v q` 全过（1423 tests）。
+> 当前机器 `scutil --proxy` 为代理开启态，实测 HTTP/HTTPS 走 `127.0.0.1:1082`，
+> 输出已记录到 `/tmp/scutil-sample-on.txt`；未主动改动宿主机代理配置，因此未采集 live off
+> snapshot，沿用 Task 1 的 off fixture 覆盖“代理关闭”解析场景。
+
 - [ ] **Step 0.1：确认 M3 已完成并合入**
 
 ```bash
@@ -120,6 +128,12 @@ Expected 看到类似（以你当前机器有无代理而异）：
 ---
 
 ## Task 1：ProxyPolicy 记录 + ScutilProxyOutputParser（纯数据，TDD）
+
+> Round 3 replay note (2026-05-14): 该任务已在 `main` 实装，提交为 `2aaaa0a`
+> (`feat(platform): ProxyPolicy + ScutilProxyOutputParser`)。因此本轮不重写实现，只复跑
+> 验证并保留结果：Step 1.3/1.6 的 parser 测试当前直接通过（7 tests），不再出现计划中
+> 预期的“编译错误”；`Tianming.Framework.csproj` 未显式关闭 default compile items，
+> 所以 Step 1.5 继续跳过。
 
 **Files:**
 - Create: `src/Tianming.Framework/Platform/ProxyPolicy.cs`
@@ -374,6 +388,12 @@ git commit -m "feat(platform): ProxyPolicy + ScutilProxyOutputParser"
 ---
 
 ## Task 2：MacOSSystemProxyService（shell 调用 scutil --proxy）
+
+> Round 3 replay note (2026-05-14): 该任务已在 `main` 实装，提交为 `57319a6`
+> (`feat(platform): MacOSSystemProxyService（shell scutil --proxy）`)。因此本轮不重写
+> 接口/实现，只复跑验证：Step 2.3/2.6 的测试当前直接通过（3 tests）。Step 2.8 的真实
+> `scutil --proxy` smoke 复跑结果为 `HTTPEnable=1 / HTTPProxy=127.0.0.1 / HTTPPort=1082 /
+> HTTPSEnable=1 / HTTPSProxy=127.0.0.1 / HTTPSPort=1082`，Exceptions 11 项。
 
 **Files:**
 - Create: `src/Tianming.Framework/Platform/IPortableSystemProxyService.cs`
