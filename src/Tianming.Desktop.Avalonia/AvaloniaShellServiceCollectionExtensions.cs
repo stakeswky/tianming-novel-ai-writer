@@ -53,6 +53,7 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton<AppChromeViewModel>();
         s.AddSingleton<AppStatusBarViewModel>();
         s.AddTransient<WelcomeViewModel>();
+        s.AddTransient<DashboardViewModel>();
         s.AddTransient<PlaceholderViewModel>();
 
         return s;
@@ -61,7 +62,7 @@ public static class AvaloniaShellServiceCollectionExtensions
     private static PageRegistry RegisterPages(PageRegistry reg)
     {
         reg.Register<WelcomeViewModel,     WelcomeView>(PageKeys.Welcome);
-        reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Dashboard);
+        reg.Register<DashboardViewModel,   DashboardView>(PageKeys.Dashboard);
         reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Settings);
         return reg;
     }

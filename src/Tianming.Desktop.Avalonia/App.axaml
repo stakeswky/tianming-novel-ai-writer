@@ -10,6 +10,9 @@
     <DataTemplate DataType="vm:WelcomeViewModel">
       <v:WelcomeView/>
     </DataTemplate>
+    <DataTemplate DataType="vm:DashboardViewModel">
+      <v:DashboardView/>
+    </DataTemplate>
     <DataTemplate DataType="vm:PlaceholderViewModel">
       <v:PlaceholderView/>
     </DataTemplate>

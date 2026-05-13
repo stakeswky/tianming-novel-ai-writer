@@ -1,0 +1,126 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="Tianming.Desktop.Avalonia.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel"
+             FontFamily="{DynamicResource FontUI}">
+  <ScrollViewer Background="{DynamicResource SurfaceCanvasBrush}" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="24" Spacing="20">
+
+      <!-- Hero / 项目信息 -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="{Binding ProjectName}"
+                   FontSize="{DynamicResource FontSizeH1}"
+                   FontWeight="{DynamicResource FontWeightBold}"
+                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+        <TextBlock Text="{Binding ProjectSubtitle}"
+                   FontSize="{DynamicResource FontSizeSecondary}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+      </StackPanel>
+
+      <!-- 5 张 StatsCard 排成 5 列 grid -->
+      <UniformGrid Columns="5" Rows="1" >
+        <controls:StatsCard Label="总字数"
+                            Value="{Binding TotalWordsValue}"
+                            Caption="{Binding TotalWordsCaption}"
+                            TrendKind="Success"
+                            Margin="0,0,12,0"/>
+        <controls:StatsCard Label="章节数"
+                            Value="{Binding ChapterCountValue}"
+                            Caption="{Binding ChapterCountCaption}"
+                            TrendKind="Info"
+                            Margin="0,0,12,0"/>
+        <controls:StatsCard Label="角色数"
+                            Value="{Binding CharacterCountValue}"
+                            Caption="{Binding CharacterCountCaption}"
+                            TrendKind="Info"
+                            Margin="0,0,12,0"/>
+        <controls:StatsCard Label="债务数"
+                            Value="{Binding DebtCountValue}"
+                            Caption="{Binding DebtCountCaption}"
+                            TrendKind="Warning"
+                            Margin="0,0,12,0"/>
+        <controls:StatsCard Label="当前章节进度"
+                            Value="{Binding ChapterProgressValue}"
+                            Caption="{Binding ChapterProgressCaption}"
+                            TrendKind="Success"/>
+      </UniformGrid>
+
+      <!-- 章节进度饼图 + 学习曲线 -->
+      <Grid ColumnDefinitions="320,16,*">
+        <controls:SectionCard Grid.Column="0"
+                              Header="章节进度"
+                              Subtitle="当前章节完成度">
+          <Grid Height="240">
+            <lvc:PieChart Series="{Binding ChapterProgressSeries}"
+                          LegendPosition="Hidden"
+                          Margin="0,0,0,8"/>
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="2">
+              <TextBlock Text="{Binding ChapterProgressValue}"
+                         FontSize="{DynamicResource FontSizeDisplay}"
+                         FontWeight="{DynamicResource FontWeightBold}"
+                         Foreground="{DynamicResource StatusSuccessBrush}"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="完成"
+                         FontSize="{DynamicResource FontSizeCaption}"
+                         Foreground="{DynamicResource TextTertiaryBrush}"
+                         HorizontalAlignment="Center"/>
+            </StackPanel>
+          </Grid>
+        </controls:SectionCard>
+
+        <controls:SectionCard Grid.Column="2"
+                              Header="学习曲线"
+                              Subtitle="过去 30 天每日字数">
+          <lvc:CartesianChart Series="{Binding LearningCurveSeries}"
+                              XAxes="{Binding LearningCurveXAxes}"
+                              YAxes="{Binding LearningCurveYAxes}"
+                              LegendPosition="Hidden"
+                              Height="240"/>
+        </controls:SectionCard>
+      </Grid>
+
+      <!-- Activity Feed -->
+      <controls:SectionCard Header="近期活动"
+                            Subtitle="最近 10 条操作">
+        <ListBox ItemsSource="{Binding ActivityFeed}"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 MaxHeight="320">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:ActivityItemVm">
+              <Grid ColumnDefinitions="6,12,*,Auto" Margin="0,4">
+                <Border Grid.Column="0"
+                        Width="6" Height="6"
+                        CornerRadius="3"
+                        Background="{DynamicResource AccentBaseBrush}"
+                        VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2" Spacing="2">
+                  <TextBlock Text="{Binding Title}"
+                             FontSize="{DynamicResource FontSizeBody}"
+                             FontWeight="{DynamicResource FontWeightMedium}"
+                             Foreground="{DynamicResource TextPrimaryBrush}"/>
+                  <TextBlock Text="{Binding Subtitle}"
+                             FontSize="{DynamicResource FontSizeCaption}"
+                             Foreground="{DynamicResource TextSecondaryBrush}"
+                             TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <TextBlock Grid.Column="3"
+                           Text="{Binding Timestamp}"
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           Foreground="{DynamicResource TextTertiaryBrush}"
+                           VerticalAlignment="Center"
+                           Margin="12,0,4,0"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </controls:SectionCard>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
