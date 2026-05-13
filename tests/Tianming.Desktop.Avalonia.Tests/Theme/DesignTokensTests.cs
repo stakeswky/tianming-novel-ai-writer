@@ -1,8 +1,7 @@
 using System;
-using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Headless;
+using Avalonia.Headless.XUnit;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Xunit;
@@ -11,22 +10,14 @@ namespace Tianming.Desktop.Avalonia.Tests.Theme;
 
 public class DesignTokensTests
 {
+    // 注：以前用 [Fact] + 手动 AppBuilder.Configure().UseHeadless().SetupWithoutStarting()，
+    // 自从 AssemblyInfo 注册 AvaloniaTestApplication(TestApp) 之后，
+    // 测试运行时 Avalonia headless 已经初始化好；改用 [AvaloniaFact] 让 Avalonia.Headless.XUnit
+    // 在 UI 线程上跑测试，避免 "Call from invalid thread"。
     private static readonly string ColorsXamlUri = "avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Colors.axaml";
-
-    private static int _appInitialized;
-
-    private static void EnsureAvaloniaInitialized()
-    {
-        if (Interlocked.Exchange(ref _appInitialized, 1) == 1) return;
-        AppBuilder.Configure<Application>()
-            .UseHeadless(new AvaloniaHeadlessPlatformOptions())
-            .SetupWithoutStarting();
-    }
 
     private static IResourceDictionary LoadColors()
     {
-        // 通过 ResourceInclude 加载 axaml 文件；需要 Application bootstrap 提供 IAssetLoader
-        EnsureAvaloniaInitialized();
         var include = new ResourceInclude((Uri?)null)
         {
             Source = new Uri(ColorsXamlUri)
@@ -34,7 +25,7 @@ public class DesignTokensTests
         return include.Loaded;
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Colors_AccentKeysResolve()
     {
         var dict = LoadColors();
@@ -46,7 +37,7 @@ public class DesignTokensTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Colors_NeutralAndTextKeysResolve()
     {
         var dict = LoadColors();
@@ -63,7 +54,7 @@ public class DesignTokensTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Colors_StatusKeysResolve()
     {
         var dict = LoadColors();
@@ -82,7 +73,7 @@ public class DesignTokensTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Colors_BrushAliasesResolve()
     {
         var dict = LoadColors();
@@ -97,7 +88,6 @@ public class DesignTokensTests
 
     private static IResourceDictionary LoadTypography()
     {
-        EnsureAvaloniaInitialized();
         var include = new ResourceInclude((Uri?)null)
         {
             Source = new Uri("avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Typography.axaml")
@@ -105,7 +95,7 @@ public class DesignTokensTests
         return include.Loaded;
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Typography_FontFamiliesResolve()
     {
         var dict = LoadTypography();
@@ -115,7 +105,7 @@ public class DesignTokensTests
         Assert.IsType<FontFamily>(mono);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Typography_FontSizesResolveAndAreNumeric()
     {
         var dict = LoadTypography();
@@ -129,7 +119,7 @@ public class DesignTokensTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Typography_WeightsAndLineHeightsResolve()
     {
         var dict = LoadTypography();
@@ -147,7 +137,6 @@ public class DesignTokensTests
 
     private static IResourceDictionary LoadSpacing()
     {
-        EnsureAvaloniaInitialized();
         var include = new ResourceInclude((Uri?)null)
         {
             Source = new Uri("avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Spacing.axaml")
@@ -155,7 +144,7 @@ public class DesignTokensTests
         return include.Loaded;
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Spacing_AllSpaceKeysResolveAndIncreasing()
     {
         var dict = LoadSpacing();
@@ -170,7 +159,7 @@ public class DesignTokensTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Spacing_PaddingThicknessKeysResolve()
     {
         var dict = LoadSpacing();
@@ -183,7 +172,6 @@ public class DesignTokensTests
 
     private static IResourceDictionary LoadRadii()
     {
-        EnsureAvaloniaInitialized();
         var include = new ResourceInclude((Uri?)null)
         {
             Source = new Uri("avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Radii.axaml")
@@ -191,7 +179,7 @@ public class DesignTokensTests
         return include.Loaded;
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Radii_AllKeysResolveAsCornerRadius()
     {
         var dict = LoadRadii();
@@ -204,7 +192,6 @@ public class DesignTokensTests
 
     private static IResourceDictionary LoadShadows()
     {
-        EnsureAvaloniaInitialized();
         var include = new ResourceInclude((Uri?)null)
         {
             Source = new Uri("avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Shadows.axaml")
@@ -212,7 +199,7 @@ public class DesignTokensTests
         return include.Loaded;
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Shadows_AllKeysResolveAsBoxShadows()
     {
         var dict = LoadShadows();
