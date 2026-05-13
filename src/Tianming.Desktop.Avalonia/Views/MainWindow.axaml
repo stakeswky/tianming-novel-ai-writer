@@ -12,6 +12,57 @@
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
         ExtendClientAreaTitleBarHeightHint="36">
+  <!-- M5：macOS 顶部系统菜单栏命令绑定。
+       Avalonia 11 在 macOS 下把 active Window 的 NativeMenu 自动升到顶部系统菜单。
+       Gesture 用 Avalonia KeyGesture 字符串：Cmd 修饰键 + 主键；⌘逗号写作 Cmd+OemComma。
+       DataContext 已经是 MainWindowViewModel，命令直接 {Binding XxxCommand} 即可。 -->
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="天命">
+        <NativeMenuItem.Menu>
+          <NativeMenu>
+            <NativeMenuItem Header="关于天命"
+                            Command="{Binding AboutCommand}"/>
+            <NativeMenuItemSeparator/>
+            <NativeMenuItem Header="偏好…"
+                            Gesture="Cmd+OemComma"
+                            Command="{Binding OpenPreferencesCommand}"/>
+            <NativeMenuItemSeparator/>
+            <NativeMenuItem Header="退出"
+                            Gesture="Cmd+Q"
+                            Command="{Binding QuitCommand}"/>
+          </NativeMenu>
+        </NativeMenuItem.Menu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="文件">
+        <NativeMenuItem.Menu>
+          <NativeMenu>
+            <NativeMenuItem Header="新建项目…"
+                            Gesture="Cmd+N"
+                            Command="{Binding NewProjectCommand}"/>
+            <NativeMenuItem Header="打开项目…"
+                            Gesture="Cmd+O"
+                            Command="{Binding OpenProjectCommand}"/>
+            <NativeMenuItemSeparator/>
+            <NativeMenuItem Header="保存"
+                            Gesture="Cmd+S"
+                            Command="{Binding SaveCommand}"/>
+          </NativeMenu>
+        </NativeMenuItem.Menu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="编辑">
+        <NativeMenuItem.Menu>
+          <NativeMenu>
+            <NativeMenuItem Header="撤销" Gesture="Cmd+Z"/>
+            <NativeMenuItem Header="重做" Gesture="Cmd+Shift+Z"/>
+            <NativeMenuItemSeparator/>
+            <NativeMenuItem Header="查找" Gesture="Cmd+F"/>
+          </NativeMenu>
+        </NativeMenuItem.Menu>
+      </NativeMenuItem>
+    </NativeMenu>
+  </NativeMenu.Menu>
+
   <Grid RowDefinitions="36, *, 28">
     <shell:AppChrome    Grid.Row="0" DataContext="{Binding Chrome}"/>
     <v:ThreeColumnLayoutView Grid.Row="1" DataContext="{Binding Layout}"/>
