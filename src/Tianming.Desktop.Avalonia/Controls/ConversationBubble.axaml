@@ -1,0 +1,71 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+  <ControlTheme x:Key="{x:Type controls:ConversationBubble}" TargetType="controls:ConversationBubble">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border x:Name="PART_Root"
+                Background="{DynamicResource SurfaceSubtleBrush}"
+                CornerRadius="{DynamicResource RadiusLg}"
+                Padding="12"
+                MaxWidth="640">
+          <StackPanel Spacing="6">
+            <!-- Thinking block 可折叠占位（基建不真实现折叠状态机，view 自己接） -->
+            <Border IsVisible="{TemplateBinding ThinkingBlock, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Background="{DynamicResource SurfaceMutedBrush}"
+                    CornerRadius="{DynamicResource RadiusSm}"
+                    Padding="8">
+              <TextBlock Text="{TemplateBinding ThinkingBlock}"
+                         FontFamily="{DynamicResource FontMono}"
+                         FontSize="{DynamicResource FontSizeCaption}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Body -->
+            <SelectableTextBlock Text="{TemplateBinding ContentText}"
+                                 FontSize="{DynamicResource FontSizeBody}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 LineHeight="{DynamicResource LineHeightRelaxed}"
+                                 TextWrapping="Wrap"/>
+
+            <!-- References (chips) -->
+            <ItemsControl ItemsSource="{TemplateBinding References}"
+                          IsVisible="{TemplateBinding References, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="controls:ReferenceTag">
+                  <controls:BadgePill Text="{Binding Label}" Kind="Info" Margin="0,4,4,0"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Footer：streaming 指示 + 时间戳 -->
+            <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+              <TextBlock Grid.Column="0"
+                         Text="正在生成…"
+                         FontSize="{DynamicResource FontSizeCaption}"
+                         Foreground="{DynamicResource TextTertiaryBrush}"
+                         IsVisible="{TemplateBinding IsStreaming}"/>
+              <TextBlock Grid.Column="1"
+                         Text="{TemplateBinding Timestamp, Converter={x:Static controls:TimestampShortConverter.Instance}}"
+                         FontSize="{DynamicResource FontSizeCaption}"
+                         Foreground="{DynamicResource TextTertiaryBrush}"/>
+            </Grid>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- Role=Assistant：保持 subtle 灰底 + 左对齐（默认） -->
+    <!-- Role=User：accent 浅底 + 右对齐 -->
+    <Style Selector="^[Role=User] /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+      <Setter Property="HorizontalAlignment" Value="Right"/>
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

@@ -31,3 +31,12 @@ internal sealed class BadgeKindFallbackConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+internal sealed class TimestampShortConverter : IValueConverter
+{
+    public static readonly TimestampShortConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is DateTime dt && dt != default ? dt.ToString("HH:mm", culture) : string.Empty;
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

@@ -60,6 +60,7 @@
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SidebarTreeItem.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/ProjectCard.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/DataGridRowCell.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/ConversationBubble.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
