@@ -70,3 +70,13 @@ internal sealed class ToolCallStateKindConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>IconGlyph 判定 — 长度 ≤ 2 视为已经渲染好的字符（emoji / Unicode 符号），>2 视为 Lucide 名（未渲染）隐藏。</summary>
+internal sealed class IconGlyphIsShortConverter : IValueConverter
+{
+    public static readonly IconGlyphIsShortConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is string s && !string.IsNullOrEmpty(s) && s.Length <= 2;
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

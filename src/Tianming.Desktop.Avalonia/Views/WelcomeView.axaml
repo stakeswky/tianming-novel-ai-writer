@@ -5,233 +5,127 @@
              x:Class="Tianming.Desktop.Avalonia.Views.WelcomeView"
              x:DataType="vm:WelcomeViewModel"
              FontFamily="{DynamicResource FontUI}">
-  <Grid ColumnDefinitions="240,*" Background="{DynamicResource SurfaceCanvasBrush}">
+  <ScrollViewer Background="{DynamicResource SurfaceCanvasBrush}" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="32,32,32,32" Spacing="24" MaxWidth="980" HorizontalAlignment="Stretch">
 
-    <!-- ============== 左侧 Welcome 自带 NavRail ============== -->
-    <Border Grid.Column="0"
-            Background="{DynamicResource SurfaceBaseBrush}"
-            BorderBrush="{DynamicResource BorderSubtleBrush}"
-            BorderThickness="0,0,1,0">
-      <DockPanel LastChildFill="True">
-        <!-- Logo / brand -->
-        <StackPanel DockPanel.Dock="Top"
-                    Margin="16,16,16,24"
-                    Spacing="4">
-          <TextBlock Text="天命"
-                     FontSize="{DynamicResource FontSizeH1}"
-                     FontWeight="{DynamicResource FontWeightBold}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"/>
-          <TextBlock Text="项目选择"
-                     FontSize="{DynamicResource FontSizeCaption}"
-                     Foreground="{DynamicResource TextTertiaryBrush}"/>
-        </StackPanel>
+      <!-- Hero -->
+      <StackPanel Spacing="6">
+        <TextBlock Text="欢迎回来"
+                   FontSize="{DynamicResource FontSizeDisplay}"
+                   FontWeight="{DynamicResource FontWeightBold}"
+                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+        <TextBlock Text="选一个项目继续写作，或新建一本小说"
+                   FontSize="{DynamicResource FontSizeH3}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+      </StackPanel>
 
-        <!-- 最近项目区底部按钮 -->
-        <Button DockPanel.Dock="Bottom"
-                Classes="ghost"
-                Margin="12,8,12,16"
-                HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Left"
-                Padding="{DynamicResource PaddingInputControl}"
-                Command="{Binding ClearRecentCommand}"
-                IsEnabled="{Binding HasRecent}">
-          <TextBlock Text="清除最近记录"
-                     FontSize="{DynamicResource FontSizeSecondary}"
-                     Foreground="{DynamicResource TextSecondaryBrush}"/>
-        </Button>
+      <!-- 2 个 actionCard：新建 / 打开 -->
+      <Grid ColumnDefinitions="*,16,*">
+        <controls:SectionCard Grid.Column="0"
+                              Header="新建小说项目"
+                              Subtitle="开启一本新作品，从空白页开始">
+          <StackPanel Spacing="12">
+            <TextBox Text="{Binding NewProjectName, Mode=TwoWay}"
+                     Watermark="项目名称"/>
+            <Button Content="新建项目"
+                    Command="{Binding CreateProjectCommand}"
+                    HorizontalAlignment="Left"
+                    Padding="16,6"/>
+          </StackPanel>
+        </controls:SectionCard>
 
-        <!-- 主导航 -->
-        <StackPanel Spacing="2" Margin="8,0">
+        <controls:SectionCard Grid.Column="2"
+                              Header="打开已有项目"
+                              Subtitle="选择本地文件夹打开已存在的项目">
+          <StackPanel Spacing="12">
+            <TextBlock Text="点击下方“最近项目”卡片，或选择本地目录。"
+                       FontSize="{DynamicResource FontSizeSecondary}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap"/>
+            <Button Content="打开项目"
+                    Classes="secondary"
+                    Command="{Binding OpenProjectCommand}"
+                    HorizontalAlignment="Left"
+                    Padding="16,6"/>
+          </StackPanel>
+        </controls:SectionCard>
+      </Grid>
+
+      <!-- ProjectGrid：最近项目 -->
+      <controls:SectionCard Header="最近项目"
+                            Subtitle="点击卡片继续写作">
+        <controls:SectionCard.HeaderActions>
           <Button Classes="ghost"
-                  HorizontalAlignment="Stretch"
-                  HorizontalContentAlignment="Left"
-                  Padding="12,8"
-                  Background="{DynamicResource AccentSubtleBrush}">
-            <TextBlock Text="欢迎 / 项目选择"
-                       FontSize="{DynamicResource FontSizeBody}"
-                       FontWeight="{DynamicResource FontWeightSemibold}"
-                       Foreground="{DynamicResource AccentPressedBrush}"/>
-          </Button>
-          <Button Classes="ghost"
-                  HorizontalAlignment="Stretch"
-                  HorizontalContentAlignment="Left"
-                  Padding="12,8"
-                  Command="{Binding CreateProjectCommand}">
-            <TextBlock Text="新建项目"
-                       FontSize="{DynamicResource FontSizeBody}"
-                       Foreground="{DynamicResource TextPrimaryBrush}"/>
-          </Button>
-          <Button Classes="ghost"
-                  HorizontalAlignment="Stretch"
-                  HorizontalContentAlignment="Left"
-                  Padding="12,8"
-                  Command="{Binding OpenProjectCommand}">
-            <TextBlock Text="打开项目"
-                       FontSize="{DynamicResource FontSizeBody}"
-                       Foreground="{DynamicResource TextPrimaryBrush}"/>
-          </Button>
-          <Button Classes="ghost"
-                  HorizontalAlignment="Stretch"
-                  HorizontalContentAlignment="Left"
-                  Padding="12,8"
-                  IsEnabled="False">
-            <TextBlock Text="导入项目（M6.9）"
-                       FontSize="{DynamicResource FontSizeBody}"
-                       Foreground="{DynamicResource TextTertiaryBrush}"/>
-          </Button>
-
-          <Separator Margin="8,12,8,8"
-                     Background="{DynamicResource BorderSubtleBrush}"
-                     Height="1"/>
-
-          <TextBlock Text="最近项目"
-                     Margin="12,4,12,8"
-                     FontSize="{DynamicResource FontSizeCaption}"
-                     FontWeight="{DynamicResource FontWeightSemibold}"
-                     Foreground="{DynamicResource TextTertiaryBrush}"/>
-
-          <ItemsControl ItemsSource="{Binding RecentProjects}">
+                  Content="清除最近记录"
+                  Command="{Binding ClearRecentCommand}"
+                  IsEnabled="{Binding HasRecent}"
+                  Padding="8,4"
+                  FontSize="{DynamicResource FontSizeCaption}"/>
+        </controls:SectionCard.HeaderActions>
+        <Grid>
+          <ItemsControl ItemsSource="{Binding RecentProjects}"
+                        IsVisible="{Binding HasRecent}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:RecentProjectVm">
-                <Button Classes="ghost"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left"
-                        Padding="12,6"
-                        Margin="0,1"
-                        Command="{Binding $parent[ItemsControl].((vm:WelcomeViewModel)DataContext).OpenProjectCommand}"
-                        CommandParameter="{Binding}">
-                  <StackPanel Spacing="2">
-                    <TextBlock Text="{Binding Name}"
-                               FontSize="{DynamicResource FontSizeSecondary}"
-                               Foreground="{DynamicResource TextPrimaryBrush}"
-                               TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="{Binding LastOpened}"
-                               FontSize="{DynamicResource FontSizeCaption}"
-                               Foreground="{DynamicResource TextTertiaryBrush}"/>
-                  </StackPanel>
-                </Button>
+                <controls:ProjectCard ProjectName="{Binding Name}"
+                                      LastOpenedText="{Binding LastOpened}"
+                                      ChapterProgress="{Binding ChapterText}"
+                                      ProgressPercent="{Binding Progress}"
+                                      OpenCommand="{Binding $parent[ItemsControl].((vm:WelcomeViewModel)DataContext).OpenProjectCommand}"
+                                      Margin="0,0,16,16"/>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-        </StackPanel>
-      </DockPanel>
-    </Border>
 
-    <!-- ============== 主区域 ============== -->
-    <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel Margin="32,32,32,32" Spacing="24" MaxWidth="980" HorizontalAlignment="Stretch">
-
-        <!-- Hero -->
-        <StackPanel Spacing="6">
-          <TextBlock Text="欢迎回来"
-                     FontSize="{DynamicResource FontSizeDisplay}"
-                     FontWeight="{DynamicResource FontWeightBold}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"/>
-          <TextBlock Text="选一个项目继续写作，或新建一本小说"
-                     FontSize="{DynamicResource FontSizeH3}"
-                     Foreground="{DynamicResource TextSecondaryBrush}"/>
-        </StackPanel>
-
-        <!-- 2 个 actionCard：新建 / 打开 -->
-        <Grid ColumnDefinitions="*,16,*">
-          <controls:SectionCard Grid.Column="0"
-                                Header="新建小说项目"
-                                Subtitle="开启一本新作品，从空白页开始">
-            <StackPanel Spacing="12">
-              <TextBox Text="{Binding NewProjectName, Mode=TwoWay}"
-                       Watermark="项目名称"/>
-              <Button Content="新建项目"
-                      Command="{Binding CreateProjectCommand}"
-                      HorizontalAlignment="Left"
-                      Padding="16,6"/>
-            </StackPanel>
-          </controls:SectionCard>
-
-          <controls:SectionCard Grid.Column="2"
-                                Header="打开已有项目"
-                                Subtitle="选择本地文件夹打开已存在的项目">
-            <StackPanel Spacing="12">
-              <TextBlock Text="使用右下角清除最近记录或直接选择下方卡片打开。"
-                         FontSize="{DynamicResource FontSizeSecondary}"
-                         Foreground="{DynamicResource TextSecondaryBrush}"
-                         TextWrapping="Wrap"/>
-              <Button Content="打开项目"
-                      Classes="secondary"
-                      Command="{Binding OpenProjectCommand}"
-                      HorizontalAlignment="Left"
-                      Padding="16,6"/>
-            </StackPanel>
-          </controls:SectionCard>
+          <TextBlock Text="还没有最近项目，先新建一个吧。"
+                     FontSize="{DynamicResource FontSizeBody}"
+                     Foreground="{DynamicResource TextTertiaryBrush}"
+                     HorizontalAlignment="Center"
+                     Margin="0,24"
+                     IsVisible="{Binding !HasRecent}"/>
         </Grid>
+      </controls:SectionCard>
 
-        <!-- ProjectGrid：最近项目 -->
-        <controls:SectionCard Header="最近项目"
-                              Subtitle="点击卡片继续写作">
-          <Grid>
-            <ItemsControl ItemsSource="{Binding RecentProjects}"
-                          IsVisible="{Binding HasRecent}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel Orientation="Horizontal"/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="vm:RecentProjectVm">
-                  <controls:ProjectCard ProjectName="{Binding Name}"
-                                        LastOpenedText="{Binding LastOpened}"
-                                        ChapterProgress="{Binding ChapterText}"
-                                        ProgressPercent="{Binding Progress}"
-                                        OpenCommand="{Binding $parent[ItemsControl].((vm:WelcomeViewModel)DataContext).OpenProjectCommand}"
-                                        Margin="0,0,16,16"/>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-            <TextBlock Text="还没有最近项目，先新建一个吧。"
-                       FontSize="{DynamicResource FontSizeBody}"
+      <!-- 默认存储位置 + 状态卡片 -->
+      <Grid ColumnDefinitions="*,16,*">
+        <controls:SectionCard Grid.Column="0" Header="默认存储位置">
+          <StackPanel Spacing="6">
+            <TextBlock Text="{Binding DefaultProjectRoot}"
+                       FontFamily="{DynamicResource FontMono}"
+                       FontSize="{DynamicResource FontSizeSecondary}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap"/>
+            <TextBlock Text="新项目默认创建在该目录下；M4 起可在偏好中修改。"
+                       FontSize="{DynamicResource FontSizeCaption}"
                        Foreground="{DynamicResource TextTertiaryBrush}"
-                       HorizontalAlignment="Center"
-                       Margin="0,24"
-                       IsVisible="{Binding !HasRecent}"/>
-          </Grid>
+                       TextWrapping="Wrap"/>
+          </StackPanel>
         </controls:SectionCard>
 
-        <!-- 默认存储位置 + 状态卡片 -->
-        <Grid ColumnDefinitions="*,16,*">
-          <controls:SectionCard Grid.Column="0" Header="默认存储位置">
-            <StackPanel Spacing="6">
-              <TextBlock Text="{Binding DefaultProjectRoot}"
-                         FontFamily="{DynamicResource FontMono}"
-                         FontSize="{DynamicResource FontSizeSecondary}"
-                         Foreground="{DynamicResource TextSecondaryBrush}"
-                         TextWrapping="Wrap"/>
-              <TextBlock Text="新项目默认创建在该目录下；M4 起可在偏好中修改。"
-                         FontSize="{DynamicResource FontSizeCaption}"
-                         Foreground="{DynamicResource TextTertiaryBrush}"
-                         TextWrapping="Wrap"/>
-            </StackPanel>
-          </controls:SectionCard>
+        <controls:SectionCard Grid.Column="2" Header="状态">
+          <StackPanel Spacing="8">
+            <controls:BadgePill Text="本地写作模式"
+                                Kind="Success"
+                                ShowDot="True"
+                                IsVisible="{Binding IsLocalMode}"
+                                HorizontalAlignment="Left"/>
+            <TextBlock Text="{Binding LastOpenedHint}"
+                       FontSize="{DynamicResource FontSizeSecondary}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       IsVisible="{Binding LastOpenedHint, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            <TextBlock Text="个人自用版：无云同步 / 无遥测。"
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       Foreground="{DynamicResource TextTertiaryBrush}"
+                       TextWrapping="Wrap"/>
+          </StackPanel>
+        </controls:SectionCard>
+      </Grid>
 
-          <controls:SectionCard Grid.Column="2" Header="状态">
-            <StackPanel Spacing="8">
-              <controls:BadgePill Text="本地写作模式"
-                                  Kind="Success"
-                                  ShowDot="True"
-                                  IsVisible="{Binding IsLocalMode}"
-                                  HorizontalAlignment="Left"/>
-              <TextBlock Text="{Binding LastOpenedHint}"
-                         FontSize="{DynamicResource FontSizeSecondary}"
-                         Foreground="{DynamicResource TextSecondaryBrush}"
-                         IsVisible="{Binding LastOpenedHint, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-              <TextBlock Text="个人自用版：无云同步 / 无遥测。"
-                         FontSize="{DynamicResource FontSizeCaption}"
-                         Foreground="{DynamicResource TextTertiaryBrush}"
-                         TextWrapping="Wrap"/>
-            </StackPanel>
-          </controls:SectionCard>
-        </Grid>
-
-      </StackPanel>
-    </ScrollViewer>
-  </Grid>
+    </StackPanel>
+  </ScrollViewer>
 </UserControl>
