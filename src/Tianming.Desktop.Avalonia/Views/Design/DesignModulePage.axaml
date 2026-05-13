@@ -1,0 +1,7 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             x:Class="Tianming.Desktop.Avalonia.Views.Design.DesignModulePage"
+             x:CompileBindings="False">
+  <controls:CategoryDataPageView DataContext="{Binding}"/>
+</UserControl>

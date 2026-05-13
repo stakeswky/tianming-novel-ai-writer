@@ -2,8 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels"
              xmlns:vshell="using:Tianming.Desktop.Avalonia.ViewModels.Shell"
+             xmlns:vmd="using:Tianming.Desktop.Avalonia.ViewModels.Design"
              xmlns:v="using:Tianming.Desktop.Avalonia.Views"
              xmlns:vsh="using:Tianming.Desktop.Avalonia.Views.Shell"
+             xmlns:vd="using:Tianming.Desktop.Avalonia.Views.Design"
              x:Class="Tianming.Desktop.Avalonia.App"
              RequestedThemeVariant="Light">
   <Application.DataTemplates>
@@ -21,6 +23,25 @@
     </DataTemplate>
     <DataTemplate DataType="vshell:RightConversationViewModel">
       <vsh:RightConversationView/>
+    </DataTemplate>
+    <!-- M4.1 设计模块 6 VM → DesignModulePage（共用 view） -->
+    <DataTemplate DataType="vmd:WorldRulesViewModel">
+      <vd:DesignModulePage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmd:CharacterRulesViewModel">
+      <vd:DesignModulePage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmd:FactionRulesViewModel">
+      <vd:DesignModulePage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmd:LocationRulesViewModel">
+      <vd:DesignModulePage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmd:PlotRulesViewModel">
+      <vd:DesignModulePage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmd:CreativeMaterialsViewModel">
+      <vd:DesignModulePage/>
     </DataTemplate>
   </Application.DataTemplates>
 

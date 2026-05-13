@@ -9,8 +9,8 @@ using Tianming.Desktop.Avalonia.Navigation;
 namespace Tianming.Desktop.Avalonia.ViewModels.Shell;
 
 /// <summary>
-/// M3 主工作区左侧导航。重构成 NavRail.Groups 结构：项目摘要顶栏 + 写作组 + 工具组。
-/// M3 阶段除「欢迎/仪表盘/设置」外其他项 IsEnabled=false（M4 起逐步实装）。
+/// 主工作区左侧导航。结构：项目摘要顶栏 + 写作组 + 设计组（M4.1 实装）+ 工具组。
+/// M3 阶段除「欢迎/仪表盘/设置」外其他项 IsEnabled=false；M4.1 起设计组 6 项启用。
 /// </summary>
 public partial class LeftNavViewModel : ObservableObject
 {
@@ -18,7 +18,7 @@ public partial class LeftNavViewModel : ObservableObject
 
     public ObservableCollection<NavRailGroup> Groups { get; } = new();
 
-    // 项目摘要顶栏（demo 数据，M4 接 FileProjectManager 真实项目上下文）
+    // 项目摘要顶栏（demo 数据，M4 后续接 FileProjectManager 真实项目上下文）
     [ObservableProperty] private string _projectName    = "山河长安";
     [ObservableProperty] private string _projectWordCount = "186,420 字";
     [ObservableProperty] private string _projectUpdatedAt = "上次更新 22:14";
@@ -31,10 +31,16 @@ public partial class LeftNavViewModel : ObservableObject
         {
             new(PageKeys.Welcome,   "欢迎",     "home"),
             new(PageKeys.Dashboard, "仪表盘",   "layout-dashboard"),
-            new(new PageKey("draft"),     "草稿",   "file-text",     IsEnabled: false),
-            new(new PageKey("outline"),   "大纲",   "list",          IsEnabled: false),
-            new(new PageKey("characters"),"角色",   "users",         IsEnabled: false),
-            new(new PageKey("world"),     "世界观", "globe",         IsEnabled: false),
+        }));
+
+        Groups.Add(new NavRailGroup("设计", new List<NavRailItem>
+        {
+            new(PageKeys.DesignWorld,     "世界观", "🌍"),
+            new(PageKeys.DesignCharacter, "角色",   "👤"),
+            new(PageKeys.DesignFaction,   "势力",   "⚔️"),
+            new(PageKeys.DesignLocation,  "地点",   "📍"),
+            new(PageKeys.DesignPlot,      "剧情",   "📖"),
+            new(PageKeys.DesignMaterials, "创意素材", "💡"),
         }));
 
         Groups.Add(new NavRailGroup("工具", new List<NavRailItem>

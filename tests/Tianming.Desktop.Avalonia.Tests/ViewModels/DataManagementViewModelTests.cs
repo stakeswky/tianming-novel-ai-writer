@@ -124,6 +124,52 @@ public class DataManagementViewModelTests
         Assert.Equal("在 C1", inC1[0].Name);
     }
 
+    [Fact]
+    public async Task DeleteSelectedItemCommand_invokes_DeleteSelectedItemAsync()
+    {
+        using var workspace = new TempDirectory();
+        var (adapter, _) = await CreateAdapter(workspace.Path, withItems: true);
+        var vm = new TestVm(adapter);
+        await vm.LoadAsync();
+        vm.SelectedItem = vm.Items[0];
+        var idBefore = vm.SelectedItem.Id;
+
+        await vm.DeleteSelectedItemCommand.ExecuteAsync(null);
+
+        Assert.DoesNotContain(vm.Items, i => i.Id == idBefore);
+        Assert.Null(vm.SelectedItem);
+    }
+
+    [Fact]
+    public async Task UpdateSelectedItemCommand_persists_change()
+    {
+        using var workspace = new TempDirectory();
+        var (adapter, _) = await CreateAdapter(workspace.Path, withItems: true);
+        var vm = new TestVm(adapter);
+        await vm.LoadAsync();
+        vm.SelectedItem = vm.Items[0];
+        vm.SelectedItem.Name = "更名";
+
+        await vm.UpdateSelectedItemCommand.ExecuteAsync(null);
+
+        await vm.LoadAsync();
+        Assert.Contains(vm.Items, i => i.Name == "更名");
+    }
+
+    [Fact]
+    public async Task AddNewItemInCurrentCategoryCommand_uses_selected_category_name()
+    {
+        using var workspace = new TempDirectory();
+        var (adapter, _) = await CreateAdapter(workspace.Path, withItems: true);
+        var vm = new TestVm(adapter);
+        await vm.LoadAsync();
+        vm.SelectedCategory = vm.Categories[0];
+
+        await vm.AddNewItemInCurrentCategoryCommand.ExecuteAsync(null);
+
+        Assert.Contains(vm.Items, i => i.Category == "C1" && i.Name == "新条目");
+    }
+
     private static async Task<(ModuleDataAdapter<TestCategory, TestData> adapter, TestSchema schema)> CreateAdapter(string root, bool withItems = false)
     {
         var schema = new TestSchema();
