@@ -123,6 +123,8 @@ M4 Done
 
 ## Task M4.0：Schema-driven 模块数据 adapter 层
 
+> 视觉规格：本子里程碑无独立 UI，只产 schema POCO，不对应 Mac_UI 图。
+
 **工作量估计：1.5-2 天**（比"端口 6 WPF service"省约 1 天）
 
 基于已有 `FileModuleDataStore<TCategory, TData>` 建一层 schema 抽象，供 10 个数据页面（6 Design + 4 Generate）和 1 个通用 VM 基类消费。不端口 WPF service / `ModuleServiceBase` / `DataManagementViewModelBase`。
@@ -370,6 +372,8 @@ Expected: 新增 ≥ 25 条测试（1143 → 1168+），全过。
 
 ## Task M4.1：设计模块 6 页
 
+> 视觉规格：参考 Mac_UI/images/03-design-module-data-editor.png + Mac_UI/pseudocode/03-design-module-data-editor.md。
+
 **工作量估计：2 天**
 
 ### Task M4.1.1：共享控件 CategoryDataPageView + DataFormView + 基类 VM
@@ -525,6 +529,8 @@ public sealed partial class WorldRulesViewModel
 
 ## Task M4.2：生成规划（4 页 + 章节生成管道页）
 
+> 视觉规格：参考 Mac_UI/images/04-generation-planning.png + Mac_UI/pseudocode/04-generation-planning.md。
+
 **工作量估计：1.5-2 天**
 
 ### Task M4.2.1：Outline / VolumeDesign / ChapterPlanning / ContentConfig 四页
@@ -576,6 +582,8 @@ public sealed partial class WorldRulesViewModel
 ---
 
 ## Task M4.3：章节编辑器
+
+> 视觉规格：参考 Mac_UI/images/05-chapter-markdown-editor.png + Mac_UI/pseudocode/05-chapter-markdown-editor.md。
 
 **工作量估计：2 天**
 
@@ -645,6 +653,8 @@ public sealed partial class WorldRulesViewModel
 
 ## Task M4.4：章节生成闭环
 
+> 视觉规格：参考 Mac_UI/images/06-chapter-generation-pipeline.png + Mac_UI/pseudocode/06-chapter-generation-pipeline.md（M6.2/M6.3 区段在 M4 仅占位）。
+
 **工作量估计：0.5 天**
 
 ### Task M4.4.1：Pipeline 生成成功 → 自动打开编辑器 tab
@@ -676,6 +686,8 @@ public sealed partial class WorldRulesViewModel
 ---
 
 ## Task M4.5：AI 对话面板（右栏实装）
+
+> 视觉规格：参考 Mac_UI/images/07-ai-conversation-panel.png + Mac_UI/pseudocode/07-ai-conversation-panel.md。
 
 **工作量估计：3 天**
 
@@ -850,6 +862,8 @@ public interface IConversationTool
 ---
 
 ## Task M4.6：AI 模型 / 提示词 / 用量
+
+> 视觉规格：参考 Mac_UI/images/09-ai-models-api-key-usage.png + Mac_UI/pseudocode/09-ai-models-api-key-usage.md。
 
 **工作量估计：1.5 天**
 

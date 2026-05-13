@@ -35,6 +35,8 @@
 
 ## Scope Alignment（仓库真实状态）
 
+> 视觉规格：参考 Mac_UI/images/10-macos-preferences-platform.png + Mac_UI/pseudocode/10-macos-preferences-platform.md（M5 主要做系统代理 + NativeMenu 命令绑定，UI 表面延续 M3 chrome/status bar）。
+
 核对过的关键事实：
 
 1. **`MacOSKeychainApiKeySecretStore` 已是完整 shell 实现**（`src/Tianming.AI/Core/ApiKeySecretStore.cs`），通过 `/usr/bin/security` 做 `find-generic-password / add-generic-password -U / delete-generic-password`，service name `"tianming-novel-ai-writer"`，非 stub。**自用场景跳过 P/Invoke 升级**——shell 已足够快、正确、授权流程直观。
