@@ -28,6 +28,7 @@ using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Generate.Outline;
 using TM.Services.Modules.ProjectData.Modules.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Schema;
+using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
 using Tianming.Desktop.Avalonia.Shell;
@@ -168,6 +169,14 @@ public static class AvaloniaShellServiceCollectionExtensions
         // M4.4 章节生成状态追踪
         s.AddSingleton<ChapterGenerationStore>(sp =>
             new ChapterGenerationStore(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+
+        // M6.1 Tracking 债务检测
+        s.AddSingleton<ITrackingDebtDetector, EntityDriftDetector>();
+        s.AddSingleton<ITrackingDebtDetector, OmissionDetector>();
+        s.AddSingleton<ITrackingDebtDetector, DeadlineDetector>();
+        s.AddSingleton<ITrackingDebtDetector, PledgeDetector>();
+        s.AddSingleton<ITrackingDebtDetector, SecretRevealDetector>();
+        s.AddSingleton(sp => new TrackingDebtRegistry(sp.GetServices<ITrackingDebtDetector>()));
 
         s.AddTransient<OutlineViewModel>();
         s.AddTransient<VolumeDesignViewModel>();
