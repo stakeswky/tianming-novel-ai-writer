@@ -2,72 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Shell"
              xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vcv="using:Tianming.Desktop.Avalonia.Views.Conversation"
              x:Class="Tianming.Desktop.Avalonia.Views.Shell.RightConversationView"
              x:DataType="vm:RightConversationViewModel"
              FontFamily="{DynamicResource FontUI}">
   <Border Background="{DynamicResource SurfaceCanvasBrush}"
           BorderBrush="{DynamicResource BorderSubtleBrush}"
           BorderThickness="1,0,0,0">
-    <DockPanel LastChildFill="True">
-
-      <!-- 顶部 SegmentedTabs：Ask / Plan / Agent -->
-      <Border DockPanel.Dock="Top"
-              Padding="16,16,16,12"
-              BorderBrush="{DynamicResource BorderSubtleBrush}"
-              BorderThickness="0,0,0,1">
-        <StackPanel Spacing="8">
-          <TextBlock Text="AI 对话"
-                     FontSize="{DynamicResource FontSizeH3}"
-                     FontWeight="{DynamicResource FontWeightSemibold}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"/>
-          <controls:SegmentedTabs Items="{Binding ModeSegments}"
-                                  SelectedKey="{Binding SelectedMode}"
-                                  SelectCommand="{Binding SelectModeCommand}"
-                                  HorizontalAlignment="Stretch"/>
-        </StackPanel>
-      </Border>
-
-      <!-- 底部输入框区域 -->
-      <Border DockPanel.Dock="Bottom"
-              Padding="16,12,16,16"
-              BorderBrush="{DynamicResource BorderSubtleBrush}"
-              BorderThickness="0,1,0,0">
-        <Grid ColumnDefinitions="*,8,Auto">
-          <TextBox Grid.Column="0"
-                   Text="{Binding InputDraft, Mode=TwoWay}"
-                   Watermark="发消息给 AI，使用 @ 引用项目数据…"
-                   AcceptsReturn="True"
-                   MaxHeight="80"
-                   FontSize="{DynamicResource FontSizeBody}"/>
-          <Button Grid.Column="2"
-                  Content="发送"
-                  Command="{Binding SendCommand}"
-                  VerticalAlignment="Bottom"
-                  Padding="14,6"/>
-        </Grid>
-      </Border>
-
-      <!-- 中部 ConversationBubble 样例列表 -->
-      <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Auto"
-                    Padding="16,12">
-        <ItemsControl ItemsSource="{Binding SampleBubbles}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Spacing="12"/>
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="vm:ConversationBubbleVm">
-              <controls:ConversationBubble Role="{Binding Role}"
-                                           ContentText="{Binding Content}"
-                                           ThinkingBlock="{Binding ThinkingBlock}"
-                                           Timestamp="{Binding Timestamp}"/>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </ScrollViewer>
-
-    </DockPanel>
+    <vcv:ConversationPanelView />
   </Border>
 </UserControl>

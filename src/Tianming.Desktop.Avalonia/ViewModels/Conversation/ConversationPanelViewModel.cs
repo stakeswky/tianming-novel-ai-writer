@@ -29,6 +29,7 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
     [ObservableProperty] private SessionListItemVm? _selectedHistoryItem;
     [ObservableProperty] private bool _isHistoryOpen;
     [ObservableProperty] private bool _isReferencePopupOpen;
+    [ObservableProperty] private ReferenceItemVm? _selectedReferenceItem;
 
     public ObservableCollection<SegmentItem> ModeSegments { get; } = new()
     {
@@ -191,6 +192,12 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
             SessionHistory.Remove(item);
     }
 
+    partial void OnSelectedHistoryItemChanged(SessionListItemVm? value)
+    {
+        if (value != null)
+            _ = LoadSessionAsync(value.Id);
+    }
+
     private static ChatMode ParseChatMode(string mode)
         => mode.ToLowerInvariant() switch
         {
@@ -263,6 +270,12 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
 
         InputDraft = InputDraft[..index] + $"@{item.Name} ";
         IsReferencePopupOpen = false;
+    }
+
+    partial void OnSelectedReferenceItemChanged(ReferenceItemVm? value)
+    {
+        if (value != null)
+            SelectReferenceCommand.Execute(value);
     }
 
     private string BuildThinkingBlock(string input)
