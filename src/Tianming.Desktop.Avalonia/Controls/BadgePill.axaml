@@ -1,0 +1,75 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+
+  <ControlTheme x:Key="{x:Type controls:BadgePill}" TargetType="controls:BadgePill">
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+    <Setter Property="FontWeight" Value="{DynamicResource FontWeightMedium}"/>
+    <Setter Property="Padding" Value="8,2"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusFull}"/>
+    <Setter Property="HorizontalAlignment" Value="Left"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border x:Name="PART_Root"
+                Background="{DynamicResource StatusNeutralSubtleBrush}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+            <Ellipse x:Name="PART_Dot"
+                     Width="6" Height="6"
+                     Fill="{DynamicResource StatusNeutralBrush}"
+                     IsVisible="{TemplateBinding ShowDot}"
+                     VerticalAlignment="Center"/>
+            <TextBlock x:Name="PART_Text"
+                       Text="{TemplateBinding Text}"
+                       Foreground="{DynamicResource StatusNeutralBrush}"
+                       FontSize="{TemplateBinding FontSize}"
+                       FontWeight="{TemplateBinding FontWeight}"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- Kind 触发 background + foreground 切换 -->
+    <Style Selector="^[Kind=Success] /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource StatusSuccessSubtleBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Success] /template/ Ellipse#PART_Dot">
+      <Setter Property="Fill" Value="{DynamicResource StatusSuccessBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Success] /template/ TextBlock#PART_Text">
+      <Setter Property="Foreground" Value="{DynamicResource StatusSuccessBrush}"/>
+    </Style>
+
+    <Style Selector="^[Kind=Warning] /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource StatusWarningSubtleBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Warning] /template/ Ellipse#PART_Dot">
+      <Setter Property="Fill" Value="{DynamicResource StatusWarningBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Warning] /template/ TextBlock#PART_Text">
+      <Setter Property="Foreground" Value="{DynamicResource StatusWarningBrush}"/>
+    </Style>
+
+    <Style Selector="^[Kind=Danger] /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource StatusDangerSubtleBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Danger] /template/ Ellipse#PART_Dot">
+      <Setter Property="Fill" Value="{DynamicResource StatusDangerBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Danger] /template/ TextBlock#PART_Text">
+      <Setter Property="Foreground" Value="{DynamicResource StatusDangerBrush}"/>
+    </Style>
+
+    <Style Selector="^[Kind=Info] /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource StatusInfoSubtleBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Info] /template/ Ellipse#PART_Dot">
+      <Setter Property="Fill" Value="{DynamicResource StatusInfoBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Info] /template/ TextBlock#PART_Text">
+      <Setter Property="Foreground" Value="{DynamicResource StatusInfoBrush}"/>
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

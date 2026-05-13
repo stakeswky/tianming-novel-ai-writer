@@ -1,0 +1,52 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+  <ControlTheme x:Key="{x:Type controls:NavRail}" TargetType="controls:NavRail">
+    <Setter Property="Padding" Value="8"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl ItemsSource="{TemplateBinding Groups}"
+                        Padding="{TemplateBinding Padding}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="controls:NavRailGroup">
+                <StackPanel Spacing="2" Margin="0,0,0,12">
+                  <TextBlock Text="{Binding Title}"
+                             FontSize="{DynamicResource FontSizeCaption}"
+                             FontWeight="{DynamicResource FontWeightSemibold}"
+                             Foreground="{DynamicResource TextTertiaryBrush}"
+                             Margin="8,0,0,4"/>
+                  <ItemsControl ItemsSource="{Binding Items}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="controls:NavRailItem">
+                        <Button Classes="ghost"
+                                Command="{Binding $parent[controls:NavRail].NavigateCommand}"
+                                CommandParameter="{Binding Key}"
+                                IsEnabled="{Binding IsEnabled}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Padding="8,6">
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding IconGlyph}"
+                                       Width="16"
+                                       FontSize="{DynamicResource FontSizeBody}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding Label}"
+                                       FontSize="{DynamicResource FontSizeBody}"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center"/>
+                          </StackPanel>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

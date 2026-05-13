@@ -18,6 +18,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.2" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.0.6" />
   </ItemGroup>
 
   <ItemGroup>

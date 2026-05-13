@@ -1,0 +1,57 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- 默认 Button = Primary 强调色 -->
+  <Style Selector="Button">
+    <Setter Property="Background" Value="{DynamicResource AccentBaseBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSm}"/>
+    <Setter Property="Padding" Value="{DynamicResource PaddingInputControl}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource FontUI}"/>
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
+    <Setter Property="FontWeight" Value="{DynamicResource FontWeightMedium}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+  </Style>
+  <Style Selector="Button:pointerover">
+    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+  </Style>
+  <Style Selector="Button:pressed">
+    <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}"/>
+  </Style>
+  <Style Selector="Button:disabled">
+    <Setter Property="Opacity" Value="0.5"/>
+  </Style>
+
+  <!-- Secondary：白底 + 强色描边 -->
+  <Style Selector="Button.secondary">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBaseBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource AccentBaseBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBaseBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+  <Style Selector="Button.secondary:pointerover">
+    <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+  </Style>
+
+  <!-- Ghost：透明 + neutral 字色 -->
+  <Style Selector="Button.ghost">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+  </Style>
+  <Style Selector="Button.ghost:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SurfaceSubtleBrush}"/>
+  </Style>
+
+  <!-- Icon：方形小按钮 -->
+  <Style Selector="Button.icon">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    <Setter Property="Padding" Value="6"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusMd}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+  </Style>
+  <Style Selector="Button.icon:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SurfaceSubtleBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+  </Style>
+</Styles>

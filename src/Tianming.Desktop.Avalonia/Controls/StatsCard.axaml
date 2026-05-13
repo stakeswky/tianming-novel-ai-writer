@@ -1,0 +1,55 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+  <ControlTheme x:Key="{x:Type controls:StatsCard}" TargetType="controls:StatsCard">
+    <Setter Property="Padding" Value="{DynamicResource PaddingCard}"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{DynamicResource SurfaceBaseBrush}"
+                CornerRadius="{DynamicResource RadiusLg}"
+                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="1"
+                BoxShadow="{DynamicResource ShadowSm}"
+                Padding="{TemplateBinding Padding}">
+          <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+            <TextBlock Grid.Column="0" Grid.Row="0"
+                       Text="{TemplateBinding Label}"
+                       FontSize="{DynamicResource FontSizeSecondary}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="0" Grid.Row="1"
+                       Text="{TemplateBinding Value}"
+                       FontSize="{DynamicResource FontSizeDisplay}"
+                       FontWeight="{DynamicResource FontWeightBold}"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       Margin="0,4,0,0"/>
+            <TextBlock x:Name="PART_Caption"
+                       Grid.Column="0" Grid.Row="2"
+                       Text="{TemplateBinding Caption}"
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="0,4,0,0"
+                       IsVisible="{TemplateBinding Caption, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            <ContentPresenter Grid.Column="1" Grid.Row="0" Grid.RowSpan="3"
+                              Content="{TemplateBinding AccessoryContent}"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Right"/>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- TrendKind 给 Caption 上色 -->
+    <Style Selector="^[TrendKind=Success] /template/ TextBlock#PART_Caption">
+      <Setter Property="Foreground" Value="{DynamicResource StatusSuccessBrush}"/>
+    </Style>
+    <Style Selector="^[TrendKind=Warning] /template/ TextBlock#PART_Caption">
+      <Setter Property="Foreground" Value="{DynamicResource StatusWarningBrush}"/>
+    </Style>
+    <Style Selector="^[TrendKind=Danger] /template/ TextBlock#PART_Caption">
+      <Setter Property="Foreground" Value="{DynamicResource StatusDangerBrush}"/>
+    </Style>
+    <Style Selector="^[TrendKind=Info] /template/ TextBlock#PART_Caption">
+      <Setter Property="Foreground" Value="{DynamicResource StatusInfoBrush}"/>
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

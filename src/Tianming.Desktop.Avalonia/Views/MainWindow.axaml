@@ -2,8 +2,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels"
         xmlns:v="using:Tianming.Desktop.Avalonia.Views"
+        xmlns:shell="using:Tianming.Desktop.Avalonia.Shell"
         x:Class="Tianming.Desktop.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="{Binding Title}" Width="1200" Height="800">
-  <v:ThreeColumnLayoutView DataContext="{Binding Layout}"/>
+        Title="{Binding Title}"
+        Width="1280" Height="820"
+        MinWidth="960" MinHeight="600"
+        Background="{DynamicResource SurfaceCanvasBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="36">
+  <Grid RowDefinitions="36, *, 28">
+    <shell:AppChrome    Grid.Row="0" DataContext="{Binding Chrome}"/>
+    <v:ThreeColumnLayoutView Grid.Row="1" DataContext="{Binding Layout}"/>
+    <shell:AppStatusBar Grid.Row="2" DataContext="{Binding StatusBar}"/>
+  </Grid>
 </Window>

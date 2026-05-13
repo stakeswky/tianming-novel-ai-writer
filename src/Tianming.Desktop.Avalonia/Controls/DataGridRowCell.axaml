@@ -1,0 +1,53 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+  <ControlTheme x:Key="{x:Type controls:DataGridRowCell}" TargetType="controls:DataGridRowCell">
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <!-- Text -->
+          <TextBlock x:Name="PART_Text"
+                     Text="{TemplateBinding Content}"
+                     FontSize="{DynamicResource FontSizeBody}"
+                     Foreground="{DynamicResource TextPrimaryBrush}"
+                     VerticalAlignment="Center"/>
+          <!-- Badge -->
+          <controls:BadgePill x:Name="PART_Badge"
+                              Text="{TemplateBinding Content}"
+                              Kind="{TemplateBinding BadgeKind, Converter={x:Static controls:BadgeKindFallbackConverter.Instance}}"
+                              IsVisible="False"/>
+          <!-- Link -->
+          <Button x:Name="PART_Link"
+                  Classes="ghost"
+                  Command="{TemplateBinding ClickCommand}"
+                  Padding="0"
+                  IsVisible="False">
+            <TextBlock Text="{TemplateBinding Content}"
+                       Foreground="{DynamicResource AccentBaseBrush}"
+                       FontSize="{DynamicResource FontSizeBody}"/>
+          </Button>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^[Kind=Badge] /template/ TextBlock#PART_Text">
+      <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <Style Selector="^[Kind=Badge] /template/ controls|BadgePill#PART_Badge">
+      <Setter Property="IsVisible" Value="True"/>
+    </Style>
+
+    <Style Selector="^[Kind=Number] /template/ TextBlock#PART_Text">
+      <Setter Property="HorizontalAlignment" Value="Right"/>
+      <Setter Property="FontFamily" Value="{DynamicResource FontMono}"/>
+    </Style>
+
+    <Style Selector="^[Kind=Link] /template/ TextBlock#PART_Text">
+      <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <Style Selector="^[Kind=Link] /template/ Button#PART_Link">
+      <Setter Property="IsVisible" Value="True"/>
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

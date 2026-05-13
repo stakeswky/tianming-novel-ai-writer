@@ -3,6 +3,6 @@
              xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels"
              x:Class="Tianming.Desktop.Avalonia.Views.PlaceholderView"
              x:DataType="vm:PlaceholderViewModel">
-  <TextBlock Text="{Binding Message}" Foreground="{DynamicResource TextTertiary}"
+  <TextBlock Text="{Binding Message}" Foreground="{DynamicResource TextTertiaryBrush}"
              HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"/>
 </UserControl>

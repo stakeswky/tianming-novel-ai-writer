@@ -1,0 +1,54 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+  <ControlTheme x:Key="{x:Type controls:ProjectCard}" TargetType="controls:ProjectCard">
+    <Setter Property="Width" Value="200"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{DynamicResource SurfaceBaseBrush}"
+                CornerRadius="{DynamicResource RadiusLg}"
+                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="1"
+                BoxShadow="{DynamicResource ShadowSm}">
+          <StackPanel>
+            <!-- Cover -->
+            <Border Height="120"
+                    CornerRadius="8,8,0,0"
+                    Background="{DynamicResource SurfaceSubtleBrush}"
+                    ClipToBounds="True">
+              <Image Source="{TemplateBinding Cover}" Stretch="UniformToFill"/>
+            </Border>
+            <!-- Body -->
+            <StackPanel Margin="12" Spacing="6">
+              <TextBlock Text="{TemplateBinding ProjectName}"
+                         FontSize="{DynamicResource FontSizeH3}"
+                         FontWeight="{DynamicResource FontWeightSemibold}"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         TextTrimming="CharacterEllipsis"/>
+              <TextBlock Text="{TemplateBinding LastOpenedText}"
+                         FontSize="{DynamicResource FontSizeCaption}"
+                         Foreground="{DynamicResource TextTertiaryBrush}"
+                         IsVisible="{TemplateBinding LastOpenedText, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              <Grid ColumnDefinitions="*,Auto">
+                <ProgressBar Grid.Column="0"
+                             Value="{TemplateBinding ProgressPercent}"
+                             Maximum="1.0"
+                             Height="4"
+                             VerticalAlignment="Center"
+                             Background="{DynamicResource SurfaceMutedBrush}"
+                             Foreground="{DynamicResource AccentBaseBrush}"/>
+                <TextBlock Grid.Column="1"
+                           Text="{TemplateBinding ChapterProgress}"
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           Margin="8,0,0,0"
+                           VerticalAlignment="Center"
+                           IsVisible="{TemplateBinding ChapterProgress, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              </Grid>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

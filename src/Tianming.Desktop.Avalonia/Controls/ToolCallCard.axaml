@@ -1,0 +1,53 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+                    xmlns:shell="using:Tianming.Desktop.Avalonia.Shell">
+  <ControlTheme x:Key="{x:Type controls:ToolCallCard}" TargetType="controls:ToolCallCard">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{DynamicResource SurfaceBaseBrush}"
+                CornerRadius="{DynamicResource RadiusLg}"
+                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="1"
+                Padding="12">
+          <StackPanel Spacing="8">
+            <!-- Header：tool name + state badge -->
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0"
+                         Text="{TemplateBinding ToolName}"
+                         FontFamily="{DynamicResource FontMono}"
+                         FontSize="{DynamicResource FontSizeSecondary}"
+                         FontWeight="{DynamicResource FontWeightSemibold}"
+                         Foreground="{DynamicResource TextPrimaryBrush}"/>
+              <controls:BadgePill Grid.Column="1"
+                                  Text="{TemplateBinding State, Converter={x:Static controls:ToolCallStateLabelConverter.Instance}}"
+                                  Kind="{TemplateBinding State, Converter={x:Static controls:ToolCallStateKindConverter.Instance}}"/>
+            </Grid>
+            <!-- Arguments preview -->
+            <TextBlock Text="{TemplateBinding ArgumentsPreview}"
+                       FontFamily="{DynamicResource FontMono}"
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap"
+                       IsVisible="{TemplateBinding ArgumentsPreview, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            <!-- Actions（仅 Pending 显示） -->
+            <StackPanel x:Name="PART_Actions" Orientation="Horizontal" Spacing="8">
+              <Button Classes="secondary"
+                      Content="拒绝"
+                      Command="{TemplateBinding RejectCommand}"/>
+              <Button Content="批准并应用"
+                      Command="{TemplateBinding ApproveCommand}"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^[State=Applied] /template/ StackPanel#PART_Actions">
+      <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <Style Selector="^[State=Rejected] /template/ StackPanel#PART_Actions">
+      <Setter Property="IsVisible" Value="False"/>
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

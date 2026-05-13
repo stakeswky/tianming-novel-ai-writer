@@ -1,0 +1,41 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+  <ControlTheme x:Key="{x:Type controls:SectionCard}" TargetType="controls:SectionCard">
+    <Setter Property="Padding" Value="{DynamicResource PaddingCard}"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{DynamicResource SurfaceBaseBrush}"
+                CornerRadius="{DynamicResource RadiusLg}"
+                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="1"
+                BoxShadow="{DynamicResource ShadowSm}"
+                Padding="{TemplateBinding Padding}">
+          <DockPanel LastChildFill="True">
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,12"
+                  IsVisible="{TemplateBinding Header, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="{TemplateBinding Header}"
+                           FontSize="{DynamicResource FontSizeH3}"
+                           FontWeight="{DynamicResource FontWeightSemibold}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="{TemplateBinding Subtitle}"
+                           FontSize="{DynamicResource FontSizeSecondary}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           IsVisible="{TemplateBinding Subtitle, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              </StackPanel>
+              <ContentPresenter Grid.Column="1"
+                                Content="{TemplateBinding HeaderActions}"
+                                VerticalAlignment="Center"/>
+            </Grid>
+            <ContentPresenter Content="{TemplateBinding Content}"/>
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

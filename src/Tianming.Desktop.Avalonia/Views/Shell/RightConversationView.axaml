@@ -3,8 +3,8 @@
              xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Shell"
              x:Class="Tianming.Desktop.Avalonia.Views.Shell.RightConversationView"
              x:DataType="vm:RightConversationViewModel">
-  <Border Background="{DynamicResource ContentBackground}" Padding="16">
-    <TextBlock Text="{Binding PlaceholderText}" Foreground="{DynamicResource TextTertiary}"
+  <Border Background="{DynamicResource SurfaceCanvasBrush}" Padding="16">
+    <TextBlock Text="{Binding PlaceholderText}" Foreground="{DynamicResource TextTertiaryBrush}"
                HorizontalAlignment="Center" VerticalAlignment="Center"/>
   </Border>
 </UserControl>

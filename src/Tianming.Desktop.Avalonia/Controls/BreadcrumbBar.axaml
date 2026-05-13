@@ -1,0 +1,37 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+                    xmlns:shell="using:Tianming.Desktop.Avalonia.Shell">
+  <ControlTheme x:Key="{x:Type controls:BreadcrumbBar}" TargetType="controls:BreadcrumbBar">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ItemsControl ItemsSource="{TemplateBinding Segments}" VerticalAlignment="Center">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="6"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="shell:BreadcrumbSegment">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button Classes="ghost"
+                        Command="{Binding $parent[controls:BreadcrumbBar].NavigateCommand}"
+                        CommandParameter="{Binding}"
+                        Padding="4,2"
+                        IsHitTestVisible="{Binding Target, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  <TextBlock Text="{Binding Label}"
+                             FontSize="{DynamicResource FontSizeCaption}"
+                             Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </Button>
+                <TextBlock Text=" · "
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           Foreground="{DynamicResource TextTertiaryBrush}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

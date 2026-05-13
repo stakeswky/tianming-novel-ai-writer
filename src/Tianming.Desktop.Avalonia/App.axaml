@@ -1,16 +1,78 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Tianming.Desktop.Avalonia.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Light">
+
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="天命">
+        <NativeMenu>
+          <NativeMenuItem Header="关于天命"/>
+          <NativeMenuItemSeparator/>
+          <NativeMenuItem Header="偏好…" Gesture="Cmd+OemComma"/>
+          <NativeMenuItemSeparator/>
+          <NativeMenuItem Header="隐藏天命" Gesture="Cmd+H"/>
+          <NativeMenuItem Header="退出"     Gesture="Cmd+Q"/>
+        </NativeMenu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="文件">
+        <NativeMenu>
+          <NativeMenuItem Header="新建项目…" Gesture="Cmd+N"/>
+          <NativeMenuItem Header="打开项目…" Gesture="Cmd+O"/>
+          <NativeMenuItemSeparator/>
+          <NativeMenuItem Header="保存"     Gesture="Cmd+S"/>
+        </NativeMenu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="编辑">
+        <NativeMenu>
+          <NativeMenuItem Header="撤销" Gesture="Cmd+Z"/>
+          <NativeMenuItem Header="重做" Gesture="Cmd+Shift+Z"/>
+          <NativeMenuItemSeparator/>
+          <NativeMenuItem Header="查找" Gesture="Cmd+F"/>
+        </NativeMenu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="视图"/>
+      <NativeMenuItem Header="窗口"/>
+      <NativeMenuItem Header="帮助"/>
+    </NativeMenu>
+  </NativeMenu.Menu>
+
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <!-- 1. Design tokens 先合 -->
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Colors.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Typography.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Spacing.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Radii.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Shadows.axaml"/>
+        <!-- 2. 旧 palette 兼容（PalettesLight 现在 internally MergedDictionaries 了 Colors.axaml） -->
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/PalettesLight.axaml"/>
+        <!-- 3. Controls (primitives ControlTheme) -->
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/BadgePill.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/StatusBarItem.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SectionCard.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/StatsCard.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SearchBox.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SegmentedTabs.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/BreadcrumbBar.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/NavRail.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SidebarTreeItem.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/ProjectCard.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/DataGridRowCell.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/ConversationBubble.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/ToolCallCard.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/CommonStyles.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/Button.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/TextBox.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/ComboBox.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/ListBox.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/DataGrid.axaml"/>
+    <StyleInclude Source="avares://Tianming.Desktop.Avalonia/Theme/ControlStyles/ScrollBar.axaml"/>
   </Application.Styles>
 </Application>

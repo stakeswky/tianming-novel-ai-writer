@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:shell="using:Tianming.Desktop.Avalonia.Shell"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             x:Class="Tianming.Desktop.Avalonia.Shell.AppStatusBar"
+             x:DataType="shell:AppStatusBarViewModel"
+             Height="28">
+  <Border Background="{DynamicResource SurfaceSubtleBrush}"
+          BorderBrush="{DynamicResource BorderSubtleBrush}"
+          BorderThickness="0,1,0,0">
+    <Grid Margin="12,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- 左侧 indicators -->
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+        <TextBlock Text="{Binding DotNetRuntime}"
+                   FontSize="{DynamicResource FontSizeCaption}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   VerticalAlignment="Center"/>
+
+        <controls:StatusBarItem Label="{Binding LocalMode.Label}"
+                                Kind="{Binding LocalMode.Kind}"/>
+        <controls:StatusBarItem Label="{Binding KeychainStatus.Label}"
+                                Kind="{Binding KeychainStatus.Kind}"
+                                TooltipText="{Binding KeychainStatus.Tooltip}"/>
+        <controls:StatusBarItem Label="{Binding OnnxStatus.Label}"
+                                Kind="{Binding OnnxStatus.Kind}"
+                                TooltipText="{Binding OnnxStatus.Tooltip}"/>
+      </StackPanel>
+
+      <!-- 右侧项目路径 -->
+      <TextBlock Grid.Column="2"
+                 Text="{Binding CurrentProjectPath}"
+                 FontSize="{DynamicResource FontSizeCaption}"
+                 Foreground="{DynamicResource TextTertiaryBrush}"
+                 VerticalAlignment="Center"
+                 IsVisible="{Binding CurrentProjectPath, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+    </Grid>
+  </Border>
+</UserControl>

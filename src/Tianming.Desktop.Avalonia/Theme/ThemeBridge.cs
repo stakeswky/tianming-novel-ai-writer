@@ -41,18 +41,17 @@ public sealed class ThemeBridge
             app.Resources[kv.Key] = new SolidColorBrush(color);
         }
 
-        var variant = request.Plan.ColorMode == PortableThemeColorMode.Dark
-            ? ThemeVariant.Dark
-            : ThemeVariant.Light;
-        app.RequestedThemeVariant = variant;
-        _log.LogInformation("Applied theme {Theme}", request.Plan.ThemeType);
+        // 亮色 only（Mac UI 基建决策）
+        app.RequestedThemeVariant = ThemeVariant.Light;
+        _log.LogInformation("Applied theme {Theme} (forced Light)", request.Plan.ThemeType);
     }
 
     private void ApplyLightDarkVariant(PortableThemeType type)
     {
         var app = Application.Current;
         if (app is null) return;
-        app.RequestedThemeVariant = type == PortableThemeType.Dark ? ThemeVariant.Dark : ThemeVariant.Light;
+        // 亮色 only（Mac UI 基建决策）
+        app.RequestedThemeVariant = ThemeVariant.Light;
     }
 
     private static bool TryParseHex(string s, out Color color)
