@@ -28,6 +28,7 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isStreaming;
     [ObservableProperty] private SessionListItemVm? _selectedHistoryItem;
     [ObservableProperty] private bool _isHistoryOpen;
+    [ObservableProperty] private bool _isReferencePopupOpen;
 
     public ObservableCollection<SegmentItem> ModeSegments { get; } = new()
     {
@@ -38,6 +39,7 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ConversationBubbleVm> SampleBubbles { get; } = new();
     public ObservableCollection<SessionListItemVm> SessionHistory { get; } = new();
+    public ObservableCollection<ReferenceItemVm> ReferenceCandidates { get; } = new();
 
     public ConversationPanelViewModel(bool seedSamples = true)
     {
@@ -209,6 +211,58 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
 
         await Task.Yield();
         IsStreaming = false;
+    }
+
+    partial void OnInputDraftChanged(string value)
+    {
+        var index = value.LastIndexOf('@');
+        if (index < 0 || index == value.Length - 1)
+        {
+            IsReferencePopupOpen = false;
+            return;
+        }
+
+        var query = value[(index + 1)..];
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            IsReferencePopupOpen = false;
+            return;
+        }
+
+        PopulateReferenceCandidates(query);
+    }
+
+    private void PopulateReferenceCandidates(string query)
+    {
+        ReferenceCandidates.Clear();
+        var samples = new[]
+        {
+            new ReferenceItemVm { Id = "ch-001", Name = "第 1 章 风起青萍", Category = "Chapter" },
+            new ReferenceItemVm { Id = "char-zhuge", Name = "诸葛清", Category = "Character" },
+            new ReferenceItemVm { Id = "world-jiuzhou", Name = "九州大陆", Category = "World" },
+        };
+
+        foreach (var sample in samples)
+        {
+            if (sample.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                ReferenceCandidates.Add(sample);
+        }
+
+        IsReferencePopupOpen = ReferenceCandidates.Count > 0;
+    }
+
+    [RelayCommand]
+    private void SelectReference(ReferenceItemVm? item)
+    {
+        if (item == null)
+            return;
+
+        var index = InputDraft.LastIndexOf('@');
+        if (index < 0)
+            return;
+
+        InputDraft = InputDraft[..index] + $"@{item.Name} ";
+        IsReferencePopupOpen = false;
     }
 
     private string BuildThinkingBlock(string input)
