@@ -53,6 +53,7 @@
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/StatusBarItem.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SectionCard.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/StatsCard.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/SearchBox.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
