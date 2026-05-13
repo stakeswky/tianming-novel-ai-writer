@@ -144,4 +144,40 @@ public class DesignTokensTests
             Assert.IsType<double>(v);
         }
     }
+
+    private static IResourceDictionary LoadSpacing()
+    {
+        EnsureAvaloniaInitialized();
+        var include = new ResourceInclude((Uri?)null)
+        {
+            Source = new Uri("avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Spacing.axaml")
+        };
+        return include.Loaded;
+    }
+
+    [Fact]
+    public void Spacing_AllSpaceKeysResolveAndIncreasing()
+    {
+        var dict = LoadSpacing();
+        var keys = new[] { "Space1", "Space2", "Space3", "Space4", "Space5", "Space6", "Space8", "Space10" };
+        double prev = 0;
+        foreach (var k in keys)
+        {
+            Assert.True(dict.TryGetResource(k, null, out var v));
+            var val = Assert.IsType<double>(v);
+            Assert.True(val > prev, $"{k} should be > previous {prev}, got {val}");
+            prev = val;
+        }
+    }
+
+    [Fact]
+    public void Spacing_PaddingThicknessKeysResolve()
+    {
+        var dict = LoadSpacing();
+        foreach (var k in new[] { "PaddingCard", "PaddingPage", "PaddingInputControl" })
+        {
+            Assert.True(dict.TryGetResource(k, null, out var v));
+            Assert.IsType<Thickness>(v);
+        }
+    }
 }
