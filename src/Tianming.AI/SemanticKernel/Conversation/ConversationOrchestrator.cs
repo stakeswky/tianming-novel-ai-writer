@@ -22,7 +22,7 @@ namespace TM.Services.Framework.AI.SemanticKernel.Conversation;
 /// - Agent 模式的工具调用循环
 /// - 会话持久化
 /// </summary>
-public sealed class ConversationOrchestrator
+public sealed class ConversationOrchestrator : IConversationOrchestrator
 {
     private readonly OpenAICompatibleChatClient _chat;
     private readonly TagBasedThinkingStrategy _thinking;

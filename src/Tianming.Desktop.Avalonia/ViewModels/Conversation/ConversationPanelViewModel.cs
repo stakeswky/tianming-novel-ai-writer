@@ -1,18 +1,27 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tianming.Desktop.Avalonia.Controls;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
+using TM.Framework.UI.Workspace.RightPanel.Modes;
+using TM.Services.Framework.AI.SemanticKernel;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
 
 namespace Tianming.Desktop.Avalonia.ViewModels.Conversation;
 
-public partial class ConversationPanelViewModel : ObservableObject
+public partial class ConversationPanelViewModel : ObservableObject, IDisposable
 {
+    private readonly IConversationOrchestrator? _orchestrator;
+    private readonly IFileSessionStore? _sessionStore;
+    private readonly BulkEmitter? _emitter;
+    private ConversationSession? _currentSession;
+    private CancellationTokenSource? _cts;
+
     [ObservableProperty] private string _selectedMode = "ask";
     [ObservableProperty] private string _inputDraft = string.Empty;
     [ObservableProperty] private bool _isStreaming;
@@ -28,6 +37,20 @@ public partial class ConversationPanelViewModel : ObservableObject
 
     public ConversationPanelViewModel(bool seedSamples = true)
     {
+        if (seedSamples)
+            SeedSamples();
+    }
+
+    public ConversationPanelViewModel(
+        IConversationOrchestrator orchestrator,
+        IFileSessionStore sessionStore,
+        IDispatcherScheduler scheduler,
+        bool seedSamples = false)
+    {
+        _orchestrator = orchestrator;
+        _sessionStore = sessionStore;
+        _emitter = new BulkEmitter(scheduler);
+        _emitter.Start(SampleBubbles);
         if (seedSamples)
             SeedSamples();
     }
@@ -56,24 +79,69 @@ public partial class ConversationPanelViewModel : ObservableObject
         InputDraft = string.Empty;
         IsStreaming = true;
 
-        var assistant = new ConversationBubbleVm
+        if (_orchestrator == null || _sessionStore == null || _emitter == null)
         {
-            Role = ConversationRole.Assistant,
-            ThinkingBlock = BuildThinkingBlock(input),
-            Content = BuildLocalDemoResponse(input),
-            Timestamp = DateTime.Now,
-        };
+            await SendLocalDemoAsync(input);
+            return;
+        }
 
-        await Task.Yield();
-        SampleBubbles.Add(assistant);
-        IsStreaming = false;
+        var mode = ParseChatMode(SelectedMode);
+        _currentSession ??= await _orchestrator.StartSessionAsync(mode);
+        _currentSession.Mode = mode;
+
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+
+        try
+        {
+            await foreach (var delta in _orchestrator.SendAsync(_currentSession, input, _cts.Token))
+                _emitter.Enqueue(delta);
+
+            await _orchestrator.PersistAsync(_currentSession, _cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            IsStreaming = false;
+        }
     }
 
     [RelayCommand]
     private void NewSession()
     {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = null;
+        _emitter?.Stop();
+        _currentSession = null;
         SampleBubbles.Clear();
         InputDraft = string.Empty;
+        IsStreaming = false;
+        _emitter?.Start(SampleBubbles);
+    }
+
+    private static ChatMode ParseChatMode(string mode)
+        => mode.ToLowerInvariant() switch
+        {
+            "plan" => ChatMode.Plan,
+            "agent" => ChatMode.Agent,
+            _ => ChatMode.Ask,
+        };
+
+    private async Task SendLocalDemoAsync(string input)
+    {
+        SampleBubbles.Add(new ConversationBubbleVm
+        {
+            Role = ConversationRole.Assistant,
+            ThinkingBlock = BuildThinkingBlock(input),
+            Content = BuildLocalDemoResponse(input),
+            Timestamp = DateTime.Now,
+        });
+
+        await Task.Yield();
         IsStreaming = false;
     }
 
@@ -115,6 +183,13 @@ public partial class ConversationPanelViewModel : ObservableObject
             Content = "好的。第 32 章后半段提纲已生成：\n1. 雨幕拉开两人距离，沈砚先开口。\n2. 主角拒绝回应，转身欲走。\n3. 沈砚抛出关键线索（旧友失踪日期），主角僵住。\n4. 两人对峙在屋檐下，台词压低但句句带刺。\n\n要我按这个 beat 直接续写正文，还是先扩写每段大意？",
             Timestamp = DateTime.Now.AddMinutes(-11),
         });
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _emitter?.Stop();
     }
 }
 

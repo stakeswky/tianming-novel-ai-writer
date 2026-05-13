@@ -1,8 +1,14 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Tianming.Desktop.Avalonia.Controls;
+using Tianming.Desktop.Avalonia.Infrastructure;
+using Tianming.Desktop.Avalonia.Tests.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels.Conversation;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
+using TM.Services.Framework.AI.SemanticKernel;
 using Xunit;
 
 namespace Tianming.Desktop.Avalonia.Tests.ViewModels.Conversation;
@@ -92,5 +98,71 @@ public class ConversationPanelViewModelTests
         Assert.Equal(ConversationRole.Assistant, bubble.Role);
         Assert.Equal("分析", bubble.ThinkingBlock);
         Assert.Equal("正文", bubble.Content);
+    }
+
+    [Fact]
+    public async Task SendAsync_with_orchestrator_streams_deltas_into_bubbles()
+    {
+        var scheduler = new FakeDispatcherScheduler();
+        var orchestrator = new StubOrchestrator
+        {
+            StreamFunc = (_, _) => AsyncDeltas(
+                new ThinkingDelta("thinking..."),
+                new AnswerDelta("hi"),
+                new AnswerDelta(" there"))
+        };
+        var sessionStore = new StubSessionStore();
+        var vm = new ConversationPanelViewModel(orchestrator, sessionStore, scheduler, seedSamples: false)
+        {
+            InputDraft = "hello"
+        };
+
+        await vm.SendCommand.ExecuteAsync(null);
+        scheduler.Tick();
+
+        Assert.Equal(2, vm.SampleBubbles.Count);
+        Assert.Equal(ConversationRole.User, vm.SampleBubbles[0].Role);
+        Assert.Equal("hello", vm.SampleBubbles[0].Content);
+        Assert.Equal(ConversationRole.Assistant, vm.SampleBubbles[1].Role);
+        Assert.Equal("hi there", vm.SampleBubbles[1].Content);
+        Assert.Equal("thinking...", vm.SampleBubbles[1].ThinkingBlock);
+    }
+
+    private static async IAsyncEnumerable<ChatStreamDelta> AsyncDeltas(params ChatStreamDelta[] items)
+    {
+        foreach (var item in items)
+        {
+            await Task.Yield();
+            yield return item;
+        }
+    }
+
+    private sealed class StubOrchestrator : IConversationOrchestrator
+    {
+        public Func<ConversationSession, string, IAsyncEnumerable<ChatStreamDelta>> StreamFunc { get; set; } = default!;
+
+        public Task<ConversationSession> StartSessionAsync(TM.Framework.UI.Workspace.RightPanel.Modes.ChatMode mode, string? sessionId = null, CancellationToken ct = default)
+            => Task.FromResult(new ConversationSession { Mode = mode });
+
+        public IAsyncEnumerable<ChatStreamDelta> SendAsync(ConversationSession session, string userInput, CancellationToken ct = default)
+            => StreamFunc(session, userInput);
+
+        public Task PersistAsync(ConversationSession session, CancellationToken ct = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubSessionStore : IFileSessionStore
+    {
+        public Task SaveSessionAsync(ConversationSession session, CancellationToken ct = default)
+            => Task.CompletedTask;
+
+        public Task<ConversationSession?> LoadSessionAsync(string sessionId, CancellationToken ct = default)
+            => Task.FromResult<ConversationSession?>(null);
+
+        public Task<IReadOnlyList<SessionSummary>> ListSessionsAsync(CancellationToken ct = default)
+            => Task.FromResult<IReadOnlyList<SessionSummary>>(Array.Empty<SessionSummary>());
+
+        public Task DeleteSessionAsync(string sessionId, CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 }
