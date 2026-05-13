@@ -66,6 +66,7 @@ public static class AvaloniaShellServiceCollectionExtensions
 
         // M4.3 章节编辑器基础设施
         s.AddSingleton<ITimerScheduler, DispatcherTimerScheduler>();
+        s.AddSingleton<IDispatcherScheduler, AvaloniaDispatcherScheduler>();
         s.AddSingleton<IChapterDraftStore>(sp =>
         {
             var paths = sp.GetRequiredService<AppPaths>();
