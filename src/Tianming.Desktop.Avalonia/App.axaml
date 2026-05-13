@@ -6,6 +6,8 @@
              xmlns:v="using:Tianming.Desktop.Avalonia.Views"
              xmlns:vsh="using:Tianming.Desktop.Avalonia.Views.Shell"
              xmlns:vd="using:Tianming.Desktop.Avalonia.Views.Design"
+             xmlns:vme="using:Tianming.Desktop.Avalonia.ViewModels.Editor"
+             xmlns:ve="using:Tianming.Desktop.Avalonia.Views.Editor"
              x:Class="Tianming.Desktop.Avalonia.App"
              RequestedThemeVariant="Light">
   <Application.DataTemplates>
@@ -43,6 +45,10 @@
     <DataTemplate DataType="vmd:CreativeMaterialsViewModel">
       <vd:DesignModulePage/>
     </DataTemplate>
+    <!-- M4.3 章节编辑器 -->
+    <DataTemplate DataType="vme:EditorWorkspaceViewModel">
+      <ve:EditorWorkspaceView/>
+    </DataTemplate>
   </Application.DataTemplates>
 
   <!-- M5：NativeMenu 真实绑定挂到 MainWindow（DataContext = MainWindowViewModel），
@@ -73,6 +79,8 @@
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/DataGridRowCell.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/ConversationBubble.axaml"/>
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/ToolCallCard.axaml"/>
+        <!-- M4.3 章节编辑器：MarkdownEditor / MarkdownPreview / ChapterTabBar 都是 UserControl
+             （非 ResourceDictionary），不在此处合并；XAML 类型解析通过 controls: xmlns 即可。 -->
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
