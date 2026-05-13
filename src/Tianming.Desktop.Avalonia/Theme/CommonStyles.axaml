@@ -1,18 +1,22 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!-- DesignTokens 已经在 App.axaml 里合并；这里不重复 -->
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <!-- 全局基础样式（旧 key 名暂留兼容，后续 ControlStyles/ 子文件按 primitive 接管） -->
   <Style Selector="Window">
-    <Setter Property="Background" Value="{DynamicResource UnifiedBackground}"/>
-    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+    <Setter Property="Background" Value="{DynamicResource SurfaceCanvasBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource FontUI}"/>
+    <Setter Property="FontSize"   Value="{DynamicResource FontSizeBody}"/>
   </Style>
   <Style Selector="TextBlock">
-    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
-  </Style>
-  <Style Selector="Button">
-    <Setter Property="Background" Value="{DynamicResource PrimaryColor}"/>
-    <Setter Property="Foreground" Value="White"/>
-    <Setter Property="Padding" Value="12,6"/>
-  </Style>
-  <Style Selector="Button:pointerover">
-    <Setter Property="Background" Value="{DynamicResource PrimaryHover}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource FontUI}"/>
   </Style>
 </Styles>

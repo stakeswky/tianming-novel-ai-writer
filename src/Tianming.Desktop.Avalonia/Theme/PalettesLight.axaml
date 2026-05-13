@@ -1,21 +1,29 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <SolidColorBrush x:Key="UnifiedBackground"   Color="#FFFFFF"/>
-  <SolidColorBrush x:Key="ContentBackground"   Color="#F8FAFC"/>
-  <SolidColorBrush x:Key="SurfaceBackground"   Color="#F1F5F9"/>
-  <SolidColorBrush x:Key="BorderBrush"         Color="#E2E8F0"/>
-  <SolidColorBrush x:Key="TextPrimary"         Color="#1E293B"/>
-  <SolidColorBrush x:Key="TextSecondary"       Color="#64748B"/>
-  <SolidColorBrush x:Key="TextTertiary"        Color="#94A3B8"/>
-  <SolidColorBrush x:Key="HoverBackground"     Color="#F1F5F9"/>
-  <SolidColorBrush x:Key="ActiveBackground"    Color="#E2E8F0"/>
-  <SolidColorBrush x:Key="SelectedBackground"  Color="#DBEAFE"/>
-  <SolidColorBrush x:Key="PrimaryColor"        Color="#3B82F6"/>
-  <SolidColorBrush x:Key="PrimaryHover"        Color="#2563EB"/>
-  <SolidColorBrush x:Key="PrimaryActive"       Color="#1D4ED8"/>
-  <SolidColorBrush x:Key="SuccessColor"        Color="#22C55E"/>
-  <SolidColorBrush x:Key="WarningColor"        Color="#F59E0B"/>
-  <SolidColorBrush x:Key="DangerColor"         Color="#EF4444"/>
-  <SolidColorBrush x:Key="DangerHover"         Color="#DC2626"/>
-  <SolidColorBrush x:Key="InfoColor"           Color="#06B6D4"/>
+  <!-- 此文件是历史兼容入口：把 DesignTokens/Colors.axaml 的 *Brush 暴露给
+       旧代码使用的旧 key 名（UnifiedBackground / ContentBackground / 等）。
+       新写的 view 请直接用 DesignTokens/Colors.axaml 的 *Brush key。 -->
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Colors.axaml"/>
+  </ResourceDictionary.MergedDictionaries>
+
+  <!-- 旧 key → 新 brush 别名（保留过渡期兼容；Sub-plan 2 完成后删） -->
+  <SolidColorBrush x:Key="UnifiedBackground"   Color="{StaticResource SurfaceBase}"/>
+  <SolidColorBrush x:Key="ContentBackground"   Color="{StaticResource SurfaceCanvas}"/>
+  <SolidColorBrush x:Key="SurfaceBackground"   Color="{StaticResource SurfaceSubtle}"/>
+  <SolidColorBrush x:Key="BorderBrush"         Color="{StaticResource BorderSubtle}"/>
+  <SolidColorBrush x:Key="TextPrimary"         Color="{StaticResource TextPrimary}"/>
+  <SolidColorBrush x:Key="TextSecondary"       Color="{StaticResource TextSecondary}"/>
+  <SolidColorBrush x:Key="TextTertiary"        Color="{StaticResource TextTertiary}"/>
+  <SolidColorBrush x:Key="HoverBackground"     Color="{StaticResource SurfaceSubtle}"/>
+  <SolidColorBrush x:Key="ActiveBackground"    Color="{StaticResource SurfaceMuted}"/>
+  <SolidColorBrush x:Key="SelectedBackground"  Color="{StaticResource AccentSubtle}"/>
+  <SolidColorBrush x:Key="PrimaryColor"        Color="{StaticResource AccentBase}"/>
+  <SolidColorBrush x:Key="PrimaryHover"        Color="{StaticResource AccentHover}"/>
+  <SolidColorBrush x:Key="PrimaryActive"       Color="{StaticResource AccentPressed}"/>
+  <SolidColorBrush x:Key="SuccessColor"        Color="{StaticResource StatusSuccess}"/>
+  <SolidColorBrush x:Key="WarningColor"        Color="{StaticResource StatusWarning}"/>
+  <SolidColorBrush x:Key="DangerColor"         Color="{StaticResource StatusDanger}"/>
+  <SolidColorBrush x:Key="DangerHover"         Color="{StaticResource StatusDanger}"/>
+  <SolidColorBrush x:Key="InfoColor"           Color="{StaticResource StatusInfo}"/>
 </ResourceDictionary>

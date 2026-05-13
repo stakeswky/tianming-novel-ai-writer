@@ -3,16 +3,16 @@
              xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Shell"
              x:Class="Tianming.Desktop.Avalonia.Views.Shell.LeftNavView"
              x:DataType="vm:LeftNavViewModel">
-  <Border Background="{DynamicResource ContentBackground}" Padding="8">
+  <Border Background="{DynamicResource SurfaceCanvasBrush}" Padding="8">
     <StackPanel>
-      <TextBlock Text="导航" FontWeight="Bold" Margin="0,0,0,12" Foreground="{DynamicResource TextSecondary}"/>
+      <TextBlock Text="导航" FontWeight="Bold" Margin="0,0,0,12" Foreground="{DynamicResource TextSecondaryBrush}"/>
       <ItemsControl ItemsSource="{Binding Entries}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <Button Command="{Binding $parent[ItemsControl].((vm:LeftNavViewModel)DataContext).NavigateCommand}"
                     CommandParameter="{Binding}"
                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                    Margin="0,2" Background="Transparent" Foreground="{DynamicResource TextPrimary}">
+                    Margin="0,2" Background="Transparent" Foreground="{DynamicResource TextPrimaryBrush}">
               <TextBlock Text="{Binding Label}"/>
             </Button>
           </DataTemplate>

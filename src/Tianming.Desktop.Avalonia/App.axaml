@@ -1,10 +1,17 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Tianming.Desktop.Avalonia.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Light">
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <!-- 1. Design tokens 先合 -->
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Colors.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Typography.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Spacing.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Radii.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Shadows.axaml"/>
+        <!-- 2. 旧 palette 兼容（PalettesLight 现在 internally MergedDictionaries 了 Colors.axaml） -->
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/PalettesLight.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
