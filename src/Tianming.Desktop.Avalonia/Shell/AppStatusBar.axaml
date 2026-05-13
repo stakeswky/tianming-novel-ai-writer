@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:shell="using:Tianming.Desktop.Avalonia.Shell"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
              x:Class="Tianming.Desktop.Avalonia.Shell.AppStatusBar"
              x:DataType="shell:AppStatusBarViewModel"
              Height="28">
@@ -21,21 +22,14 @@
                    Foreground="{DynamicResource TextSecondaryBrush}"
                    VerticalAlignment="Center"/>
 
-        <!-- 占位用 TextBlock 表示 status；Task 25 起 StatusBarItem primitive 接管 -->
-        <TextBlock Text="{Binding LocalMode.Label}"
-                   FontSize="{DynamicResource FontSizeCaption}"
-                   Foreground="{DynamicResource StatusSuccessBrush}"
-                   VerticalAlignment="Center"/>
-        <TextBlock Text="{Binding KeychainStatus.Label}"
-                   FontSize="{DynamicResource FontSizeCaption}"
-                   Foreground="{DynamicResource TextSecondaryBrush}"
-                   VerticalAlignment="Center"
-                   ToolTip.Tip="{Binding KeychainStatus.Tooltip}"/>
-        <TextBlock Text="{Binding OnnxStatus.Label}"
-                   FontSize="{DynamicResource FontSizeCaption}"
-                   Foreground="{DynamicResource TextSecondaryBrush}"
-                   VerticalAlignment="Center"
-                   ToolTip.Tip="{Binding OnnxStatus.Tooltip}"/>
+        <controls:StatusBarItem Label="{Binding LocalMode.Label}"
+                                Kind="{Binding LocalMode.Kind}"/>
+        <controls:StatusBarItem Label="{Binding KeychainStatus.Label}"
+                                Kind="{Binding KeychainStatus.Kind}"
+                                TooltipText="{Binding KeychainStatus.Tooltip}"/>
+        <controls:StatusBarItem Label="{Binding OnnxStatus.Label}"
+                                Kind="{Binding OnnxStatus.Kind}"
+                                TooltipText="{Binding OnnxStatus.Tooltip}"/>
       </StackPanel>
 
       <!-- 右侧项目路径 -->

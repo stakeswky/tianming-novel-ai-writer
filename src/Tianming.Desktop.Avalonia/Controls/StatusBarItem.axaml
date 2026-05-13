@@ -1,0 +1,36 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:Tianming.Desktop.Avalonia.Controls">
+  <ControlTheme x:Key="{x:Type controls:StatusBarItem}" TargetType="controls:StatusBarItem">
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border ToolTip.Tip="{TemplateBinding TooltipText}">
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+            <Ellipse x:Name="PART_Dot" Width="6" Height="6"
+                     Fill="{DynamicResource StatusNeutralBrush}"
+                     VerticalAlignment="Center"/>
+            <TextBlock x:Name="PART_Label"
+                       Text="{TemplateBinding Label}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       FontSize="{TemplateBinding FontSize}"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^[Kind=Success] /template/ Ellipse#PART_Dot">
+      <Setter Property="Fill" Value="{DynamicResource StatusSuccessBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Warning] /template/ Ellipse#PART_Dot">
+      <Setter Property="Fill" Value="{DynamicResource StatusWarningBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Danger] /template/ Ellipse#PART_Dot">
+      <Setter Property="Fill" Value="{DynamicResource StatusDangerBrush}"/>
+    </Style>
+    <Style Selector="^[Kind=Info] /template/ Ellipse#PART_Dot">
+      <Setter Property="Fill" Value="{DynamicResource StatusInfoBrush}"/>
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

@@ -50,6 +50,7 @@
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Theme/PalettesLight.axaml"/>
         <!-- 3. Controls (primitives ControlTheme) -->
         <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/BadgePill.axaml"/>
+        <ResourceInclude Source="avares://Tianming.Desktop.Avalonia/Controls/StatusBarItem.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
