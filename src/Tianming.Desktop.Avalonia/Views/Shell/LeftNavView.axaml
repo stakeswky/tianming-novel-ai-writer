@@ -1,23 +1,39 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Shell"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
              x:Class="Tianming.Desktop.Avalonia.Views.Shell.LeftNavView"
-             x:DataType="vm:LeftNavViewModel">
-  <Border Background="{DynamicResource SurfaceCanvasBrush}" Padding="8">
-    <StackPanel>
-      <TextBlock Text="导航" FontWeight="Bold" Margin="0,0,0,12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-      <ItemsControl ItemsSource="{Binding Entries}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <Button Command="{Binding $parent[ItemsControl].((vm:LeftNavViewModel)DataContext).NavigateCommand}"
-                    CommandParameter="{Binding}"
-                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                    Margin="0,2" Background="Transparent" Foreground="{DynamicResource TextPrimaryBrush}">
-              <TextBlock Text="{Binding Label}"/>
-            </Button>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </StackPanel>
+             x:DataType="vm:LeftNavViewModel"
+             FontFamily="{DynamicResource FontUI}">
+  <Border Background="{DynamicResource SurfaceBaseBrush}"
+          BorderBrush="{DynamicResource BorderSubtleBrush}"
+          BorderThickness="0,0,1,0">
+    <DockPanel LastChildFill="True">
+
+      <!-- 项目摘要顶栏 -->
+      <Border DockPanel.Dock="Top"
+              Padding="16,16,16,12"
+              BorderBrush="{DynamicResource BorderSubtleBrush}"
+              BorderThickness="0,0,0,1">
+        <StackPanel Spacing="4">
+          <TextBlock Text="{Binding ProjectName}"
+                     FontSize="{DynamicResource FontSizeH3}"
+                     FontWeight="{DynamicResource FontWeightSemibold}"
+                     Foreground="{DynamicResource TextPrimaryBrush}"
+                     TextTrimming="CharacterEllipsis"/>
+          <TextBlock Text="{Binding ProjectWordCount}"
+                     FontSize="{DynamicResource FontSizeCaption}"
+                     Foreground="{DynamicResource TextSecondaryBrush}"/>
+          <TextBlock Text="{Binding ProjectUpdatedAt}"
+                     FontSize="{DynamicResource FontSizeCaption}"
+                     Foreground="{DynamicResource TextTertiaryBrush}"/>
+        </StackPanel>
+      </Border>
+
+      <!-- NavRail 主体 -->
+      <controls:NavRail Groups="{Binding Groups}"
+                        NavigateCommand="{Binding NavigateCommand}"
+                        Padding="8,12"/>
+    </DockPanel>
   </Border>
 </UserControl>

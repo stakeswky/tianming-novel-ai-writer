@@ -1,7 +1,28 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels"
+             xmlns:vshell="using:Tianming.Desktop.Avalonia.ViewModels.Shell"
+             xmlns:v="using:Tianming.Desktop.Avalonia.Views"
+             xmlns:vsh="using:Tianming.Desktop.Avalonia.Views.Shell"
              x:Class="Tianming.Desktop.Avalonia.App"
              RequestedThemeVariant="Light">
+  <Application.DataTemplates>
+    <DataTemplate DataType="vm:WelcomeViewModel">
+      <v:WelcomeView/>
+    </DataTemplate>
+    <DataTemplate DataType="vm:DashboardViewModel">
+      <v:DashboardView/>
+    </DataTemplate>
+    <DataTemplate DataType="vm:PlaceholderViewModel">
+      <v:PlaceholderView/>
+    </DataTemplate>
+    <DataTemplate DataType="vshell:LeftNavViewModel">
+      <vsh:LeftNavView/>
+    </DataTemplate>
+    <DataTemplate DataType="vshell:RightConversationViewModel">
+      <vsh:RightConversationView/>
+    </DataTemplate>
+  </Application.DataTemplates>
 
   <NativeMenu.Menu>
     <NativeMenu>
