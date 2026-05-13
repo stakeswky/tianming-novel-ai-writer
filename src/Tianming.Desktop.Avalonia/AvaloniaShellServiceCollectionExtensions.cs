@@ -1,7 +1,11 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TM.Framework.Appearance;
+using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
+using TM.Services.Framework.AI.Core;
+using TM.Services.Framework.AI.Monitoring;
 using TM.Services.Framework.AI.SemanticKernel;
 using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
@@ -31,9 +35,11 @@ using Tianming.Desktop.Avalonia.Theme;
 using Tianming.Desktop.Avalonia.ViewModels;
 using Tianming.Desktop.Avalonia.ViewModels.Design;
 using Tianming.Desktop.Avalonia.ViewModels.Editor;
+using Tianming.Desktop.Avalonia.ViewModels.AI;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using Tianming.Desktop.Avalonia.Views;
+using Tianming.Desktop.Avalonia.Views.AI;
 using Tianming.Desktop.Avalonia.Views.Design;
 using Tianming.Desktop.Avalonia.Views.Editor;
 using Tianming.Desktop.Avalonia.Views.Generate;
@@ -165,6 +171,35 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<BlueprintViewModel>();
         s.AddTransient<ChapterPipelineViewModel>();
 
+        // M4.6 AI 管理：模型配置 / Keychain / 提示词 / 用量统计。
+        s.AddSingleton<IApiKeySecretStore>(_ => new MacOSKeychainApiKeySecretStore(new ProcessSecurityCommandRunner()));
+        s.AddSingleton<FileAIConfigurationStore>(sp =>
+        {
+            var paths = sp.GetRequiredService<AppPaths>();
+            var root = Path.Combine(paths.AppSupportDirectory, "AI");
+            return new FileAIConfigurationStore(
+                Path.Combine(root, "Library"),
+                Path.Combine(root, "Configurations"),
+                sp.GetRequiredService<IApiKeySecretStore>());
+        });
+        s.AddSingleton<FilePromptTemplateStore>(sp =>
+        {
+            var root = Path.Combine(sp.GetRequiredService<AppPaths>().AppSupportDirectory, "Prompts");
+            return new FilePromptTemplateStore(
+                Path.Combine(root, "categories.json"),
+                Path.Combine(root, "Templates"),
+                Path.Combine(root, "BuiltInTemplates"));
+        });
+        s.AddSingleton<FileUsageStatisticsService>(sp =>
+        {
+            var root = Path.Combine(sp.GetRequiredService<AppPaths>().AppSupportDirectory, "Usage");
+            return new FileUsageStatisticsService(Path.Combine(root, "api_statistics.json"));
+        });
+        s.AddTransient<ModelManagementViewModel>();
+        s.AddTransient<ApiKeysViewModel>();
+        s.AddTransient<PromptManagementViewModel>();
+        s.AddTransient<UsageStatisticsViewModel>();
+
         // M4.3 章节编辑器 VM
         s.AddTransient<EditorWorkspaceViewModel>(sp =>
             new EditorWorkspaceViewModel(
@@ -198,6 +233,10 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<ChapterPlanningViewModel,  DesignModulePage>(PageKeys.GenerateChapter);
         reg.Register<BlueprintViewModel,        DesignModulePage>(PageKeys.GenerateBlueprint);
         reg.Register<ChapterPipelineViewModel,  ChapterPipelinePage>(PageKeys.GeneratePipeline);
+        reg.Register<ModelManagementViewModel,  ModelManagementPage>(PageKeys.AIModels);
+        reg.Register<ApiKeysViewModel,          ApiKeysPage>(PageKeys.AIKeys);
+        reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts);
+        reg.Register<UsageStatisticsViewModel,  UsageStatisticsPage>(PageKeys.AIUsage);
         return reg;
     }
 }

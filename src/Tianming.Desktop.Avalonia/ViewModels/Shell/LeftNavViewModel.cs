@@ -55,7 +55,8 @@ public partial class LeftNavViewModel : ObservableObject
 
         Groups.Add(new NavRailGroup("AI 管理", new List<NavRailItem>
         {
-            new(PageKeys.AIModels,   "模型与密钥", "🤖"),
+            new(PageKeys.AIModels,   "模型",       "🤖"),
+            new(PageKeys.AIKeys,     "API 密钥",   "🔑"),
             new(PageKeys.AIPrompts,  "提示词",     "📝"),
             new(PageKeys.AIUsage,    "使用统计",   "📊"),
         }));

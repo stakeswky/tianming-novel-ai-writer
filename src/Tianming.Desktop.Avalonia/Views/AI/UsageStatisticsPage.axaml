@@ -1,0 +1,73 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.AI"
+             x:Class="Tianming.Desktop.Avalonia.Views.AI.UsageStatisticsPage"
+             x:DataType="vm:UsageStatisticsViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="800" d:DesignHeight="600">
+  <ScrollViewer Padding="24">
+    <StackPanel Spacing="20">
+      <Grid ColumnDefinitions="*,*,*,*">
+        <controls:StatsCard Grid.Column="0" Label="今日请求" Value="{Binding TodayRequests}" Caption="全部模型" Margin="0,0,6,0"/>
+        <controls:StatsCard Grid.Column="1" Label="今日 Tokens" Value="{Binding TodayTokens}" Caption="输入 + 输出" Margin="6,0"/>
+        <controls:StatsCard Grid.Column="2" Label="今日费用" Value="{Binding TodayCost}" Caption="粗估" Margin="6,0"/>
+        <controls:StatsCard Grid.Column="3" Label="今日成功率" Value="{Binding TodaySuccessRate}" Caption="成功 / 总数" Margin="6,0,0,0"/>
+      </Grid>
+
+      <controls:SectionCard Header="近 7 天趋势" Subtitle="请求量、Tokens、费用与成功率">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="100,100,120,120,*" Margin="0,0,0,4">
+            <TextBlock Grid.Column="0" Text="日期" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="1" Text="请求" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="2" Text="Tokens" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="3" Text="费用" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="4" Text="成功率" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+          </Grid>
+          <Separator/>
+          <ItemsControl ItemsSource="{Binding DailyRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="100,100,120,120,*" Margin="0,6">
+                  <TextBlock Grid.Column="0" Text="{Binding Date}"/>
+                  <TextBlock Grid.Column="1" Text="{Binding Requests}"/>
+                  <TextBlock Grid.Column="2" Text="{Binding Tokens}"/>
+                  <TextBlock Grid.Column="3" Text="{Binding Cost}"/>
+                  <TextBlock Grid.Column="4" Text="{Binding SuccessRate}"/>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <controls:SectionCard Header="模型汇总" Subtitle="按模型聚合的调用统计">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="2*,100,120,120,*" Margin="0,0,0,4">
+            <TextBlock Grid.Column="0" Text="模型" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="1" Text="请求" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="2" Text="Tokens" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="3" Text="费用" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="4" Text="成功率" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+          </Grid>
+          <Separator/>
+          <ItemsControl ItemsSource="{Binding ModelRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="2*,100,120,120,*" Margin="0,6">
+                  <TextBlock Grid.Column="0" Text="{Binding Model}" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Grid.Column="1" Text="{Binding Requests}"/>
+                  <TextBlock Grid.Column="2" Text="{Binding Tokens}"/>
+                  <TextBlock Grid.Column="3" Text="{Binding Cost}"/>
+                  <TextBlock Grid.Column="4" Text="{Binding SuccessRate}"/>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </controls:SectionCard>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

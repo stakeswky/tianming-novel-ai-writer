@@ -28,6 +28,7 @@ public static class PageKeys
 
     // M4.6 AI 管理
     public static readonly PageKey AIModels = new("ai.models");
+    public static readonly PageKey AIKeys   = new("ai.keys");
     public static readonly PageKey AIPrompts = new("ai.prompts");
     public static readonly PageKey AIUsage   = new("ai.usage");
 }
