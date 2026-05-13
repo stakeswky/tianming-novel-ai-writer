@@ -2,6 +2,41 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Tianming.Desktop.Avalonia.App"
              RequestedThemeVariant="Light">
+
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="天命">
+        <NativeMenu>
+          <NativeMenuItem Header="关于天命"/>
+          <NativeMenuItemSeparator/>
+          <NativeMenuItem Header="偏好…" Gesture="Cmd+OemComma"/>
+          <NativeMenuItemSeparator/>
+          <NativeMenuItem Header="隐藏天命" Gesture="Cmd+H"/>
+          <NativeMenuItem Header="退出"     Gesture="Cmd+Q"/>
+        </NativeMenu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="文件">
+        <NativeMenu>
+          <NativeMenuItem Header="新建项目…" Gesture="Cmd+N"/>
+          <NativeMenuItem Header="打开项目…" Gesture="Cmd+O"/>
+          <NativeMenuItemSeparator/>
+          <NativeMenuItem Header="保存"     Gesture="Cmd+S"/>
+        </NativeMenu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="编辑">
+        <NativeMenu>
+          <NativeMenuItem Header="撤销" Gesture="Cmd+Z"/>
+          <NativeMenuItem Header="重做" Gesture="Cmd+Shift+Z"/>
+          <NativeMenuItemSeparator/>
+          <NativeMenuItem Header="查找" Gesture="Cmd+F"/>
+        </NativeMenu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="视图"/>
+      <NativeMenuItem Header="窗口"/>
+      <NativeMenuItem Header="帮助"/>
+    </NativeMenu>
+  </NativeMenu.Menu>
+
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
