@@ -40,3 +40,33 @@ internal sealed class TimestampShortConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+internal sealed class ToolCallStateLabelConverter : IValueConverter
+{
+    public static readonly ToolCallStateLabelConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value switch
+        {
+            ToolCallState.Pending  => "待确认",
+            ToolCallState.Applied  => "已应用",
+            ToolCallState.Rejected => "已拒绝",
+            _ => string.Empty
+        };
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+internal sealed class ToolCallStateKindConverter : IValueConverter
+{
+    public static readonly ToolCallStateKindConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value switch
+        {
+            ToolCallState.Pending  => StatusKind.Warning,
+            ToolCallState.Applied  => StatusKind.Success,
+            ToolCallState.Rejected => StatusKind.Danger,
+            _ => StatusKind.Neutral
+        };
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
