@@ -115,9 +115,9 @@ public partial class CategoryDataPageView : UserControl
 
     private static TextBox CreateNumericTextBox(FieldDescriptor field, object? item)
     {
-        // 简化：用 TextBox + 数字格式。NumericUpDown 在 Avalonia 11 行为略不一致，先 TextBox 凑合。
+        // M4.2 修复 M4.1 短板：Number 字段 POCO 是 int，需要 int↔string converter。
         var tb = new TextBox { Watermark = field.Placeholder ?? "0" };
-        BindProperty(tb, TextBox.TextProperty, field.PropertyName, item, converter: null);
+        BindProperty(tb, TextBox.TextProperty, field.PropertyName, item, converter: NumberStringConverter.Instance);
         return tb;
     }
 

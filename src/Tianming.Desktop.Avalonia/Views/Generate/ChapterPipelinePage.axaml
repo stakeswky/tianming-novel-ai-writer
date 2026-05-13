@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             x:Class="Tianming.Desktop.Avalonia.Views.Generate.ChapterPipelinePage"
+             x:CompileBindings="False"
+             FontFamily="{DynamicResource FontUI}">
+  <DockPanel LastChildFill="True" Background="{DynamicResource SurfaceCanvasBrush}">
+    <!-- 顶栏：标题 + M4.4 接入提示 badge -->
+    <Border DockPanel.Dock="Top" Padding="20,16" Background="{DynamicResource SurfacePanelBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <TextBlock Text="{Binding PageIcon}"
+                   FontSize="{DynamicResource FontSizeH1}"
+                   VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding PageTitle}"
+                   FontSize="{DynamicResource FontSizeH1}"
+                   FontWeight="{DynamicResource FontWeightSemibold}"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   VerticalAlignment="Center"/>
+        <controls:BadgePill Text="{Binding PipelineDisabledHint}"
+                            VerticalAlignment="Center"/>
+      </StackPanel>
+    </Border>
+
+    <!-- 5 列布局 -->
+    <Grid ColumnDefinitions="220, 1, *, 1, *, 1, *, 1, 220" Margin="12">
+
+      <!-- ① 启用章节 -->
+      <controls:SectionCard Grid.Column="0" Header="① 启用章节" Subtitle="选择待生成章节">
+        <ListBox ItemsSource="{Binding MockChapters}"
+                 SelectedItem="{Binding SelectedChapter, Mode=TwoWay}"
+                 Background="Transparent"
+                 BorderThickness="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" Margin="0,4"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </controls:SectionCard>
+
+      <Border Grid.Column="1" Background="{DynamicResource BorderBrush}"/>
+
+      <!-- ② 准备清单（Fact Snapshot 占位） -->
+      <controls:SectionCard Grid.Column="2" Header="② 准备清单" Subtitle="Fact Snapshot · 上下文">
+        <StackPanel Spacing="6">
+          <TextBlock Text="世界观：（待选章后由 PortableFactSnapshotExtractor 抽取）"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     TextWrapping="Wrap"/>
+          <TextBlock Text="角色：（M4.4 接入）"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     TextWrapping="Wrap"/>
+          <TextBlock Text="地点：（M4.4 接入）"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     TextWrapping="Wrap"/>
+          <TextBlock Text="大纲 / 章节规划 / 蓝图：（M4.4 接入）"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     TextWrapping="Wrap"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <Border Grid.Column="3" Background="{DynamicResource BorderBrush}"/>
+
+      <!-- ③ 生成节奏（7 step list） -->
+      <controls:SectionCard Grid.Column="4" Header="③ 生成节奏" Subtitle="7 阶段流水">
+        <ItemsControl ItemsSource="{Binding GenerationSteps}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Padding="8,6" Margin="0,2"
+                      Background="{DynamicResource SurfaceCanvasBrush}"
+                      CornerRadius="{DynamicResource RadiusSm}">
+                <TextBlock Text="{Binding}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </controls:SectionCard>
+
+      <Border Grid.Column="5" Background="{DynamicResource BorderBrush}"/>
+
+      <!-- ④ CHANGES 预览（占位） -->
+      <controls:SectionCard Grid.Column="6" Header="④ CHANGES 预览" Subtitle="生成结果 diff">
+        <TextBlock Text="（M4.4 接入 ChangesProtocolParser 后渲染差异）"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"/>
+      </controls:SectionCard>
+
+      <Border Grid.Column="7" Background="{DynamicResource BorderBrush}"/>
+
+      <!-- ⑤ 操作历史 -->
+      <controls:SectionCard Grid.Column="8" Header="⑤ 操作历史" Subtitle="执行日志">
+        <DockPanel LastChildFill="True">
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Spacing="6" Margin="0,8,0,0">
+            <Button Classes="primary"
+                    Content="开始生成"
+                    HorizontalAlignment="Stretch"
+                    IsEnabled="{Binding IsPipelineImplemented}"/>
+            <Button Classes="ghost"
+                    Content="应用到章节"
+                    HorizontalAlignment="Stretch"
+                    IsEnabled="{Binding IsPipelineImplemented}"/>
+          </StackPanel>
+          <TextBlock Text="（暂无历史）"
+                     Foreground="{DynamicResource TextTertiaryBrush}"
+                     VerticalAlignment="Top"/>
+        </DockPanel>
+      </controls:SectionCard>
+
+    </Grid>
+  </DockPanel>
+</UserControl>

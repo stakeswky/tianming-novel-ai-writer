@@ -15,4 +15,11 @@ public static class PageKeys
     public static readonly PageKey DesignLocation  = new("design.location");
     public static readonly PageKey DesignPlot      = new("design.plot");
     public static readonly PageKey DesignMaterials = new("design.materials");
+
+    // M4.2 生成规划（4 schema + 1 pipeline）
+    public static readonly PageKey GenerateOutline   = new("generate.outline");
+    public static readonly PageKey GenerateVolume    = new("generate.volume");
+    public static readonly PageKey GenerateChapter   = new("generate.chapter");
+    public static readonly PageKey GenerateBlueprint = new("generate.blueprint");
+    public static readonly PageKey GeneratePipeline  = new("generate.pipeline");
 }

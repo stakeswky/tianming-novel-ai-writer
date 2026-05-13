@@ -9,12 +9,20 @@ using TM.Services.Modules.ProjectData.Models.Design.Location;
 using TM.Services.Modules.ProjectData.Models.Design.Plot;
 using TM.Services.Modules.ProjectData.Models.Design.Templates;
 using TM.Services.Modules.ProjectData.Models.Design.Worldview;
+using TM.Services.Modules.ProjectData.Models.Generate.ChapterBlueprint;
+using TM.Services.Modules.ProjectData.Models.Generate.ChapterPlanning;
+using TM.Services.Modules.ProjectData.Models.Generate.StrategicOutline;
+using TM.Services.Modules.ProjectData.Models.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Design.CharacterRules;
 using TM.Services.Modules.ProjectData.Modules.Design.CreativeMaterials;
 using TM.Services.Modules.ProjectData.Modules.Design.FactionRules;
 using TM.Services.Modules.ProjectData.Modules.Design.LocationRules;
 using TM.Services.Modules.ProjectData.Modules.Design.PlotRules;
 using TM.Services.Modules.ProjectData.Modules.Design.WorldRules;
+using TM.Services.Modules.ProjectData.Modules.Generate.Blueprint;
+using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
+using TM.Services.Modules.ProjectData.Modules.Generate.Outline;
+using TM.Services.Modules.ProjectData.Modules.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Schema;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
@@ -22,9 +30,11 @@ using Tianming.Desktop.Avalonia.Shell;
 using Tianming.Desktop.Avalonia.Theme;
 using Tianming.Desktop.Avalonia.ViewModels;
 using Tianming.Desktop.Avalonia.ViewModels.Design;
+using Tianming.Desktop.Avalonia.ViewModels.Generate;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using Tianming.Desktop.Avalonia.Views;
 using Tianming.Desktop.Avalonia.Views.Design;
+using Tianming.Desktop.Avalonia.Views.Generate;
 using Tianming.Desktop.Avalonia.Views.Shell;
 
 namespace Tianming.Desktop.Avalonia;
@@ -118,6 +128,31 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<PlotRulesViewModel>();
         s.AddTransient<CreativeMaterialsViewModel>();
 
+        // M4.2 生成规划：4 schema (singleton) + 4 adapter (transient) + 4 VM (transient) + ChapterPipelineVM (transient)
+        s.AddSingleton<OutlineSchema>();
+        s.AddSingleton<VolumeDesignSchema>();
+        s.AddSingleton<ChapterPlanningSchema>();
+        s.AddSingleton<BlueprintSchema>();
+
+        s.AddTransient(sp => new ModuleDataAdapter<OutlineCategory, OutlineData>(
+            sp.GetRequiredService<OutlineSchema>(),
+            sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddTransient(sp => new ModuleDataAdapter<VolumeDesignCategory, VolumeDesignData>(
+            sp.GetRequiredService<VolumeDesignSchema>(),
+            sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddTransient(sp => new ModuleDataAdapter<ChapterCategory, ChapterData>(
+            sp.GetRequiredService<ChapterPlanningSchema>(),
+            sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddTransient(sp => new ModuleDataAdapter<BlueprintCategory, BlueprintData>(
+            sp.GetRequiredService<BlueprintSchema>(),
+            sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+
+        s.AddTransient<OutlineViewModel>();
+        s.AddTransient<VolumeDesignViewModel>();
+        s.AddTransient<ChapterPlanningViewModel>();
+        s.AddTransient<BlueprintViewModel>();
+        s.AddTransient<ChapterPipelineViewModel>();
+
         return s;
     }
 
@@ -134,6 +169,13 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<LocationRulesViewModel,     DesignModulePage>(PageKeys.DesignLocation);
         reg.Register<PlotRulesViewModel,         DesignModulePage>(PageKeys.DesignPlot);
         reg.Register<CreativeMaterialsViewModel, DesignModulePage>(PageKeys.DesignMaterials);
+
+        // M4.2：4 schema 页（VM 不同，View 全部复用 DesignModulePage）+ 1 ChapterPipelinePage（独立 view）
+        reg.Register<OutlineViewModel,          DesignModulePage>(PageKeys.GenerateOutline);
+        reg.Register<VolumeDesignViewModel,     DesignModulePage>(PageKeys.GenerateVolume);
+        reg.Register<ChapterPlanningViewModel,  DesignModulePage>(PageKeys.GenerateChapter);
+        reg.Register<BlueprintViewModel,        DesignModulePage>(PageKeys.GenerateBlueprint);
+        reg.Register<ChapterPipelineViewModel,  ChapterPipelinePage>(PageKeys.GeneratePipeline);
         return reg;
     }
 }

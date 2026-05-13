@@ -43,6 +43,15 @@ public partial class LeftNavViewModel : ObservableObject
             new(PageKeys.DesignMaterials, "创意素材", "💡"),
         }));
 
+        Groups.Add(new NavRailGroup("生成", new List<NavRailItem>
+        {
+            new(PageKeys.GenerateOutline,   "战略大纲",   "📖"),
+            new(PageKeys.GenerateVolume,    "分卷设计",   "📚"),
+            new(PageKeys.GenerateChapter,   "章节规划",   "📑"),
+            new(PageKeys.GenerateBlueprint, "章节蓝图",   "🎬"),
+            new(PageKeys.GeneratePipeline,  "章节生成管道", "⚙️"),
+        }));
+
         Groups.Add(new NavRailGroup("工具", new List<NavRailItem>
         {
             new(new PageKey("conversation"),"AI 对话", "message-square", IsEnabled: false),
