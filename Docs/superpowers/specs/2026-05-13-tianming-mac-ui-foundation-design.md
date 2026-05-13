@@ -591,3 +591,9 @@ Sub-plan 1 完成 = 全部下面都通过：
 - HotReload 支持（Avalonia 11 有，但 token hot reload 偶尔抽风，不强求）
 - 屏幕缩放适配（macOS Retina 自动处理）
 - Accessibility 标签（自用跳过）
+
+## 10. 后续 Sub-plan 引用本基建
+
+Sub-plan 2（M3 视觉重做）和 Sub-plan 3（docs+plans 对齐）都基于本基建：
+- **Sub-plan 2** 用本基建产出的 14 个 primitives + design tokens + chrome + status bar 重做 M3 4 个 view（WelcomeView / DashboardView / LeftNavView / RightConversationView）。Lucide 图标包延后由 Sub-plan 2 真消费时决策。
+- **Sub-plan 3** 在 M3/M4/M5/M6 spec 与 M4/M5 plan 中嵌入 Mac_UI 参考图作为视觉真值源。
