@@ -247,6 +247,7 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<PlanModeMapper>(),
                 sp.GetRequiredService<AgentModeMapper>(),
                 sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IConversationOrchestrator>(sp => sp.GetRequiredService<ConversationOrchestrator>());
 
         // M4.3 章节编辑器 VM
         s.AddTransient<EditorWorkspaceViewModel>(sp =>

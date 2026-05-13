@@ -1,6 +1,9 @@
 using System;
 using Tianming.Desktop.Avalonia.Controls;
+using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels.Conversation;
+using TM.Services.Framework.AI.SemanticKernel;
+using TM.Services.Framework.AI.SemanticKernel.Conversation;
 
 namespace Tianming.Desktop.Avalonia.ViewModels.Shell;
 
@@ -18,7 +21,11 @@ public partial class RightConversationViewModel : ConversationPanelViewModel
     // 旧 PlaceholderText 保留向后兼容（不删除）
     public string PlaceholderText { get; } = "对话面板（M4.5 实装）";
 
-    public RightConversationViewModel()
+    public RightConversationViewModel(
+        IConversationOrchestrator orchestrator,
+        IFileSessionStore sessionStore,
+        IDispatcherScheduler scheduler)
+        : base(orchestrator, sessionStore, scheduler, seedSamples: true)
     {
     }
 }
