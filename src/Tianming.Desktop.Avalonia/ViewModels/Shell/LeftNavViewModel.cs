@@ -53,6 +53,14 @@ public partial class LeftNavViewModel : ObservableObject
             new(PageKeys.GeneratePipeline,  "章节生成管道", "⚙️"),
         }));
 
+        Groups.Add(new NavRailGroup("AI 管理", new List<NavRailItem>
+        {
+            new(PageKeys.AIModels,   "模型",       "🤖"),
+            new(PageKeys.AIKeys,     "API 密钥",   "🔑"),
+            new(PageKeys.AIPrompts,  "提示词",     "📝"),
+            new(PageKeys.AIUsage,    "使用统计",   "📊"),
+        }));
+
         Groups.Add(new NavRailGroup("工具", new List<NavRailItem>
         {
             new(new PageKey("conversation"),"AI 对话", "message-square", IsEnabled: false),

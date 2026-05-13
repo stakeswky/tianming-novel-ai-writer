@@ -4,10 +4,12 @@
              xmlns:vshell="using:Tianming.Desktop.Avalonia.ViewModels.Shell"
              xmlns:vmd="using:Tianming.Desktop.Avalonia.ViewModels.Design"
              xmlns:vmg="using:Tianming.Desktop.Avalonia.ViewModels.Generate"
+             xmlns:vmai="using:Tianming.Desktop.Avalonia.ViewModels.AI"
              xmlns:v="using:Tianming.Desktop.Avalonia.Views"
              xmlns:vsh="using:Tianming.Desktop.Avalonia.Views.Shell"
              xmlns:vd="using:Tianming.Desktop.Avalonia.Views.Design"
              xmlns:vg="using:Tianming.Desktop.Avalonia.Views.Generate"
+             xmlns:vai="using:Tianming.Desktop.Avalonia.Views.AI"
              xmlns:vme="using:Tianming.Desktop.Avalonia.ViewModels.Editor"
              xmlns:ve="using:Tianming.Desktop.Avalonia.Views.Editor"
              x:Class="Tianming.Desktop.Avalonia.App"
@@ -63,6 +65,19 @@
     <!-- ChapterPipelinePage 独立 view -->
     <DataTemplate DataType="vmg:ChapterPipelineViewModel">
       <vg:ChapterPipelinePage/>
+    </DataTemplate>
+    <!-- M4.6 AI 管理 -->
+    <DataTemplate DataType="vmai:ModelManagementViewModel">
+      <vai:ModelManagementPage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmai:ApiKeysViewModel">
+      <vai:ApiKeysPage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmai:PromptManagementViewModel">
+      <vai:PromptManagementPage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmai:UsageStatisticsViewModel">
+      <vai:UsageStatisticsPage/>
     </DataTemplate>
     <!-- M4.3 章节编辑器 -->
     <DataTemplate DataType="vme:EditorWorkspaceViewModel">
