@@ -625,6 +625,13 @@ git commit -m "feat(platform): MacOSSystemProxyService（shell scutil --proxy）
 
 ## Task 3：AvaloniaSystemHttpProxy + HttpClient 装配
 
+> Round 3 replay note (2026-05-14): 该任务已在 `main` 实装，提交为 `f46dcb8`
+> (`feat(platform): HttpClient 走系统代理（AvaloniaSystemHttpProxy）`)。`AvaloniaSystemHttpProxy`
+> 已存在，`AddFrameworkServices()` 已注册 `IPortableSystemProxyService`，`AddAvaloniaShell()`
+> 已注册 named client `"tianming"` + singleton `HttpClient`，`Tianming.Desktop.Avalonia.csproj`
+> 也已引用 `Microsoft.Extensions.Http`。因此本轮不重复改代码，只复跑代理单测与后续全量
+> build/test；计划中的手工代理链路验收继续保留到 Task 5 清单。
+
 **Files:**
 - Create: `src/Tianming.Desktop.Avalonia/Infrastructure/AvaloniaSystemHttpProxy.cs`
 - Modify: `src/Tianming.Framework/ServiceCollectionExtensions.cs`（注册 proxy service）
