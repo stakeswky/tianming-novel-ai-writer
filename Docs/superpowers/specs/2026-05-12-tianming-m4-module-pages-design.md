@@ -181,3 +181,19 @@ Commit：`feat(ui): M4.1 设计模块 6 页`。
 7. 你自己用完一章从头到尾顺 — 这个最重要
 
 完成后进入 M5（Keychain + 系统代理）。
+
+## 7. Mac_UI 视觉真值源
+
+M4 6 个子里程碑对应参考图：
+
+| 子里程碑 | 参考图 | 伪代码 |
+|---|---|---|
+| M4.1 设计模块（5 页 schema-driven）| `Mac_UI/images/03-design-module-data-editor.png` | `Mac_UI/pseudocode/03-design-module-data-editor.md` |
+| M4.2 生成规划（大纲 / 分卷 / 章节 / 内容配置）| `Mac_UI/images/04-generation-planning.png` | `Mac_UI/pseudocode/04-generation-planning.md` |
+| M4.3 章节编辑器 | `Mac_UI/images/05-chapter-markdown-editor.png` | `Mac_UI/pseudocode/05-chapter-markdown-editor.md` |
+| M4.4 章节生成管道（M6 实装 M6.2/M6.3）| `Mac_UI/images/06-chapter-generation-pipeline.png` | `Mac_UI/pseudocode/06-chapter-generation-pipeline.md` |
+| M4.5 AI 对话面板 | `Mac_UI/images/07-ai-conversation-panel.png` | `Mac_UI/pseudocode/07-ai-conversation-panel.md` |
+| M4.6 AI 管理 / Key / 用量 | `Mac_UI/images/09-ai-models-api-key-usage.png` | `Mac_UI/pseudocode/09-ai-models-api-key-usage.md` |
+
+每个子里程碑开工前用 superpowers:writing-plans 把 plan 细化到 step level 时，**首先打开对应 pseudocode 文件**，把 `state` / `services` / `commands` / `render` 各小节作为接线 + UI 结构的权威输入。
+
