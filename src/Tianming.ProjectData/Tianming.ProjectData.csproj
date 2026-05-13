@@ -54,6 +54,7 @@
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Plot/PlotRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Plot/PlotRulesData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Plot/PlotRulesCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Plot/PlotRulesCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineData.cs" Link="Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineCategory.cs" Link="Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterData.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintData.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignData.cs" Link="Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignData.cs" />
