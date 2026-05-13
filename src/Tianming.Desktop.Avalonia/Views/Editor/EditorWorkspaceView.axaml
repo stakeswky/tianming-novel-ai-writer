@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vme="using:Tianming.Desktop.Avalonia.ViewModels.Editor"
+             x:Class="Tianming.Desktop.Avalonia.Views.Editor.EditorWorkspaceView"
+             x:DataType="vme:EditorWorkspaceViewModel">
+
+  <Grid RowDefinitions="36,*,28" Background="{DynamicResource SurfaceCanvasBrush}">
+
+    <!-- 顶部：ChapterTabBar -->
+    <controls:ChapterTabBar Grid.Row="0"
+                            Tabs="{Binding Tabs}"
+                            ActiveTab="{Binding ActiveTab, Mode=TwoWay}"
+                            Margin="8,4"/>
+
+    <!-- 中部 3 列：左 sidebar 章节树 / 主 editor / 右 metadata -->
+    <Grid Grid.Row="1" ColumnDefinitions="220,*,260">
+
+      <!-- 左 sidebar 章节树（M4.3 占位：1 项当前 tab） -->
+      <Border Grid.Column="0" Background="#FAFAFB" BorderBrush="#E5E7EB" BorderThickness="0,0,1,0">
+        <StackPanel Margin="12,12,12,0" Spacing="6">
+          <TextBlock Text="章节" FontSize="11" Foreground="#6B7280" FontWeight="Bold"/>
+          <controls:SidebarTreeItem Label="{Binding ActiveTab.Title, FallbackValue=未命名章节}"
+                                    IconGlyph="📄"
+                                    IsSelected="True"/>
+        </StackPanel>
+      </Border>
+
+      <!-- 主区 MarkdownEditor -->
+      <controls:MarkdownEditor Grid.Column="1"
+                               Text="{Binding ActiveEditor.Content, Mode=TwoWay, FallbackValue=''}"
+                               IsReadOnly="False"
+                               WordWrap="True"
+                               Margin="12"/>
+
+      <!-- 右 metadata 占位 -->
+      <Border Grid.Column="2" Background="#FAFAFB" BorderBrush="#E5E7EB" BorderThickness="1,0,0,0">
+        <StackPanel Margin="12" Spacing="10">
+          <TextBlock Text="元数据" FontSize="11" Foreground="#6B7280" FontWeight="Bold"/>
+          <StackPanel Spacing="3">
+            <TextBlock Text="章节标题" FontSize="11" Foreground="#9CA3AF"/>
+            <TextBlock Text="{Binding ActiveTab.Title, FallbackValue=未命名章节}" FontSize="13"/>
+          </StackPanel>
+          <StackPanel Spacing="3">
+            <TextBlock Text="字数" FontSize="11" Foreground="#9CA3AF"/>
+            <TextBlock Text="{Binding ActiveEditor.WordCount, FallbackValue=0, StringFormat='{}{0} 字'}" FontSize="13"/>
+          </StackPanel>
+          <StackPanel Spacing="3">
+            <TextBlock Text="状态" FontSize="11" Foreground="#9CA3AF"/>
+            <TextBlock Text="{Binding ActiveEditor.IsDirty, FallbackValue=False, StringFormat='已修改: {0}'}" FontSize="13"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+    </Grid>
+
+    <!-- 底部 footer -->
+    <Border Grid.Row="2" Background="#F3F4F6" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
+      <Grid ColumnDefinitions="*,Auto,Auto" Margin="12,0">
+        <TextBlock Grid.Column="0"
+                   Text="{Binding ActiveEditor.WordCount, FallbackValue=0, StringFormat='{}{0} 字'}"
+                   VerticalAlignment="Center" FontSize="11" Foreground="#6B7280"/>
+        <TextBlock Grid.Column="1"
+                   Text="{Binding ActiveEditor.IsDirty, FallbackValue=False, StringFormat='已修改:{0}'}"
+                   VerticalAlignment="Center" FontSize="11" Foreground="#6B7280" Margin="0,0,12,0"/>
+        <TextBlock Grid.Column="2"
+                   Text="{Binding ActiveEditor.SavedAt, FallbackValue='', StringFormat='保存于 {0:HH:mm:ss}'}"
+                   VerticalAlignment="Center" FontSize="11" Foreground="#6B7280"/>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>
