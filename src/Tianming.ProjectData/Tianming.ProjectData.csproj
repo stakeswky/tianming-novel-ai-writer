@@ -42,15 +42,25 @@
     <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Generate/PlanningContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Generate/PlanningContext.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Contexts/Generate/BlueprintContext.cs" Link="Services/Modules/ProjectData/Models/Contexts/Generate/BlueprintContext.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Templates/CreativeMaterialData.cs" Link="Services/Modules/ProjectData/Models/Design/Templates/CreativeMaterialData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Templates/CreativeMaterialCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Templates/CreativeMaterialCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Worldview/WorldRulesCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Factions/FactionRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Factions/FactionRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Factions/FactionRulesCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Factions/FactionRulesCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Location/LocationRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Location/LocationRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Location/LocationRulesCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Location/LocationRulesCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Plot/PlotRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Plot/PlotRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Plot/PlotRulesCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Plot/PlotRulesCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineData.cs" Link="Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineCategory.cs" Link="Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterData.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterCategory.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterPlanning/ChapterCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintData.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintCategory.cs" Link="Services/Modules/ProjectData/Models/Generate/ChapterBlueprint/BlueprintCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignData.cs" Link="Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignCategory.cs" Link="Services/Modules/ProjectData/Models/Generate/VolumeDesign/VolumeDesignCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Interfaces/IUnifiedValidationService.cs" Link="Services/Modules/ProjectData/Interfaces/IUnifiedValidationService.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Interfaces/IIndexable.cs" Link="Services/Modules/ProjectData/Interfaces/IIndexable.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Implementations/Generation/AIOutputParser.cs" Link="Services/Modules/ProjectData/Implementations/Generation/AIOutputParser.cs" />
