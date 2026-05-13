@@ -43,12 +43,12 @@
 2. **`MacOSSystemAppearanceMonitor` 已是完整 polling 实现**（`src/Tianming.Framework/Appearance/MacOSSystemAppearanceMonitor.cs`），`IPortableTimerTickSource` 驱动，3 秒轮询 `/usr/bin/defaults read -g AppleInterfaceStyle`。**自用场景跳过事件订阅升级**——3 秒延迟可接受；`NSDistributedNotificationCenter` P/Invoke 复杂度不划算。
 3. **`ISystemProxyService` 不存在**，M5 从零创建。走 shell `scutil --proxy`（输出是 plist 格式字典，用 regex 解析关键字段），封装为 `IPortableSystemProxyService` 接口。
 4. **`NSStatusBar` 托盘 / URL Scheme / 文件关联 / 开机自启 / 全局快捷键 / 通知 / 通知声 / 语音** — spec 已声明一律不做。
-5. **应用主菜单** — Avalonia 11.x 内置 `NativeMenu` 机制（`App.axaml` 里声明 `<NativeMenu.Menu>`），macOS 下自动挂到系统菜单栏顶部。**无需 P/Invoke**。
+5. **应用主菜单** — Avalonia 11.x 内置 `NativeMenu` 机制（real implementation 挂在 `Views/MainWindow.axaml`），macOS 下自动挂到系统菜单栏顶部。**无需 P/Invoke**。
 
 ## 实做范围
 
 - **A. 系统代理服务**（`IPortableSystemProxyService` 接口 + `MacOSSystemProxyService` shell 实现 + `ProxyPolicy` 记录 + `AvaloniaSystemHttpProxy` 类 + `HttpClient` 装配集成）
-- **B. 应用主菜单**（`App.axaml` 里 `<NativeMenu.Menu>` + MainWindowViewModel 命令 + 单测）
+- **B. 应用主菜单**（`Views/MainWindow.axaml` 里 `<NativeMenu.Menu>` + MainWindowViewModel 命令 + 单测）
 
 ## File Structure
 
@@ -68,8 +68,8 @@
 - `src/Tianming.Framework/ServiceCollectionExtensions.cs`（M3 建立）— 注册 proxy service
 - `src/Tianming.Desktop.Avalonia/AvaloniaShellServiceCollectionExtensions.cs`（M3 建立）— 注册 `AvaloniaSystemHttpProxy` 并装到默认 `HttpClient`
 - `src/Tianming.AI/Core/OpenAICompatibleChatClient.cs` 的 `HttpClient` 来源改从 DI（若尚未接 DI）
-- `src/Tianming.Desktop.Avalonia/App.axaml` — 加 `<NativeMenu.Menu>`
-- `src/Tianming.Desktop.Avalonia/ViewModels/MainWindowViewModel.cs` — 加 About / OpenSettings / NewProject / OpenProject / Save / Quit 命令
+- `src/Tianming.Desktop.Avalonia/Views/MainWindow.axaml` — 加 `<NativeMenu.Menu>`
+- `src/Tianming.Desktop.Avalonia/ViewModels/MainWindowViewModel.cs` — 加 About / OpenPreferences / NewProject / OpenProject / Save / Quit 命令
 
 ---
 
@@ -732,8 +732,14 @@ git commit -m "feat(platform): HttpClient 走系统代理（AvaloniaSystemHttpPr
 
 ## Task 4：应用主菜单（NativeMenu）
 
+> Round 3 replay note (2026-05-14): 该任务已在 `main` 实装，提交为 `59292cb`
+> (`feat(shell): macOS 应用主菜单 NativeMenu 真实命令绑定（⌘Q/⌘N/⌘O/⌘S/⌘,）`)。与最初 plan
+> 不同，NativeMenu 的实际挂载点在 `src/Tianming.Desktop.Avalonia/Views/MainWindow.axaml`
+> 而不是 `App.axaml`；命令名也落成了 `OpenPreferencesCommand`，不是 `OpenSettingsCommand`。
+> 本轮据实修正文档，不重写已合入实现。
+
 **Files:**
-- Modify: `src/Tianming.Desktop.Avalonia/App.axaml`（加 `<NativeMenu.Menu>`）
+- Modify: `src/Tianming.Desktop.Avalonia/Views/MainWindow.axaml`（加 `<NativeMenu.Menu>`）
 - Modify: `src/Tianming.Desktop.Avalonia/ViewModels/MainWindowViewModel.cs`（加命令）
 - Create: `tests/Tianming.Desktop.Avalonia.Tests/ViewModels/MainWindowViewModelMenuTests.cs`
 
@@ -756,7 +762,7 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async System.Threading.Tasks.Task OpenSettingsAsync()
+    private async System.Threading.Tasks.Task OpenPreferencesAsync()
     {
         await _navigation.NavigateAsync(PageKeys.Settings);
     }
@@ -790,9 +796,9 @@ public partial class MainWindowViewModel : ObservableObject
 }
 ```
 
-- [ ] **Step 4.2：App.axaml 加 NativeMenu**
+- [ ] **Step 4.2：MainWindow.axaml 加 NativeMenu**
 
-编辑 `src/Tianming.Desktop.Avalonia/App.axaml`（M3 已建立），在 `<Application>` 根元素内加：
+编辑 `src/Tianming.Desktop.Avalonia/Views/MainWindow.axaml`（M3 已建立），在 `<Window>` 根元素内加：
 
 ```xml
 <NativeMenu.Menu>
@@ -805,7 +811,7 @@ public partial class MainWindowViewModel : ObservableObject
           <NativeMenuItemSeparator/>
           <NativeMenuItem Header="偏好..."
                           Gesture="Cmd+OemComma"
-                          Command="{Binding MainWindow.DataContext.OpenSettingsCommand, Source={x:Static Application.Current}}"/>
+                          Command="{Binding MainWindow.DataContext.OpenPreferencesCommand, Source={x:Static Application.Current}}"/>
           <NativeMenuItemSeparator/>
           <NativeMenuItem Header="退出"
                           Gesture="Cmd+Q"
@@ -833,7 +839,9 @@ public partial class MainWindowViewModel : ObservableObject
 </NativeMenu.Menu>
 ```
 
-注意：上面绑定语法依赖 `Application.Current.MainWindow.DataContext` 是 `MainWindowViewModel`。若实际绑定上下文不同（M3 plan 里 `MainWindow.DataContext = MainWindowViewModel`），按实际调。在开发中最快的验证方式是：build 后 `dotnet run`，命令触发不了就换绑定路径（常见替代：`{StaticResource MainWindowViewModel}` 若 DI 把 VM 注册为资源）。
+注意：main 的真实实现挂在 `MainWindow.axaml`，`DataContext` 已经是 `MainWindowViewModel`，
+所以命令直接 `{Binding XxxCommand}` 即可；本轮 replay 以该实现为准，不再回退到
+`Application.Current.MainWindow.DataContext` 方案。
 
 - [ ] **Step 4.3：写 VM 命令单测**
 
@@ -849,11 +857,11 @@ namespace Tianming.Desktop.Avalonia.Tests.ViewModels;
 public class MainWindowViewModelMenuTests
 {
     [Fact]
-    public async System.Threading.Tasks.Task OpenSettings_NavigatesToSettingsPage()
+    public async System.Threading.Tasks.Task OpenPreferences_NavigatesToSettingsPage()
     {
         var nav = new FakeNavigationService();
         var vm = new MainWindowViewModel(nav /* 及其他 M3 构造器参数 */);
-        await vm.OpenSettingsCommand.ExecuteAsync(null);
+        await vm.OpenPreferencesCommand.ExecuteAsync(null);
         Assert.Equal(PageKeys.Settings, nav.LastNavigatedKey);
     }
 
@@ -917,7 +925,7 @@ Expected: 全过。
 - [ ] **Step 4.7：commit**
 
 ```bash
-git add src/Tianming.Desktop.Avalonia/App.axaml \
+git add src/Tianming.Desktop.Avalonia/Views/MainWindow.axaml \
         src/Tianming.Desktop.Avalonia/ViewModels/MainWindowViewModel.cs \
         tests/Tianming.Desktop.Avalonia.Tests/ViewModels/MainWindowViewModelMenuTests.cs
 git commit -m "feat(shell): macOS 应用主菜单（NativeMenu + ⌘Q/⌘N/⌘O/⌘S/⌘,）"
@@ -1032,7 +1040,7 @@ git push -u origin <m5-branch-name>
 |---|---|---|
 | R1 | `scutil --proxy` 输出格式在 macOS 新版本变化 | 解析器容错：正则匹配不到就返回 Direct；失败记日志不抛 |
 | R2 | `IWebProxy` 每请求调一次 `scutil` 慢（fork 进程 ~10ms） | 可选优化：`MacOSSystemProxyService` 内缓存 30 秒；M5 先不做，实际观察到卡顿再加 |
-| R3 | Avalonia `NativeMenu` 绑定语法与我写的不一致 | 若绑定不触发，用 Avalonia Diagnostics 看绑定错误；最坏改为在 `App.axaml.cs` 代码里动态挂 `NativeMenu` 并直接绑 command 实例 |
+| R3 | Avalonia `NativeMenu` 绑定语法与我写的不一致 | 若绑定不触发，用 Avalonia Diagnostics 看绑定错误；最坏改为在 `MainWindow.axaml.cs` 代码里动态挂 `NativeMenu` 并直接绑 command 实例 |
 | R4 | `Cmd+OemComma` 不是 Avalonia 约定键名 | 实测不对就换 `Cmd+,` 或用 Avalonia `KeyGesture` API 写 |
 | R5 | 手动代理配置在 Control Panel 里没开但在 Network 里开了 | `scutil --proxy` 会正确反映，测试 fixture 已覆盖 |
 
