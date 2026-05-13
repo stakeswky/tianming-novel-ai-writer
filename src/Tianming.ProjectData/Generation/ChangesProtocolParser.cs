@@ -684,6 +684,7 @@ public class ChangesProtocolParser
 
             ReadStringList(root, model.NewAbilities, "NewAbilities", "newAbilities", "abilities");
             ReadStringList(root, model.LostAbilities, "LostAbilities", "lostAbilities");
+            ReadStringDictionary(root, model.FieldChanges, "FieldChanges", "fieldChanges");
 
             if (TryGetString(root, "Importance", out var importance) || TryGetString(root, "importance", out importance))
                 model.Importance = importance;
@@ -739,6 +740,23 @@ public class ChangesProtocolParser
                         target.Add(value);
                     return;
                 }
+            }
+        }
+
+        private static void ReadStringDictionary(JsonElement root, Dictionary<string, string> target, params string[] propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                if (!root.TryGetProperty(propertyName, out var element) || element.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (property.Value.ValueKind == JsonValueKind.String)
+                        target[property.Name] = property.Value.GetString() ?? string.Empty;
+                }
+
+                return;
             }
         }
 
@@ -798,6 +816,7 @@ public class ChangesProtocolParser
         { "新能力", "NewAbilities" },
         { "失去能力", "LostAbilities" },
         { "关系变化", "RelationshipChanges" },
+        { "字段变化", "FieldChanges" },
         { "新心理状态", "NewMentalState" },
         { "心理状态", "NewMentalState" },
         { "关键事件", "KeyEvent" },

@@ -10,6 +10,7 @@ namespace TM.Services.Modules.ProjectData.Models.Tracking
         [JsonPropertyName("NewAbilities")] public List<string> NewAbilities { get; set; } = new();
         [JsonPropertyName("LostAbilities")] public List<string> LostAbilities { get; set; } = new();
         [JsonPropertyName("RelationshipChanges")] public Dictionary<string, RelationshipChange> RelationshipChanges { get; set; } = new();
+        [JsonPropertyName("FieldChanges")] public Dictionary<string, string> FieldChanges { get; set; } = new();
         [JsonPropertyName("NewMentalState")] public string NewMentalState { get; set; } = string.Empty;
         [JsonPropertyName("KeyEvent")] public string KeyEvent { get; set; } = string.Empty;
         [JsonPropertyName("Importance")] public string Importance { get; set; } = "normal";
