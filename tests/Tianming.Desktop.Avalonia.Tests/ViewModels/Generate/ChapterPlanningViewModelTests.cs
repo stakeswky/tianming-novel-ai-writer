@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using TM.Services.Modules.ProjectData.Models.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Schema;
+using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
 using Xunit;
 
@@ -60,6 +61,6 @@ public class ChapterPlanningViewModelTests
         Directory.CreateDirectory(root);
         var schema = new ChapterPlanningSchema();
         var adapter = new ModuleDataAdapter<ChapterCategory, ChapterData>(schema, root);
-        return (new ChapterPlanningViewModel(adapter), root);
+        return (new ChapterPlanningViewModel(adapter, new ChapterGenerationStore(root)), root);
     }
 }

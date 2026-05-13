@@ -159,12 +159,21 @@ public static class AvaloniaShellServiceCollectionExtensions
             sp.GetRequiredService<BlueprintSchema>(),
             sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
 
+        // M4.4 章节生成状态追踪
+        s.AddSingleton<ChapterGenerationStore>(sp =>
+            new ChapterGenerationStore(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+
         s.AddTransient<OutlineViewModel>();
         s.AddTransient<VolumeDesignViewModel>();
-        s.AddTransient<ChapterPlanningViewModel>();
+        s.AddTransient<ChapterPlanningViewModel>(sp =>
+            new ChapterPlanningViewModel(
+                sp.GetRequiredService<ModuleDataAdapter<ChapterCategory, ChapterData>>(),
+                sp.GetRequiredService<ChapterGenerationStore>()));
         s.AddTransient<BlueprintViewModel>();
         s.AddTransient<ChapterPipelineViewModel>(sp =>
-            new ChapterPipelineViewModel(sp.GetRequiredService<INavigationService>()));
+            new ChapterPipelineViewModel(
+                sp.GetRequiredService<INavigationService>(),
+                sp.GetRequiredService<ChapterGenerationStore>()));
 
         // M4.3 章节编辑器 VM
         s.AddTransient<EditorWorkspaceViewModel>(sp =>

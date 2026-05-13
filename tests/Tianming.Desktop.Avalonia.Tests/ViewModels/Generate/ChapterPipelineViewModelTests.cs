@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
 using Xunit;
@@ -10,7 +12,11 @@ namespace Tianming.Desktop.Avalonia.Tests.ViewModels.Generate;
 public class ChapterPipelineViewModelTests
 {
     private static ChapterPipelineViewModel CreateVm()
-        => new(new StubNavigation());
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"tm-pipeline-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        return new ChapterPipelineViewModel(new StubNavigation(), new ChapterGenerationStore(root));
+    }
 
     [Fact]
     public void PageTitle_is_章节生成管道()
