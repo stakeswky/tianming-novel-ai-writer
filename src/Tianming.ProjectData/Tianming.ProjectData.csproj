@@ -47,6 +47,7 @@
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Characters/CharacterRulesCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Factions/FactionRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Factions/FactionRulesData.cs" />
+    <Compile Include="../../Services/Modules/ProjectData/Models/Design/Factions/FactionRulesCategory.cs" Link="Services/Modules/ProjectData/Models/Design/Factions/FactionRulesCategory.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Location/LocationRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Location/LocationRulesData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Design/Plot/PlotRulesData.cs" Link="Services/Modules/ProjectData/Models/Design/Plot/PlotRulesData.cs" />
     <Compile Include="../../Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineData.cs" Link="Services/Modules/ProjectData/Models/Generate/StrategicOutline/OutlineData.cs" />
