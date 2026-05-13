@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
+using TM.Services.Modules.ProjectData.Models.Guides;
 using TM.Services.Modules.ProjectData.Models.Tracking;
 
 namespace TM.Services.Modules.ProjectData.Implementations
@@ -13,6 +15,8 @@ namespace TM.Services.Modules.ProjectData.Implementations
         private readonly GenerationStatisticsRecorder _statisticsRecorder;
         private readonly ChapterTrackingDispatcher? _trackingDispatcher;
         private readonly List<IChapterDerivedIndex> _derivedIndexes;
+        private readonly IFactSnapshotGuideSource? _factSnapshotGuideSource;
+        private readonly TrackingDebtRegistry? _debtRegistry;
 
         public ChapterGenerationPipeline(
             ContentGenerationPreparer preparer,
@@ -20,12 +24,16 @@ namespace TM.Services.Modules.ProjectData.Implementations
             GenerationStatisticsRecorder statisticsRecorder,
             ChapterTrackingDispatcher? trackingDispatcher = null,
             FileChapterKeywordIndex? keywordIndex = null,
-            IReadOnlyList<IChapterDerivedIndex>? derivedIndexes = null)
+            IReadOnlyList<IChapterDerivedIndex>? derivedIndexes = null,
+            IFactSnapshotGuideSource? factSnapshotGuideSource = null,
+            TrackingDebtRegistry? debtRegistry = null)
         {
             _preparer = preparer;
             _contentStore = contentStore;
             _statisticsRecorder = statisticsRecorder;
             _trackingDispatcher = trackingDispatcher;
+            _factSnapshotGuideSource = factSnapshotGuideSource;
+            _debtRegistry = debtRegistry;
             _derivedIndexes = new List<IChapterDerivedIndex>();
             if (keywordIndex != null)
                 _derivedIndexes.Add(keywordIndex);
@@ -74,7 +82,24 @@ namespace TM.Services.Modules.ProjectData.Implementations
                         await RemoveDerivedDataForChapterAsync(chapterId).ConfigureAwait(false);
 
                     if (_trackingDispatcher != null)
+                    {
                         await _trackingDispatcher.DispatchAsync(chapterId, prepared.ParsedChanges).ConfigureAwait(false);
+
+                        if (_debtRegistry != null)
+                        {
+                            var context = new TrackingDebtDetectionContext
+                            {
+                                Foreshadowings = await LoadForeshadowingGuideAsync().ConfigureAwait(false),
+                                Pledges = await LoadPledgeGuideAsync().ConfigureAwait(false),
+                                Secrets = await LoadSecretGuideAsync().ConfigureAwait(false),
+                            };
+                            var debts = await _debtRegistry
+                                .DetectAllAsync(chapterId, prepared.ParsedChanges, factSnapshot, context)
+                                .ConfigureAwait(false);
+                            if (debts.Count > 0)
+                                await _trackingDispatcher.RecordTrackingDebtsAsync(chapterId, debts).ConfigureAwait(false);
+                        }
+                    }
                 }
                 await IndexDerivedDataForChapterAsync(
                     chapterId,
@@ -167,6 +192,24 @@ namespace TM.Services.Modules.ProjectData.Implementations
                     // Matches the original flow: derived recall indexes may degrade without failing the saved chapter.
                 }
             }
+        }
+
+        private async Task<ForeshadowingStatusGuide?> LoadForeshadowingGuideAsync()
+        {
+            if (_factSnapshotGuideSource == null)
+                return null;
+
+            return await _factSnapshotGuideSource.GetForeshadowingStatusGuideAsync().ConfigureAwait(false);
+        }
+
+        private Task<PledgeGuide?> LoadPledgeGuideAsync()
+        {
+            return Task.FromResult<PledgeGuide?>(null);
+        }
+
+        private Task<SecretGuide?> LoadSecretGuideAsync()
+        {
+            return Task.FromResult<SecretGuide?>(null);
         }
     }
 }

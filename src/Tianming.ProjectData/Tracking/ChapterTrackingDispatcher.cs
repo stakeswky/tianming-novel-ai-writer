@@ -65,6 +65,11 @@ namespace TM.Services.Modules.ProjectData.Implementations
             await _sink.RemoveTimelineAsync(chapterId).ConfigureAwait(false);
             await _sink.RemoveItemStateAsync(chapterId).ConfigureAwait(false);
         }
+
+        public Task RecordTrackingDebtsAsync(string chapterId, IReadOnlyList<TrackingDebt> debts)
+        {
+            return _sink.RecordTrackingDebtsAsync(chapterId, debts);
+        }
     }
 
     public interface IChapterTrackingSink
