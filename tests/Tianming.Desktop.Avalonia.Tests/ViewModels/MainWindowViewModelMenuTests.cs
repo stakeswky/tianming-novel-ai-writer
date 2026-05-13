@@ -109,12 +109,14 @@ public class MainWindowViewModelMenuTests
         public PageKey? LastNavigatedKey { get; private set; }
         public PageKey? CurrentKey => LastNavigatedKey;
         public object? CurrentViewModel => null;
+        public object? LastParameter { get; private set; }
         public bool CanGoBack => false;
         public event EventHandler<PageKey>? CurrentKeyChanged;
 
         public Task NavigateAsync(PageKey key, object? parameter = null, CancellationToken ct = default)
         {
             LastNavigatedKey = key;
+            LastParameter = parameter;
             CurrentKeyChanged?.Invoke(this, key);
             return Task.CompletedTask;
         }

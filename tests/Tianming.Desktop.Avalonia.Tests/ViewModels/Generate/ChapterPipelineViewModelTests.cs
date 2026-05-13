@@ -1,4 +1,7 @@
-using System.Linq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Tianming.Desktop.Avalonia.Navigation;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
 using Xunit;
 
@@ -6,17 +9,20 @@ namespace Tianming.Desktop.Avalonia.Tests.ViewModels.Generate;
 
 public class ChapterPipelineViewModelTests
 {
+    private static ChapterPipelineViewModel CreateVm()
+        => new(new StubNavigation());
+
     [Fact]
     public void PageTitle_is_章节生成管道()
     {
-        var vm = new ChapterPipelineViewModel();
+        var vm = CreateVm();
         Assert.Equal("章节生成管道", vm.PageTitle);
     }
 
     [Fact]
     public void MockChapters_has_three_items()
     {
-        var vm = new ChapterPipelineViewModel();
+        var vm = CreateVm();
         Assert.Equal(3, vm.MockChapters.Count);
         Assert.Contains(vm.MockChapters, c => c.Contains("第 1 章"));
     }
@@ -24,7 +30,7 @@ public class ChapterPipelineViewModelTests
     [Fact]
     public void GenerationSteps_lists_seven_phases()
     {
-        var vm = new ChapterPipelineViewModel();
+        var vm = CreateVm();
         Assert.Equal(7, vm.GenerationSteps.Count);
         Assert.Equal("FactSnapshot",  vm.GenerationSteps[0]);
         Assert.Equal("生成",          vm.GenerationSteps[1]);
@@ -36,10 +42,23 @@ public class ChapterPipelineViewModelTests
     }
 
     [Fact]
-    public void IsImplemented_is_false_for_M4_2()
+    public void IsImplemented_is_true_for_M4_4()
     {
-        // M4.2 阶段所有真实命令都禁用；view 用这个 flag 控 IsEnabled
-        var vm = new ChapterPipelineViewModel();
-        Assert.False(vm.IsPipelineImplemented);
+        // M4.4 已接入真实管道：IsPipelineImplemented 为 true
+        var vm = CreateVm();
+        Assert.True(vm.IsPipelineImplemented);
+    }
+
+    private sealed class StubNavigation : INavigationService
+    {
+#pragma warning disable CS0067 // Event declared but never used (stub)
+        public PageKey? CurrentKey => null;
+        public object? CurrentViewModel => null;
+        public object? LastParameter => null;
+        public bool CanGoBack => false;
+        public event EventHandler<PageKey>? CurrentKeyChanged;
+#pragma warning restore CS0067
+        public Task NavigateAsync(PageKey key, object? parameter = null, CancellationToken ct = default) => Task.CompletedTask;
+        public Task GoBackAsync(CancellationToken ct = default) => Task.CompletedTask;
     }
 }
