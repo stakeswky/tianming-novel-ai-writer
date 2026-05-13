@@ -1,0 +1,6 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <BoxShadows x:Key="ShadowSm">0 1 2 0 #14000000</BoxShadows>
+  <BoxShadows x:Key="ShadowMd">0 4 12 0 #1F000000</BoxShadows>
+  <BoxShadows x:Key="ShadowLg">0 12 32 0 #29000000</BoxShadows>
+</ResourceDictionary>

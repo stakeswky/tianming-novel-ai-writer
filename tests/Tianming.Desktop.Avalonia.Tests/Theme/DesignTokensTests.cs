@@ -201,4 +201,25 @@ public class DesignTokensTests
             Assert.IsType<CornerRadius>(v);
         }
     }
+
+    private static IResourceDictionary LoadShadows()
+    {
+        EnsureAvaloniaInitialized();
+        var include = new ResourceInclude((Uri?)null)
+        {
+            Source = new Uri("avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Shadows.axaml")
+        };
+        return include.Loaded;
+    }
+
+    [Fact]
+    public void Shadows_AllKeysResolveAsBoxShadows()
+    {
+        var dict = LoadShadows();
+        foreach (var k in new[] { "ShadowSm", "ShadowMd", "ShadowLg" })
+        {
+            Assert.True(dict.TryGetResource(k, null, out var v));
+            Assert.IsType<BoxShadows>(v);
+        }
+    }
 }
