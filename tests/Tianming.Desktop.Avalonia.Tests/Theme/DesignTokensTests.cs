@@ -94,4 +94,54 @@ public class DesignTokensTests
         Assert.True(dict.TryGetResource("StatusSuccessBrush", null, out v));
         Assert.IsType<SolidColorBrush>(v);
     }
+
+    private static IResourceDictionary LoadTypography()
+    {
+        EnsureAvaloniaInitialized();
+        var include = new ResourceInclude((Uri?)null)
+        {
+            Source = new Uri("avares://Tianming.Desktop.Avalonia/Theme/DesignTokens/Typography.axaml")
+        };
+        return include.Loaded;
+    }
+
+    [Fact]
+    public void Typography_FontFamiliesResolve()
+    {
+        var dict = LoadTypography();
+        Assert.True(dict.TryGetResource("FontUI", null, out var ui));
+        Assert.IsType<FontFamily>(ui);
+        Assert.True(dict.TryGetResource("FontMono", null, out var mono));
+        Assert.IsType<FontFamily>(mono);
+    }
+
+    [Fact]
+    public void Typography_FontSizesResolveAndAreNumeric()
+    {
+        var dict = LoadTypography();
+        var sizes = new[] { "FontSizeDisplay", "FontSizeH1", "FontSizeH2", "FontSizeH3",
+                            "FontSizeBody", "FontSizeSecondary", "FontSizeCaption" };
+        foreach (var k in sizes)
+        {
+            Assert.True(dict.TryGetResource(k, null, out var v), $"missing {k}");
+            Assert.IsType<double>(v);
+            Assert.True((double)v! > 0);
+        }
+    }
+
+    [Fact]
+    public void Typography_WeightsAndLineHeightsResolve()
+    {
+        var dict = LoadTypography();
+        foreach (var k in new[] { "FontWeightRegular", "FontWeightMedium", "FontWeightSemibold", "FontWeightBold" })
+        {
+            Assert.True(dict.TryGetResource(k, null, out var v));
+            Assert.IsType<FontWeight>(v);
+        }
+        foreach (var k in new[] { "LineHeightTight", "LineHeightNormal", "LineHeightRelaxed" })
+        {
+            Assert.True(dict.TryGetResource(k, null, out var v));
+            Assert.IsType<double>(v);
+        }
+    }
 }
