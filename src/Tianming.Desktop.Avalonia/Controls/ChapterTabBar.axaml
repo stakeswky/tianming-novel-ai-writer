@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             x:Class="Tianming.Desktop.Avalonia.Controls.ChapterTabBar">
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+    <ItemsControl ItemsSource="{Binding Tabs, RelativeSource={RelativeSource AncestorType=controls:ChapterTabBar}}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Orientation="Horizontal" Spacing="2"/>
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="controls:ChapterTabItem">
+          <Border Padding="10,6" CornerRadius="4" Background="#F1F2F4">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="{Binding Title}" FontSize="12" VerticalAlignment="Center"/>
+              <TextBlock Text="•" Foreground="#E03B3B" VerticalAlignment="Center" IsVisible="{Binding IsDirty}"/>
+              <TextBlock Text="×" FontSize="12" Foreground="#9C9FA5" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </ScrollViewer>
+</UserControl>
