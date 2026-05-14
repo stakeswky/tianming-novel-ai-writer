@@ -106,6 +106,9 @@
     <DataTemplate DataType="vmset:ThemeSettingsViewModel">
       <vset:ThemeSettingsPage/>
     </DataTemplate>
+    <DataTemplate DataType="vmset:ThemeFollowSystemViewModel">
+      <vset:ThemeFollowSystemPage/>
+    </DataTemplate>
   </Application.DataTemplates>
 
   <!-- M5：NativeMenu 真实绑定挂到 MainWindow（DataContext = MainWindowViewModel），
