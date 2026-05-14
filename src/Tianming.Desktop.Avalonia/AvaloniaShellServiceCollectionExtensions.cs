@@ -438,7 +438,9 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<UsageStatisticsViewModel>();
 
         // M7 Lane A 设置
-        s.AddTransient<SettingsShellViewModel>();
+        s.AddTransient<SettingsShellViewModel>(sp =>
+            new SettingsShellViewModel(sp.GetRequiredService<PageRegistry>(), sp));
+        s.AddTransient<ThemeSettingsViewModel>();
         s.AddTransient<PackagingViewModel>();
 
         // M4.5+ AI 对话面板：编排器、工具与会话持久化。
@@ -514,6 +516,7 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<WelcomeViewModel,     WelcomeView>(PageKeys.Welcome, "欢迎");
         reg.Register<DashboardViewModel,   DashboardView>(PageKeys.Dashboard, "仪表盘");
         reg.Register<SettingsShellViewModel, SettingsShellView>(PageKeys.Settings, "设置");
+        reg.Register<ThemeSettingsViewModel,  ThemeSettingsPage>(PageKeys.SettingsTheme, "外观主题");
 
         // M4.3 章节编辑器
         reg.Register<EditorWorkspaceViewModel, EditorWorkspaceView>(PageKeys.Editor, "草稿");

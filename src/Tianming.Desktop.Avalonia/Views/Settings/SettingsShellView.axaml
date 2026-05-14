@@ -27,12 +27,8 @@
         </ListBox>
       </StackPanel>
     </Border>
-    <!-- 内容宿主：Task 1 占位 TextBlock；Task 2 改为 ContentControl 绑 CurrentPageViewModel -->
-    <Border Grid.Column="1" Padding="24">
-      <TextBlock Text="选择左侧子项以查看设置"
-                 HorizontalAlignment="Center"
-                 VerticalAlignment="Center"
-                 Foreground="{DynamicResource TextSecondaryBrush}"/>
-    </Border>
+    <!-- 内容宿主：绑 CurrentPageViewModel，Application.DataTemplates 会按 VM 类型自动选 sub-page；
+         null 时显示空白（设计期 / SelectedItem == null 时的兜底）。 -->
+    <ContentControl Grid.Column="1" Content="{Binding CurrentPageViewModel}"/>
   </Grid>
 </UserControl>

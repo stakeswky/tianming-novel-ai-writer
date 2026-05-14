@@ -103,6 +103,9 @@
     <DataTemplate DataType="vmset:SettingsShellViewModel">
       <vset:SettingsShellView/>
     </DataTemplate>
+    <DataTemplate DataType="vmset:ThemeSettingsViewModel">
+      <vset:ThemeSettingsPage/>
+    </DataTemplate>
   </Application.DataTemplates>
 
   <!-- M5：NativeMenu 真实绑定挂到 MainWindow（DataContext = MainWindowViewModel），
