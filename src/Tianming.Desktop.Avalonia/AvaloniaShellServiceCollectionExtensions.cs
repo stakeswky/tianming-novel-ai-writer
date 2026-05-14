@@ -466,6 +466,7 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<ThemeSettingsViewModel>();
         s.AddTransient<ThemeFollowSystemViewModel>();
         s.AddTransient<NotificationsViewModel>();
+        s.AddTransient<SystemSettingsViewModel>();
         s.AddTransient<PackagingViewModel>();
 
         // M4.5+ AI 对话面板：编排器、工具与会话持久化。
@@ -544,6 +545,7 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<ThemeSettingsViewModel,  ThemeSettingsPage>(PageKeys.SettingsTheme, "外观主题");
         reg.Register<ThemeFollowSystemViewModel, ThemeFollowSystemPage>(PageKeys.SettingsFollowSystem, "跟随系统");
         reg.Register<NotificationsViewModel,    NotificationsPage>(PageKeys.SettingsNotifications, "通知");
+        reg.Register<SystemSettingsViewModel,   SystemSettingsPage>(PageKeys.SettingsSystem, "系统");
 
         // M4.3 章节编辑器
         reg.Register<EditorWorkspaceViewModel, EditorWorkspaceView>(PageKeys.Editor, "草稿");

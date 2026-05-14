@@ -1,0 +1,140 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Settings"
+             x:Class="Tianming.Desktop.Avalonia.Views.Settings.SystemSettingsPage"
+             x:DataType="vm:SystemSettingsViewModel">
+  <ScrollViewer Padding="24">
+    <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left">
+
+      <!-- 分组 1：显示与区域 -->
+      <Expander Header="显示与区域" IsExpanded="True">
+        <StackPanel Spacing="16" Margin="0,12,0,0">
+
+          <!-- #10 UI 分辨率 -->
+          <controls:SectionCard Header="UI 分辨率与缩放" Subtitle="窗口尺寸与界面缩放比例">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Grid.Column="0" Text="宽度:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <NumericUpDown Grid.Column="1" Value="{Binding WindowWidth}" Minimum="800" Maximum="3840" Width="120" HorizontalAlignment="Left"/>
+              </Grid>
+              <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Grid.Column="0" Text="高度:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <NumericUpDown Grid.Column="1" Value="{Binding WindowHeight}" Minimum="600" Maximum="2160" Width="120" HorizontalAlignment="Left"/>
+              </Grid>
+              <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Grid.Column="0" Text="缩放(%):" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <NumericUpDown Grid.Column="1" Value="{Binding ScalePercent}" Minimum="80" Maximum="200" Width="120" HorizontalAlignment="Left"/>
+              </Grid>
+              <TextBlock Text="（窗口尺寸真实生效到 Avalonia Window 后续提供）"
+                         Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" FontStyle="Italic"/>
+            </StackPanel>
+          </controls:SectionCard>
+
+          <!-- #11 加载动画 -->
+          <controls:SectionCard Header="加载动画" Subtitle="应用启动 / 长操作时的加载视觉">
+            <TextBlock Text="{Binding LoadingAnimationStatus}"/>
+          </controls:SectionCard>
+
+          <!-- #26 显示偏好 -->
+          <controls:SectionCard Header="显示偏好" Subtitle="功能栏 / 列表密度">
+            <StackPanel Spacing="6">
+              <CheckBox Content="显示功能栏" IsChecked="{Binding ShowFunctionBar}"/>
+              <TextBlock Text="{Binding ListDensity, StringFormat='列表密度: {0}'}"
+                         Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+            </StackPanel>
+          </controls:SectionCard>
+
+          <!-- #27 语言区域 -->
+          <controls:SectionCard Header="语言与区域" Subtitle="界面语言 / 时区 / 日期时间格式">
+            <StackPanel Spacing="6">
+              <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Grid.Column="0" Text="语言:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding Language}" Width="160" HorizontalAlignment="Left"/>
+              </Grid>
+              <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Grid.Column="0" Text="时区:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding TimeZoneId}" Width="240" HorizontalAlignment="Left"/>
+              </Grid>
+              <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Grid.Column="0" Text="日期格式:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding DateFormat}" Width="180" HorizontalAlignment="Left"/>
+              </Grid>
+              <CheckBox Content="使用 24 小时制" IsChecked="{Binding Use24HourFormat}"/>
+            </StackPanel>
+          </controls:SectionCard>
+
+        </StackPanel>
+      </Expander>
+
+      <!-- 分组 2：网络与日志 -->
+      <Expander Header="网络与日志" IsExpanded="False">
+        <StackPanel Spacing="16" Margin="0,12,0,0">
+
+          <!-- #19 代理 -->
+          <controls:SectionCard Header="代理配置" Subtitle="HTTP/HTTPS 代理路由与一键测试">
+            <TextBlock Text="{Binding ProxyStatusText}" TextWrapping="Wrap"/>
+          </controls:SectionCard>
+
+          <!-- #20 日志 -->
+          <controls:SectionCard Header="日志系统" Subtitle="日志级别 / 输出目标 / 轮转策略">
+            <TextBlock Text="{Binding LogStatusText}" TextWrapping="Wrap"/>
+          </controls:SectionCard>
+
+        </StackPanel>
+      </Expander>
+
+      <!-- 分组 3：系统状态 -->
+      <Expander Header="系统状态" IsExpanded="False">
+        <StackPanel Spacing="16" Margin="0,12,0,0">
+
+          <!-- #21 数据清理 -->
+          <controls:SectionCard Header="数据清理" Subtitle="检测可清理的临时文件 / 缓存">
+            <StackPanel Spacing="8">
+              <TextBlock Text="{Binding DataCleanupScanResult}" TextWrapping="Wrap"/>
+              <Button Content="扫描" Command="{Binding ScanDataCleanupCommand}" HorizontalAlignment="Left"/>
+              <TextBlock Text="（执行真实清理需要选择类别 + 多次确认，后续提供完整 UI）"
+                         Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" FontStyle="Italic"/>
+            </StackPanel>
+          </controls:SectionCard>
+
+          <!-- #22 系统信息 -->
+          <controls:SectionCard Header="系统信息" Subtitle="macOS / 硬件基础信息">
+            <StackPanel Spacing="6">
+              <TextBlock Text="{Binding OsDescription, StringFormat='操作系统: {0}'}"/>
+              <TextBlock Text="{Binding MachineName, StringFormat='机器名: {0}'}"/>
+              <TextBlock Text="{Binding ProcessorCount, StringFormat='CPU 核心: {0}'}"/>
+              <Button Content="刷新" Command="{Binding RefreshSystemInfoNowCommand}" HorizontalAlignment="Left"/>
+            </StackPanel>
+          </controls:SectionCard>
+
+          <!-- #23 运行环境 -->
+          <controls:SectionCard Header="运行环境" Subtitle=".NET 运行时与程序集">
+            <StackPanel Spacing="6">
+              <TextBlock Text="{Binding RuntimeVersion, StringFormat='.NET 版本: {0}'}"/>
+              <TextBlock Text="{Binding FrameworkDescription, StringFormat='Framework: {0}'}"/>
+              <TextBlock Text="{Binding RuntimeIdentifier, StringFormat='RID: {0}'}"/>
+            </StackPanel>
+          </controls:SectionCard>
+
+          <!-- #24 诊断信息 -->
+          <controls:SectionCard Header="诊断信息" Subtitle="进程内存 / 线程 / GC 状态">
+            <StackPanel Spacing="6">
+              <TextBlock Text="{Binding ProcessWorkingSetMb, StringFormat='进程内存: {0} MB'}"/>
+              <TextBlock Text="{Binding ThreadCount, StringFormat='线程数: {0}'}"/>
+              <TextBlock Text="{Binding Gen0CollectionCount, StringFormat='Gen 0 GC 次数: {0}'}"/>
+              <Button Content="刷新" Command="{Binding RefreshDiagnosticsNowCommand}" HorizontalAlignment="Left"/>
+            </StackPanel>
+          </controls:SectionCard>
+
+          <!-- #25 系统监控 -->
+          <controls:SectionCard Header="系统监控" Subtitle="CPU / 内存 / 磁盘 实时数据">
+            <TextBlock Text="{Binding SystemMonitorStatusText}" TextWrapping="Wrap"/>
+          </controls:SectionCard>
+
+        </StackPanel>
+      </Expander>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

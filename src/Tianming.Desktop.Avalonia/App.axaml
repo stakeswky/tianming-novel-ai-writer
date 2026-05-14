@@ -113,6 +113,10 @@
     <DataTemplate DataType="vmset:NotificationsViewModel">
       <vset:NotificationsPage/>
     </DataTemplate>
+    <!-- M7 Lane C 系统设置 -->
+    <DataTemplate DataType="vmset:SystemSettingsViewModel">
+      <vset:SystemSettingsPage/>
+    </DataTemplate>
   </Application.DataTemplates>
 
   <!-- M5：NativeMenu 真实绑定挂到 MainWindow（DataContext = MainWindowViewModel），

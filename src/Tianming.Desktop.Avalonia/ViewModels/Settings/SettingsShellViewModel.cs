@@ -40,6 +40,7 @@ public partial class SettingsShellViewModel : ObservableObject
             new(PageKeys.SettingsTheme,         "外观主题", "🎨"),
             new(PageKeys.SettingsFollowSystem,  "跟随系统", "🌓"),
             new(PageKeys.SettingsNotifications, "通知",     "🔔"),
+            new(PageKeys.SettingsSystem,        "系统",     "⚙️"),
         };
         SelectedItem = SubNavItems[0];
     }
