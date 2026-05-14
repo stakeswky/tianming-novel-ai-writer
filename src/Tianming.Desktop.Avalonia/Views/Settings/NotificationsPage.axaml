@@ -1,0 +1,112 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Settings"
+             x:Class="Tianming.Desktop.Avalonia.Views.Settings.NotificationsPage"
+             x:DataType="vm:NotificationsViewModel">
+  <ScrollViewer Padding="24">
+    <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left">
+
+      <!-- #15 通知历史 -->
+      <controls:SectionCard Header="通知历史" Subtitle="最近收到的通知（最多 10 条）">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <Button Grid.Column="0" Content="刷新" Command="{Binding RefreshHistoryCommand}"/>
+            <Button Grid.Column="2" Content="清空" Command="{Binding ClearHistoryCommand}" Classes="danger"/>
+          </Grid>
+          <ItemsControl ItemsSource="{Binding History}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Spacing="6"/></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="6" Padding="10">
+                  <StackPanel Spacing="4">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding Title}" FontWeight="SemiBold"/>
+                      <TextBlock Grid.Column="1" Text="{Binding Time}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                    </Grid>
+                    <TextBlock Text="{Binding Content}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="还没有通知记录" IsVisible="{Binding HasNoHistory}"
+                     Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,20"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <!-- #13 系统通知 + 发测试通知 -->
+      <controls:SectionCard Header="系统通知" Subtitle="通过 macOS 通知中心发送测试">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{Binding SinkName, StringFormat='当前 sink: {0}'}"
+                       VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+            <Button Grid.Column="1" Content="发测试通知" Command="{Binding SendTestNotificationCommand}" Classes="accent"/>
+          </Grid>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <!-- #16 勿扰 -->
+      <controls:SectionCard Header="勿扰模式" Subtitle="启用后通知被拦截到历史，不弹窗 / 不响铃">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{Binding DndStatusText}" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Content="切换" Command="{Binding ToggleDoNotDisturbCommand}"/>
+          </Grid>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <!-- #17 声音方案 -->
+      <controls:SectionCard Header="声音方案" Subtitle="通知发声的内置方案（4 选 1）">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{Binding SoundSchemeName, StringFormat='当前方案: {0}'}"/>
+          <TextBlock Text="（4 个内置方案 default / silent / minimal / rich；切换 UI 后续提供，当前 Singleton 实例自动共享给 dispatcher）"
+                     Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <!-- #18 语音播报 -->
+      <controls:SectionCard Header="语音播报" Subtitle="通知到达时是否调 macOS 语音朗读">
+        <StackPanel Spacing="8">
+          <CheckBox Content="启用语音播报" IsChecked="{Binding VoiceBroadcastEnabled}"/>
+          <Grid ColumnDefinitions="Auto,*">
+            <TextBlock Grid.Column="0" Text="速度:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding VoiceSpeed}" Minimum="-10" Maximum="10" Width="100" HorizontalAlignment="Left"/>
+          </Grid>
+          <Grid ColumnDefinitions="Auto,*">
+            <TextBlock Grid.Column="0" Text="音量:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding VoiceVolume}" Minimum="0" Maximum="100" Width="100" HorizontalAlignment="Left"/>
+          </Grid>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <!-- #12 Toast 样式 -->
+      <controls:SectionCard Header="Toast 样式" Subtitle="应用内 Toast 通知的视觉调整">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="Auto,*">
+            <TextBlock Grid.Column="0" Text="圆角:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding ToastCornerRadius}" Minimum="0" Maximum="32" Width="100" HorizontalAlignment="Left"/>
+          </Grid>
+          <TextBlock Text="{Binding ToastScreenPosition, StringFormat='屏幕位置: {0}'}"
+                     Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+          <TextBlock Text="（动画类型 / 缓动函数 / 屏幕位置可视化编辑器后续提供）"
+                     Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" FontStyle="Italic" TextWrapping="Wrap"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <!-- #14 系统集成 -->
+      <controls:SectionCard Header="系统集成" Subtitle="启动方式、菜单栏图标、桌面通知开关">
+        <StackPanel Spacing="6">
+          <CheckBox Content="启用系统通知" IsChecked="{Binding EnableSystemNotification}"/>
+          <CheckBox Content="显示菜单栏图标" IsChecked="{Binding ShowTrayIcon}"/>
+          <CheckBox Content="开机自动启动" IsChecked="{Binding AutoStartup}"/>
+          <TextBlock Text="（菜单栏图标 / LaunchAgent 真实安装 macOS 后续提供）"
+                     Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" FontStyle="Italic" TextWrapping="Wrap"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
