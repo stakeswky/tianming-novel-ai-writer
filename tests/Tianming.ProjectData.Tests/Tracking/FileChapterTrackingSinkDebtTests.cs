@@ -30,6 +30,23 @@ public class FileChapterTrackingSinkDebtTests
         Assert.Equal(2, persisted.Count);
     }
 
+    [Fact]
+    public async Task RecordTrackingDebts_rejects_unrecognized_chapter_id_format()
+    {
+        using var workspace = new TempDirectory();
+        var sink = new FileChapterTrackingSink(workspace.Path);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sink.RecordTrackingDebtsAsync(
+                "chapter-one",
+                new List<TrackingDebt>
+                {
+                    new() { Id = "d-1", Category = TrackingDebtCategory.Pledge, ChapterId = "chapter-one" },
+                }));
+
+        Assert.Contains("Unrecognized chapter id format: chapter-one", ex.Message);
+    }
+
     private static async Task<T> ReadJsonAsync<T>(string root, string relativePath)
     {
         var json = await File.ReadAllTextAsync(System.IO.Path.Combine(root, relativePath));

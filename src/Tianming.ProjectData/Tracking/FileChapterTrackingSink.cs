@@ -439,9 +439,12 @@ namespace TM.Services.Modules.ProjectData.Implementations
         {
             var match = System.Text.RegularExpressions.Regex.Match(chapterId ?? string.Empty, @"(?:vol|v)(\d+)|^(\d+)_", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             if (!match.Success)
-                return 0;
+                throw new InvalidOperationException($"Unrecognized chapter id format: {chapterId}");
             var value = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
-            return int.TryParse(value, out var volume) ? volume : 0;
+            if (!int.TryParse(value, out var volume))
+                throw new InvalidOperationException($"Unrecognized chapter id format: {chapterId}");
+
+            return volume;
         }
 
         private static int CompareChapterId(string left, string right)
@@ -456,10 +459,13 @@ namespace TM.Services.Modules.ProjectData.Implementations
         {
             var match = System.Text.RegularExpressions.Regex.Match(chapterId ?? string.Empty, @"(?:vol|v)(\d+)_(?:ch|c)(\d+)|^(\d+)_(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             if (!match.Success)
-                return (0, 0);
+                throw new InvalidOperationException($"Unrecognized chapter id format: {chapterId}");
             var volumeText = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[3].Value;
             var chapterText = match.Groups[2].Success ? match.Groups[2].Value : match.Groups[4].Value;
-            return (int.Parse(volumeText), int.Parse(chapterText));
+            if (!int.TryParse(volumeText, out var volume) || !int.TryParse(chapterText, out var chapter))
+                throw new InvalidOperationException($"Unrecognized chapter id format: {chapterId}");
+
+            return (volume, chapter);
         }
 
         private static void SortByChapter<T>(List<T> items, Func<T, string> getChapter)
