@@ -92,16 +92,16 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var mode = ParseChatMode(SelectedMode);
-        _currentSession ??= await _orchestrator.StartSessionAsync(mode);
-        _currentSession.Mode = mode;
-
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
         try
         {
+            var mode = ParseChatMode(SelectedMode);
+            _currentSession ??= await _orchestrator.StartSessionAsync(mode);
+            _currentSession.Mode = mode;
+
             await foreach (var delta in _orchestrator.SendAsync(_currentSession, input, _cts.Token))
                 _emitter.Enqueue(delta);
 
@@ -110,9 +110,14 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         catch (OperationCanceledException)
         {
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            await SendLocalDemoAsync(input);
+            SampleBubbles.Add(new ConversationBubbleVm
+            {
+                Role = ConversationRole.Assistant,
+                Content = $"[错误] {ex.GetType().Name}: {ex.Message}",
+                Timestamp = DateTime.Now,
+            });
         }
         finally
         {

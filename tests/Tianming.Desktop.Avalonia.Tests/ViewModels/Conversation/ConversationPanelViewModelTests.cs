@@ -128,6 +128,29 @@ public class ConversationPanelViewModelTests
         Assert.Equal("thinking...", vm.SampleBubbles[1].ThinkingBlock);
     }
 
+    [Fact]
+    public async Task SendAsync_when_orchestrator_throws_renders_visible_error_bubble()
+    {
+        var scheduler = new FakeDispatcherScheduler();
+        var orchestrator = new StubOrchestrator
+        {
+            StartSessionAsyncFunc = _ => Task.FromException<ConversationSession>(
+                new InvalidOperationException("boom"))
+        };
+        var vm = new ConversationPanelViewModel(orchestrator, new StubSessionStore(), scheduler, seedSamples: false)
+        {
+            InputDraft = "hello"
+        };
+
+        await vm.SendCommand.ExecuteAsync(null);
+
+        Assert.Equal(2, vm.SampleBubbles.Count);
+        Assert.Equal(ConversationRole.Assistant, vm.SampleBubbles[^1].Role);
+        Assert.Contains("InvalidOperationException", vm.SampleBubbles[^1].Content);
+        Assert.Contains("boom", vm.SampleBubbles[^1].Content);
+        Assert.DoesNotContain("预览", vm.SampleBubbles[^1].Content);
+    }
+
     private static async IAsyncEnumerable<ChatStreamDelta> AsyncDeltas(params ChatStreamDelta[] items)
     {
         foreach (var item in items)
@@ -140,9 +163,11 @@ public class ConversationPanelViewModelTests
     private sealed class StubOrchestrator : IConversationOrchestrator
     {
         public Func<ConversationSession, string, IAsyncEnumerable<ChatStreamDelta>> StreamFunc { get; set; } = default!;
+        public Func<TM.Framework.UI.Workspace.RightPanel.Modes.ChatMode, Task<ConversationSession>>? StartSessionAsyncFunc { get; set; }
 
         public Task<ConversationSession> StartSessionAsync(TM.Framework.UI.Workspace.RightPanel.Modes.ChatMode mode, string? sessionId = null, CancellationToken ct = default)
-            => Task.FromResult(new ConversationSession { Mode = mode });
+            => StartSessionAsyncFunc?.Invoke(mode)
+               ?? Task.FromResult(new ConversationSession { Mode = mode });
 
         public IAsyncEnumerable<ChatStreamDelta> SendAsync(ConversationSession session, string userInput, CancellationToken ct = default)
             => StreamFunc(session, userInput);
