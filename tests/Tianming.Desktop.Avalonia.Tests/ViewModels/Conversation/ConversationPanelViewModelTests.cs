@@ -7,6 +7,7 @@ using Tianming.Desktop.Avalonia.Controls;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Tests.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels.Conversation;
+using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
 using TM.Services.Framework.AI.SemanticKernel;
 using TM.Services.Modules.ProjectData.StagedChanges;
@@ -189,6 +190,24 @@ public class ConversationPanelViewModelTests
     }
 
     [Fact]
+    public async Task ApproveStagedAsync_updates_tool_call_card_state()
+    {
+        var approver = new StubStagedChangeApprover();
+        var vm = new ConversationPanelViewModel(
+            new StubOrchestrator { StreamFunc = (_, _) => AsyncDeltas() },
+            new StubSessionStore(),
+            new FakeDispatcherScheduler(),
+            approver: approver,
+            seedSamples: false);
+        var card = new ConversationToolCallVm { StagedId = "stg-card" };
+
+        await vm.ApproveStagedCommand.ExecuteAsync(card);
+
+        Assert.Equal("stg-card", approver.ApprovedId);
+        Assert.Equal(ToolCallState.Applied, card.State);
+    }
+
+    [Fact]
     public async Task RejectStagedAsync_calls_approver_with_staged_id()
     {
         var approver = new StubStagedChangeApprover();
@@ -202,6 +221,24 @@ public class ConversationPanelViewModelTests
         await vm.RejectStagedCommand.ExecuteAsync("stg-456");
 
         Assert.Equal("stg-456", approver.RejectedId);
+    }
+
+    [Fact]
+    public async Task RejectStagedAsync_updates_tool_call_card_state()
+    {
+        var approver = new StubStagedChangeApprover();
+        var vm = new ConversationPanelViewModel(
+            new StubOrchestrator { StreamFunc = (_, _) => AsyncDeltas() },
+            new StubSessionStore(),
+            new FakeDispatcherScheduler(),
+            approver: approver,
+            seedSamples: false);
+        var card = new ConversationToolCallVm { StagedId = "stg-card" };
+
+        await vm.RejectStagedCommand.ExecuteAsync(card);
+
+        Assert.Equal("stg-card", approver.RejectedId);
+        Assert.Equal(ToolCallState.Rejected, card.State);
     }
 
     private static async IAsyncEnumerable<ChatStreamDelta> AsyncDeltas(params ChatStreamDelta[] items)

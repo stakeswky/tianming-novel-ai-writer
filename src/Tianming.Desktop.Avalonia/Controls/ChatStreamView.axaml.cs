@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -14,11 +15,27 @@ public partial class ChatStreamView : UserControl
 
     public static readonly StyledProperty<ObservableCollection<ConversationBubbleVm>?> BubblesProperty =
         AvaloniaProperty.Register<ChatStreamView, ObservableCollection<ConversationBubbleVm>?>(nameof(Bubbles));
+    public static readonly StyledProperty<ICommand?> ApproveCommandProperty =
+        AvaloniaProperty.Register<ChatStreamView, ICommand?>(nameof(ApproveCommand));
+    public static readonly StyledProperty<ICommand?> RejectCommandProperty =
+        AvaloniaProperty.Register<ChatStreamView, ICommand?>(nameof(RejectCommand));
 
     public ObservableCollection<ConversationBubbleVm>? Bubbles
     {
         get => GetValue(BubblesProperty);
         set => SetValue(BubblesProperty, value);
+    }
+
+    public ICommand? ApproveCommand
+    {
+        get => GetValue(ApproveCommandProperty);
+        set => SetValue(ApproveCommandProperty, value);
+    }
+
+    public ICommand? RejectCommand
+    {
+        get => GetValue(RejectCommandProperty);
+        set => SetValue(RejectCommandProperty, value);
     }
 
     public ChatStreamView()

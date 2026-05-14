@@ -34,9 +34,11 @@
             <StackPanel x:Name="PART_Actions" Orientation="Horizontal" Spacing="8">
               <Button Classes="secondary"
                       Content="拒绝"
-                      Command="{TemplateBinding RejectCommand}"/>
+                      Command="{TemplateBinding RejectCommand}"
+                      CommandParameter="{TemplateBinding RejectCommandParameter}"/>
               <Button Content="批准并应用"
-                      Command="{TemplateBinding ApproveCommand}"/>
+                      Command="{TemplateBinding ApproveCommand}"
+                      CommandParameter="{TemplateBinding ApproveCommandParameter}"/>
             </StackPanel>
           </StackPanel>
         </Border>

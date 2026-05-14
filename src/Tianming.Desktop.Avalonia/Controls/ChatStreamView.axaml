@@ -7,11 +7,26 @@
     <ItemsControl Name="Items" ItemsSource="{Binding Bubbles, RelativeSource={RelativeSource AncestorType=controls:ChatStreamView}}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="vm:ConversationBubbleVm">
-          <controls:ConversationBubble Role="{Binding Role}"
-                                       ContentText="{Binding Content}"
-                                       ThinkingBlock="{Binding ThinkingBlock}"
-                                       Timestamp="{Binding Timestamp}"
-                                       Margin="0,4"/>
+          <StackPanel Spacing="6" Margin="0,4">
+            <controls:ConversationBubble Role="{Binding Role}"
+                                         ContentText="{Binding Content}"
+                                         ThinkingBlock="{Binding ThinkingBlock}"
+                                         Timestamp="{Binding Timestamp}"/>
+            <ItemsControl ItemsSource="{Binding ToolCalls}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <controls:ToolCallCard ToolName="{Binding ToolName}"
+                                         ArgumentsPreview="{Binding ArgumentsPreview}"
+                                         State="{Binding State}"
+                                         ApproveCommand="{Binding ApproveCommand, RelativeSource={RelativeSource AncestorType=controls:ChatStreamView}}"
+                                         ApproveCommandParameter="{Binding}"
+                                         RejectCommand="{Binding RejectCommand, RelativeSource={RelativeSource AncestorType=controls:ChatStreamView}}"
+                                         RejectCommandParameter="{Binding}"
+                                         Margin="24,0,0,0"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
