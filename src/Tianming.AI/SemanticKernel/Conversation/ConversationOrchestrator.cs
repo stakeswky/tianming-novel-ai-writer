@@ -34,6 +34,7 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
     private readonly AgentModeMapper _agentMapper;
     private readonly string? _projectRoot;
     private readonly IAIModelRouter? _router;
+    private readonly FileAIConfigurationStore? _configurationStore;
 
     public ConversationOrchestrator(
         OpenAICompatibleChatClient chat,
@@ -44,7 +45,8 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
         PlanModeMapper planMapper,
         AgentModeMapper agentMapper,
         string? projectRoot = null,
-        IAIModelRouter? router = null)
+        IAIModelRouter? router = null,
+        FileAIConfigurationStore? configurationStore = null)
     {
         _chat = chat ?? throw new ArgumentNullException(nameof(chat));
         _thinking = thinking ?? throw new ArgumentNullException(nameof(thinking));
@@ -55,6 +57,7 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
         _agentMapper = agentMapper ?? throw new ArgumentNullException(nameof(agentMapper));
         _projectRoot = projectRoot;
         _router = router;
+        _configurationStore = configurationStore;
     }
 
     /// <summary>创建新会话或恢复已有会话。</summary>
@@ -455,7 +458,13 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
         List<OpenAICompatibleToolDefinition>? tools = null)
     {
         var config = _router?.Resolve(purpose) ?? FallbackConfig();
-        return new OpenAICompatibleChatRequest
+        return _router != null && _configurationStore != null
+            ? OpenAICompatibleChatRequestFactory.Build(
+                _configurationStore,
+                config,
+                messages,
+                tools)
+            : new OpenAICompatibleChatRequest
         {
             BaseUrl = config.CustomEndpoint ?? string.Empty,
             ApiKey = config.ApiKey,

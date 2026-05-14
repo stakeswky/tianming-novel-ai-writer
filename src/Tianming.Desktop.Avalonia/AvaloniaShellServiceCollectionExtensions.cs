@@ -341,7 +341,8 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<PlanModeMapper>(),
                 sp.GetRequiredService<AgentModeMapper>(),
                 sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
-                sp.GetRequiredService<IAIModelRouter>()));
+                sp.GetRequiredService<IAIModelRouter>(),
+                sp.GetRequiredService<FileAIConfigurationStore>()));
         s.AddSingleton<IConversationOrchestrator>(sp => sp.GetRequiredService<ConversationOrchestrator>());
         s.AddSingleton<IReferenceSuggestionSource, ReferenceSuggestionSource>();
 
