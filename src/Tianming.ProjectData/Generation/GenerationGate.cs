@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using TM.Framework.Common.Helpers;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Rules;
 using TM.Services.Modules.ProjectData.Models.Tracking;
+using TM.Services.Modules.ProjectData.Tracking.Layers;
+using TM.Services.Modules.ProjectData.Tracking.Locator;
 
 namespace TM.Services.Modules.ProjectData.Implementations
 {
@@ -13,18 +15,26 @@ namespace TM.Services.Modules.ProjectData.Implementations
         private readonly LedgerConsistencyChecker _ledgerConsistencyChecker;
         private readonly LedgerRuleSetProvider _ledgerRuleSetProvider;
         private readonly ChangesProtocolParser _changesProtocolParser;
+        private readonly LayeredConsistencyChecker? _layeredConsistencyChecker;
+        private readonly ConsistencyIssueLocator? _consistencyIssueLocator;
 
-        public GenerationGate(LedgerConsistencyChecker ledgerConsistencyChecker, LedgerRuleSetProvider ledgerRuleSetProvider)
+        public GenerationGate(
+            LedgerConsistencyChecker ledgerConsistencyChecker,
+            LedgerRuleSetProvider ledgerRuleSetProvider,
+            LayeredConsistencyChecker? layeredConsistencyChecker = null,
+            ConsistencyIssueLocator? consistencyIssueLocator = null)
         {
             _ledgerConsistencyChecker = ledgerConsistencyChecker;
             _ledgerRuleSetProvider = ledgerRuleSetProvider;
             _changesProtocolParser = new ChangesProtocolParser();
+            _layeredConsistencyChecker = layeredConsistencyChecker;
+            _consistencyIssueLocator = consistencyIssueLocator;
         }
 
         public ConsistencyResult ValidateStructuralOnly(ChapterChanges changes)
             => _ledgerConsistencyChecker.ValidateStructuralOnly(changes);
 
-        public Task<GateResult> ValidateAsync(
+        public async Task<GateResult> ValidateAsync(
             string chapterId,
             string rawContent,
             FactSnapshot factSnapshot,
@@ -37,7 +47,7 @@ namespace TM.Services.Modules.ProjectData.Implementations
             if (!protocolResult.Success)
             {
                 result.AddFailure(FailureType.Protocol, protocolResult.Errors);
-                return Task.FromResult(result);
+                return result;
             }
 
             result.ParsedChanges = protocolResult.Changes;
@@ -52,16 +62,68 @@ namespace TM.Services.Modules.ProjectData.Implementations
             if (!consistencyResult.Success)
             {
                 result.AddFailure(FailureType.Consistency, consistencyResult.GetIssueDescriptions());
-                return Task.FromResult(result);
+                return result;
+            }
+
+            if (_layeredConsistencyChecker != null)
+            {
+                return await ValidateWithLayeredIssuesAsync(
+                    result,
+                    chapterId,
+                    protocolResult.Changes!,
+                    factSnapshot,
+                    ruleSet,
+                    protocolResult.ContentWithoutChanges,
+                    designElements).ConfigureAwait(false);
             }
 
             var contentToValidate = protocolResult.ContentWithoutChanges ?? string.Empty;
+            return await ContinueValidation(result, contentToValidate, factSnapshot, protocolResult.Changes, designElements)
+                .ConfigureAwait(false);
+        }
+
+        private async Task<GateResult> ValidateWithLayeredIssuesAsync(
+            GateResult result,
+            string chapterId,
+            ChapterChanges changes,
+            FactSnapshot factSnapshot,
+            LedgerRuleSet ruleSet,
+            string? contentWithoutChanges,
+            DesignElementNames? designElements = null)
+        {
+            var layered = await _layeredConsistencyChecker!
+                .CheckAsync(changes, factSnapshot, ruleSet)
+                .ConfigureAwait(false);
+
+            if (_consistencyIssueLocator != null && !string.IsNullOrWhiteSpace(chapterId))
+            {
+                foreach (var issue in layered.AllIssues)
+                    await _consistencyIssueLocator.LocateAsync(issue, chapterId).ConfigureAwait(false);
+            }
+
+            if (layered.AllIssues.Count > 0)
+            {
+                result.LayeredIssues ??= new List<ConsistencyIssue>();
+                result.LayeredIssues.AddRange(layered.AllIssues);
+            }
+
+            var contentToValidate = contentWithoutChanges ?? string.Empty;
+            return await ContinueValidation(result, contentToValidate, factSnapshot, changes, designElements)
+                .ConfigureAwait(false);
+        }
+
+        private Task<GateResult> ContinueValidation(
+            GateResult result,
+            string contentToValidate,
+            FactSnapshot factSnapshot,
+            ChapterChanges? changes,
+            DesignElementNames? designElements)
+        {
 
             var entityExtractor = new ContentEntityExtractor(factSnapshot);
             var unknownEntities = entityExtractor.GetUnknownEntities(contentToValidate);
             if (unknownEntities.Count > 0)
             {
-                var changes = protocolResult.Changes;
                 var functionalEntities = unknownEntities
                     .Where(e => IsEntityInChanges(e, changes))
                     .ToList();
