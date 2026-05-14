@@ -109,6 +109,10 @@
     <DataTemplate DataType="vmset:ThemeFollowSystemViewModel">
       <vset:ThemeFollowSystemPage/>
     </DataTemplate>
+    <!-- M7 Lane B 通知设置 -->
+    <DataTemplate DataType="vmset:NotificationsViewModel">
+      <vset:NotificationsPage/>
+    </DataTemplate>
   </Application.DataTemplates>
 
   <!-- M5：NativeMenu 真实绑定挂到 MainWindow（DataContext = MainWindowViewModel），

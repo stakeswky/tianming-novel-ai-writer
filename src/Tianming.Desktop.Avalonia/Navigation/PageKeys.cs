@@ -39,4 +39,7 @@ public static class PageKeys
     // M7 Lane A 设置
     public static readonly PageKey SettingsTheme        = new("settings.theme");
     public static readonly PageKey SettingsFollowSystem = new("settings.followsystem");
+
+    // M7 Lane B 通知设置
+    public static readonly PageKey SettingsNotifications = new("settings.notifications");
 }

@@ -208,6 +208,14 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton(sp =>
             new PortableSystemMonitorService(sp.GetRequiredService<IPortableSystemMonitorProbe>()));
 
+        // Lane B 设置：通知设置相关 data / controller。
+        // 持 Singleton 让 NotificationsViewModel 与 dispatcher 共享同一份用户配置实例。
+        s.AddSingleton(_ => DoNotDisturbSettingsData.CreateDefault());
+        s.AddSingleton<PortableDoNotDisturbController>(sp =>
+            new PortableDoNotDisturbController(sp.GetRequiredService<DoNotDisturbSettingsData>()));
+        s.AddSingleton(_ => new PortableToastStyleData());
+        s.AddSingleton(_ => new PortableSystemIntegrationSettings());
+
         // Navigation
         s.AddSingleton<PageRegistry>(_ => RegisterPages(new PageRegistry()));
         s.AddSingleton<INavigationService, NavigationService>();
@@ -442,6 +450,7 @@ public static class AvaloniaShellServiceCollectionExtensions
             new SettingsShellViewModel(sp.GetRequiredService<PageRegistry>(), sp));
         s.AddTransient<ThemeSettingsViewModel>();
         s.AddTransient<ThemeFollowSystemViewModel>();
+        s.AddTransient<NotificationsViewModel>();
         s.AddTransient<PackagingViewModel>();
 
         // M4.5+ AI 对话面板：编排器、工具与会话持久化。
@@ -519,6 +528,7 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<SettingsShellViewModel, SettingsShellView>(PageKeys.Settings, "设置");
         reg.Register<ThemeSettingsViewModel,  ThemeSettingsPage>(PageKeys.SettingsTheme, "外观主题");
         reg.Register<ThemeFollowSystemViewModel, ThemeFollowSystemPage>(PageKeys.SettingsFollowSystem, "跟随系统");
+        reg.Register<NotificationsViewModel,    NotificationsPage>(PageKeys.SettingsNotifications, "通知");
 
         // M4.3 章节编辑器
         reg.Register<EditorWorkspaceViewModel, EditorWorkspaceView>(PageKeys.Editor, "草稿");

@@ -37,8 +37,9 @@ public partial class SettingsShellViewModel : ObservableObject
         _sp = sp;
         SubNavItems = new List<SettingsSubNavItem>
         {
-            new(PageKeys.SettingsTheme,        "外观主题", "🎨"),
-            new(PageKeys.SettingsFollowSystem, "跟随系统", "🌓"),
+            new(PageKeys.SettingsTheme,         "外观主题", "🎨"),
+            new(PageKeys.SettingsFollowSystem,  "跟随系统", "🌓"),
+            new(PageKeys.SettingsNotifications, "通知",     "🔔"),
         };
         SelectedItem = SubNavItems[0];
     }
