@@ -72,6 +72,19 @@ public class FileProjectBackupServiceTests
         Assert.Empty(backups);
     }
 
+    [Fact]
+    public async Task CreateBackup_excludes_staged_changes_directory()
+    {
+        using var workspace = new TempDirectory();
+        Directory.CreateDirectory(Path.Combine(workspace.Path, ".staged"));
+        await File.WriteAllTextAsync(Path.Combine(workspace.Path, ".staged", "stg-001.json"), "{}");
+        var service = new FileProjectBackupService(workspace.Path);
+
+        var backupId = await service.CreateBackupAsync("snapshot");
+
+        Assert.False(Directory.Exists(Path.Combine(workspace.Path, ".backups", backupId, ".staged")));
+    }
+
     private sealed class TempDirectory : System.IDisposable
     {
         public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"tm-bk-{System.Guid.NewGuid():N}");

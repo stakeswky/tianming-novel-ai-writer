@@ -13,6 +13,7 @@ public sealed class FileProjectBackupService : IProjectBackupService
     private static readonly HashSet<string> ExcludedDirectories = new(StringComparer.OrdinalIgnoreCase)
     {
         ".backups",
+        ".staged",
         ".staging",
         ".wal",
         "bin",
