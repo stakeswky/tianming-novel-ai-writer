@@ -111,6 +111,12 @@ R3. 右侧对话 `@` 引用建议未显示。
 - 建议：增加一个已知 fixture 或使用现有项目中文关键词复测，并确认 `ReferenceSuggestionSource.SuggestAsync` 是否返回候选。
 - Lane R 处理：代码层已排除数据源问题（commit `6422510`）。新增 fixture 测试确认项目内存在 `ch001` 章节时，`ReferenceSuggestionSource.SuggestAsync("ch")` 返回 Chapter 候选；原巡检仍需要用同类 fixture 项目做 Computer Use 实机复跑，以区分无匹配数据、输入法候选条遮挡或弹层视觉问题。
 
+### 平台已知限制：macOS 中文输入法候选条
+
+- 症状：右侧对话框输入 `@` 或拼音片段时，macOS 中文输入法候选条可能覆盖 Avalonia 弹层区域，使引用建议看起来没有出现；这与 `ReferenceSuggestionSource` 是否返回候选是两个独立问题。
+- 临时 workaround：做 Computer Use 回归时切换到英文输入法，或先关闭中文输入法候选条，再输入 `@ch` / fixture 关键词复测。
+- 长期跟踪：复查 Avalonia 11 在 macOS 下的 IME composition event 与 popup/dropdown layering 行为，确认引用建议弹层是否需要避让 IME candidate window。
+
 ## 未覆盖项
 
 - 未测试真实 AI provider 调用：本机没有已启用 Writing/default 配置，且本轮不输入真实 API Key。

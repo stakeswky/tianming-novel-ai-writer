@@ -278,11 +278,11 @@ Commit with title: `Show AI provider display names in model setup`.
 
 ## Step 8: Document R3 IME known limitation
 
-- [ ] **Step 8.1: Update巡检文档**
+- [x] **Step 8.1: Update巡检文档**
 
 Under R3 in `Docs/macOS迁移/M5-ComputerUse-功能巡检-2026-05-14.md`, add a subheading `平台已知限制：macOS 中文输入法候选条` with symptom, workaround, and long-term check.
 
-- [ ] **Step 8.2: Verify and commit**
+- [x] **Step 8.2: Verify and commit**
 
 Run: `rg -n "平台已知限制：macOS 中文输入法候选条|英文输入|IME composition" Docs/macOS迁移/M5-ComputerUse-功能巡检-2026-05-14.md`
 
