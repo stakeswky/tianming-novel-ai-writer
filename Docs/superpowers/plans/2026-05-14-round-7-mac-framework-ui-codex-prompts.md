@@ -278,14 +278,95 @@ Worktree：/Users/jimmy/Downloads/tianming-m7-lane0-sinks
 注册 probe，让 service 通过 probe 拿真实数据
 新增测试：service.RefreshAsync() 调用 probe.CollectAsync()
 
-完成验收：
+============== Lane R 复核遗留（必做，否则 Lane A/B/C 验收会反复卡） ==============
+
+【步骤 5】Computer Use 工具闭环排查（关键，阻塞 Lane A/B/C 后续真机验收）
+
+背景：Lane R 完成时 codex 报告 Computer Use 工具闭环失败 — list_apps 能看到
+`Avalonia Application — dev.tianming.avalonia.manualtest [frontmost, running]`，
+但 get_app_state 对 bundle id / 进程名 / 窗口名均返回 appNotFound。
+只能用 macOS Accessibility 只读勉强确认窗口可见，无法包装为"真机复跑通过"。
+
+后续 Lane A/B/C 每条都依赖 Computer Use 验收：必须先解掉这条铁路。
+
+诊断步骤：
+1. 确认 Scripts/build-dev-bundle.sh 输出的 .app 当前 Info.plist 字段：
+   - CFBundleIdentifier ✓ dev.tianming.avalonia.manualtest（已验证）
+   - 缺什么？plutil -p /tmp/TianmingDev.app/Contents/Info.plist
+2. 与 Computer Use 能成功 attach 的别的 macOS app（如 Safari / Notes）的 Info.plist 字段对比：
+   - LSUIElement / LSBackgroundOnly：是 background app 才需要
+   - NSPrincipalClass：可能需要 NSApplication
+   - CFBundleSignature / CFBundleDevelopmentRegion：常规字段
+   - NSHumanReadableCopyright / CFBundleDisplayName：可读元数据
+3. 检查 codesign 状态：Computer Use 可能要求 .app 是 codesign 过的（哪怕 ad-hoc）
+   - codesign -dvv /tmp/TianmingDev.app 看签名状态
+   - 试 codesign --force --deep -s - /tmp/TianmingDev.app 做 ad-hoc 签名
+4. 检查 TCC 权限：Computer Use 需要 Accessibility / Screen Recording 等权限
+   - 看 System Settings → Privacy & Security → Accessibility 是否含执行 Computer Use 的进程
+5. 检查 Avalonia headless / background mode：
+   - Avalonia 11 默认是否启用 NSBackgroundOnly？查 src/Tianming.Desktop.Avalonia/Program.cs
+6. 若以上都正常但仍 appNotFound：尝试用 osascript 给 .app 一个非 default 的 window title，让 Computer Use 能匹配
+
+修法（按真实根因）：
+- 改 Scripts/build-dev-bundle.sh 加缺失的 Info.plist 字段 + ad-hoc 签名
+- 文档化"Computer Use attach macOS Avalonia 应用所需的最少 Info.plist 字段集"到 Docs/macOS迁移/manual-test-howto.md
+
+验收：
+- 跑 Scripts/build-dev-bundle.sh 后用 Computer Use get_app_state(bundle id) 真返回 window tree（不是 appNotFound）
+- 把 attach 成功的关键 plist 字段 + 签名状态写入 manual-test-howto.md
+
+【步骤 6】NavigationBreadcrumbSource KnownLabels 与 PageRegistry/LeftNavViewModel 三处去重
+
+背景：Lane R f13be48 加了 NavigationBreadcrumbSource.cs:10-33 KnownLabels 硬编码字典；
+LeftNavViewModel:68 已有 "一键成书" 字面量；PageRegistry 也有 page 注册。三处重复
+意味着加新 page 必须双写/三写，漏改即 breadcrumb fallback 到 raw id（这正是
+巡检时 R1 的初始现象）。
+
+修法：
+- 在 PageRegistry 上加 DisplayName 属性（如 `Register<TVm, TView>(PageKey, displayName)`）
+- NavigationBreadcrumbSource.GetLabel(key) 改为查 PageRegistry.GetDisplayName(key)，去掉 KnownLabels
+- LeftNavViewModel 的 hard-code 文案改为引用 PageRegistry.GetDisplayName
+
+新增测试：
+- 加新 page A 注册时只填一处 DisplayName → breadcrumb 和 LeftNav 都正确显示该 DisplayName
+
+【步骤 7】ModelManagementPage ComboBox ItemTemplate 显示 DisplayName
+
+背景：Lane R fd25784 让 ApiKeysPage 显示友好 ProviderName 但 ModelManagementPage.axaml:20
+ComboBox `ItemsSource="{Binding ProviderIds}"` 显示原始 id "openai"，与 ApiKeysPage 风格不一致。
+
+修法：
+- ModelManagementPage.axaml:20 改 ItemsSource 绑到 Providers (含 DisplayName) 而不是 ProviderIds
+- 加 ItemTemplate `<TextBlock Text="{Binding DisplayName}" />`
+- ModelManagementViewModel 暴露 `ObservableCollection<DefaultAIProviderOption> Providers` 与 ApiKeysViewModel 对齐
+
+新增测试：
+- ModelManagementViewModelTests 加 1 条：Providers 包含 DefaultAIProviderOption 且 DisplayName 不为 id
+
+【步骤 8】R3 IME 拦截作为平台已知限制独立标注
+
+背景：Lane R 6422510 只把 IME 拦截作为"待区分项之一"列入巡检文档，未独立标注。下次
+Computer Use 仍会在同条件下复现且无法区分。
+
+修法：
+- 在 Docs/macOS迁移/M5-ComputerUse-功能巡检-2026-05-14.md R3 段下加独立子段"平台已知限制：macOS 中文输入法候选条"
+- 内容包括：
+  - 现象描述（IME 候选条可能视觉遮挡应用内 dropdown）
+  - workaround：临时切到英文输入或关闭 IME 候选条
+  - 长期方案 TODO：检查 Avalonia 11 是否支持 IME composition 事件让应用内 dropdown 显示在 IME 之上
+
+============== 完成验收 ==============
+
 - dotnet build 0 W / 0 E
-- dotnet test 全绿，新增 ≥4 条测试
-- 启动 app（dotnet run --project src/Tianming.Desktop.Avalonia/）→ 至少观察到 Avalonia AppearanceVariant 切换日志（说明监听跑起来了）
+- dotnet test 全绿，新增 ≥6 条测试（步骤 1-4 共 ≥4 + 步骤 6 至少 1 + 步骤 7 至少 1）
+- 启动 app（用 Scripts/build-dev-bundle.sh 包装后启动，不要直接 dotnet run）
+- Computer Use get_app_state(dev.tianming.avalonia.manualtest) 真返回 window tree
+- Avalonia AppearanceVariant 切换日志可见（说明监听跑起来了）
 
 完成输出：
 - 全部 commit + 标题
-- step 0-4 完成状态
+- step 0-8 完成状态
+- Computer Use 工具闭环验证关键截图或文本
 - 启动日志关键行
 - 附带发现（如有）
 
@@ -487,8 +568,8 @@ Lane R (真机回归)  →  Merge  →  Lane 0 (sink DI)  →  Merge  →  Lane 
 
 | Lane | 工作量 | 风险 |
 |---|---|---|
-| Lane R | 2-4 小时 | 中（3 个产品 bug 根因不一定容易找；R3 可能是 IME 平台限制） |
-| Lane 0 | 4-6 小时 | 低（DI 注册 + 启动钩子） |
+| Lane R | 2-4 小时 | 中（3 个产品 bug 根因不一定容易找；R3 可能是 IME 平台限制）— **已 merge（commit 9991d26 → main）**|
+| Lane 0 | 8-12 小时 | 中（4 个 sink DI + 4 个 Lane R 复核遗留 task；Computer Use 工具闭环排查最不确定）|
 | Lane A | 1.5-2 天 | 中（建 Settings Shell + 6 个 page） |
 | Lane B | 1-1.5 天 | 中（通知/声音相对独立） |
 | Lane C | 1.5-2 天 | 中-高（系统监控/代理/日志数据模型复杂） |
