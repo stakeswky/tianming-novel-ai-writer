@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -120,18 +121,17 @@ public partial class ModelManagementViewModel : ObservableObject
     [RelayCommand]
     private async Task SaveModelAsync(ModelConfigItem item)
     {
-        var config = new UserConfiguration
-        {
-            Id = item.Id,
-            ProviderId = item.ProviderId,
-            ModelId = item.ModelId,
-            CustomEndpoint = string.IsNullOrWhiteSpace(item.Endpoint) ? null : item.Endpoint,
-            Temperature = item.Temperature,
-            MaxTokens = item.MaxTokens,
-            Name = item.Name,
-            Purpose = string.IsNullOrWhiteSpace(item.Purpose) ? "Default" : item.Purpose,
-            IsActive = item.IsActive
-        };
+        var config = _store.GetAllConfigurations().FirstOrDefault(existing => existing.Id == item.Id)
+            ?? new UserConfiguration { Id = item.Id };
+        config.ProviderId = item.ProviderId;
+        config.ModelId = item.ModelId;
+        config.CustomEndpoint = string.IsNullOrWhiteSpace(item.Endpoint) ? null : item.Endpoint;
+        config.Temperature = item.Temperature;
+        config.MaxTokens = item.MaxTokens;
+        config.Name = item.Name;
+        config.Purpose = string.IsNullOrWhiteSpace(item.Purpose) ? "Default" : item.Purpose;
+        config.IsActive = item.IsActive;
+
         _store.UpdateConfiguration(config);
         IsEditing = false;
         EditingItem = null;

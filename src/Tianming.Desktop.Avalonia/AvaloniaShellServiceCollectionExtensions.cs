@@ -266,7 +266,8 @@ public static class AvaloniaShellServiceCollectionExtensions
             () => sp.GetRequiredService<FileAIConfigurationStore>().GetAllConfigurations()));
         s.AddSingleton<RoutedChatClient>(sp => new RoutedChatClient(
             sp.GetRequiredService<OpenAICompatibleChatClient>(),
-            sp.GetRequiredService<IAIModelRouter>()));
+            sp.GetRequiredService<IAIModelRouter>(),
+            sp.GetRequiredService<FileAIConfigurationStore>()));
         s.AddSingleton<FilePromptTemplateStore>(sp =>
         {
             var root = Path.Combine(sp.GetRequiredService<AppPaths>().AppSupportDirectory, "Prompts");
@@ -314,7 +315,8 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<AskModeMapper>(),
                 sp.GetRequiredService<PlanModeMapper>(),
                 sp.GetRequiredService<AgentModeMapper>(),
-                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
+                sp.GetRequiredService<IAIModelRouter>()));
         s.AddSingleton<IConversationOrchestrator>(sp => sp.GetRequiredService<ConversationOrchestrator>());
         s.AddSingleton<IReferenceSuggestionSource, ReferenceSuggestionSource>();
 

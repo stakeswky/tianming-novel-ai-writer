@@ -126,6 +126,52 @@ public class RoutedChatClientTests
         Assert.Equal("check_consistency", root.GetProperty("tools")[0].GetProperty("function").GetProperty("name").GetString());
     }
 
+    [Fact]
+    public void BuildRequestFor_uses_provider_endpoint_when_custom_endpoint_is_blank()
+    {
+        using var workspace = new TempDirectory();
+        var library = System.IO.Path.Combine(workspace.Path, "Library");
+        var configs = System.IO.Path.Combine(workspace.Path, "Configurations");
+        WriteLibrary(library);
+        var store = new FileAIConfigurationStore(library, configs);
+        var router = new StubRouter();
+        router.Map[AITaskPurpose.Chat] = new UserConfiguration
+        {
+            ProviderId = "openai",
+            ModelId = "gpt-id",
+            ApiKey = "key-chat",
+            CustomEndpoint = null,
+            Temperature = 0.2,
+            MaxTokens = 1024,
+        };
+        var client = new RoutedChatClient(
+            new OpenAICompatibleChatClient(new HttpClient(new CapturingHandler(HttpStatusCode.OK, "{}"))),
+            router,
+            store);
+
+        var request = client.BuildRequestFor(
+            AITaskPurpose.Chat,
+            [new OpenAICompatibleChatMessage("user", "ping")]);
+
+        Assert.Equal("https://api.example.test", request.BaseUrl);
+        Assert.Equal("gpt-real", request.Model);
+    }
+
+    private static void WriteLibrary(string library)
+    {
+        Directory.CreateDirectory(library);
+        File.WriteAllText(System.IO.Path.Combine(library, "providers.json"), """
+        { "Providers": [
+          { "Id": "openai", "Name": "OpenAI", "ApiEndpoint": "https://api.example.test", "Order": 1 }
+        ] }
+        """);
+        File.WriteAllText(System.IO.Path.Combine(library, "models.json"), """
+        { "Models": [
+          { "Id": "gpt-id", "ProviderId": "openai", "Name": "gpt-real", "Order": 1 }
+        ] }
+        """);
+    }
+
     private sealed class CapturingHandler : HttpMessageHandler
     {
         private readonly HttpResponseMessage _response;
@@ -148,6 +194,22 @@ public class RoutedChatClientTests
                 ? string.Empty
                 : await request.Content.ReadAsStringAsync(cancellationToken);
             return _response;
+        }
+    }
+
+    private sealed class TempDirectory : IDisposable
+    {
+        public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"tianming-routed-chat-{Guid.NewGuid():N}");
+
+        public TempDirectory()
+        {
+            Directory.CreateDirectory(Path);
+        }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(Path))
+                Directory.Delete(Path, recursive: true);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using TM.Framework.Common.Helpers.AI;
 using TM.Services.Framework.AI.Core;
+using TM.Services.Framework.AI.Core.Routing;
 using TM.Services.Framework.AI.Monitoring;
 using Xunit;
 
@@ -483,6 +484,102 @@ public class ConfiguredAITextGenerationServiceTests
         Assert.Equal("当前没有激活的AI模型，请前往“智能助手 > 模型管理”完成配置后重试。", ex.Message);
     }
 
+    [Theory]
+    [InlineData(AITaskPurpose.Writing, "writing-model")]
+    [InlineData(AITaskPurpose.Polish, "polish-model")]
+    [InlineData(AITaskPurpose.Validation, "validation-model")]
+    public async Task GenerateAsync_uses_requested_purpose_routing(
+        AITaskPurpose purpose,
+        string expectedModel)
+    {
+        using var workspace = new TempDirectory();
+        var library = System.IO.Path.Combine(workspace.Path, "Library");
+        var configs = System.IO.Path.Combine(workspace.Path, "Configurations");
+        WriteLibrary(library);
+        var store = new FileAIConfigurationStore(library, configs);
+        store.AddConfiguration(new UserConfiguration
+        {
+            Name = "Writing",
+            ProviderId = "openai",
+            ModelId = "writing-id",
+            ApiKey = "sk-writing",
+            Purpose = "Writing",
+            IsEnabled = true
+        });
+        store.AddConfiguration(new UserConfiguration
+        {
+            Name = "Polish",
+            ProviderId = "openai",
+            ModelId = "polish-id",
+            ApiKey = "sk-polish",
+            Purpose = "Polish",
+            IsEnabled = true
+        });
+        store.AddConfiguration(new UserConfiguration
+        {
+            Name = "Validation",
+            ProviderId = "openai",
+            ModelId = "validation-id",
+            ApiKey = "sk-validation",
+            Purpose = "Validation",
+            IsEnabled = true
+        });
+        var router = new DefaultAIModelRouter(store.GetAllConfigurations);
+        var handler = new CapturingHandler(HttpStatusCode.OK, """
+        { "choices": [ { "message": { "content": "生成结果" } } ] }
+        """);
+        using var httpClient = new HttpClient(handler);
+        var service = new ConfiguredAITextGenerationService(store, () => httpClient, router: router);
+
+        PromptGenerationAiResult result = await service.GenerateAsync("写一章", purpose);
+
+        Assert.True(result.Success);
+        Assert.Equal("https://api.example.test/v1/chat/completions", handler.Request!.RequestUri!.ToString());
+        using var document = JsonDocument.Parse(handler.Body);
+        Assert.Equal(expectedModel, document.RootElement.GetProperty("model").GetString());
+    }
+
+    [Fact]
+    public async Task GenerateAsync_defaults_to_writing_purpose_when_router_is_present()
+    {
+        using var workspace = new TempDirectory();
+        var library = System.IO.Path.Combine(workspace.Path, "Library");
+        var configs = System.IO.Path.Combine(workspace.Path, "Configurations");
+        WriteLibrary(library);
+        var store = new FileAIConfigurationStore(library, configs);
+        store.AddConfiguration(new UserConfiguration
+        {
+            Name = "Writing",
+            ProviderId = "openai",
+            ModelId = "writing-id",
+            ApiKey = "sk-writing",
+            Purpose = "Writing",
+            IsEnabled = true
+        });
+        store.AddConfiguration(new UserConfiguration
+        {
+            Name = "Chat",
+            ProviderId = "openai",
+            ModelId = "chat-id",
+            ApiKey = "sk-chat",
+            Purpose = "Chat",
+            IsEnabled = true,
+            IsActive = true
+        });
+        var router = new DefaultAIModelRouter(store.GetAllConfigurations);
+        var handler = new CapturingHandler(HttpStatusCode.OK, """
+        { "choices": [ { "message": { "content": "生成结果" } } ] }
+        """);
+        using var httpClient = new HttpClient(handler);
+        var service = new ConfiguredAITextGenerationService(store, () => httpClient, router: router);
+
+        PromptGenerationAiResult result = await service.GenerateAsync("写一章");
+
+        Assert.True(result.Success);
+        using var document = JsonDocument.Parse(handler.Body);
+        Assert.Equal("writing-model", document.RootElement.GetProperty("model").GetString());
+    }
+
     private static void WriteLibrary(string library)
     {
         Directory.CreateDirectory(library);
@@ -493,7 +590,11 @@ public class ConfiguredAITextGenerationServiceTests
         """);
         File.WriteAllText(System.IO.Path.Combine(library, "models.json"), """
         { "Models": [
-          { "Id": "gpt-id", "ProviderId": "openai", "Name": "gpt-real", "Order": 1 }
+          { "Id": "gpt-id", "ProviderId": "openai", "Name": "gpt-real", "Order": 1 },
+          { "Id": "writing-id", "ProviderId": "openai", "Name": "writing-model", "Order": 2 },
+          { "Id": "polish-id", "ProviderId": "openai", "Name": "polish-model", "Order": 3 },
+          { "Id": "validation-id", "ProviderId": "openai", "Name": "validation-model", "Order": 4 },
+          { "Id": "chat-id", "ProviderId": "openai", "Name": "chat-model", "Order": 5 }
         ] }
         """);
     }

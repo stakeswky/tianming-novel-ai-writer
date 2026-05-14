@@ -35,6 +35,18 @@ public class DefaultAIModelRouterTests
     }
 
     [Fact]
+    public void Does_not_fall_back_to_active_non_default_config()
+    {
+        var router = new DefaultAIModelRouter(() =>
+        [
+            new UserConfiguration { Id = "c1", Purpose = "Chat", IsEnabled = true, IsActive = true, ModelId = "haiku" },
+            new UserConfiguration { Id = "c2", Purpose = "Default", IsEnabled = false, ModelId = "disabled-default" },
+        ]);
+
+        Assert.Throws<InvalidOperationException>(() => router.Resolve(AITaskPurpose.Polish));
+    }
+
+    [Fact]
     public void Throws_when_no_default_and_purpose_missing()
     {
         var router = new DefaultAIModelRouter(() => new List<UserConfiguration>());

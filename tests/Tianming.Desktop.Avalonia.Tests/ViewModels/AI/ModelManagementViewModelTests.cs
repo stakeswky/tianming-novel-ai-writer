@@ -52,6 +52,29 @@ public class ModelManagementViewModelTests
     }
 
     [Fact]
+    public async Task SaveModelCommand_preserves_existing_developer_message()
+    {
+        using var workspace = new TempDirectory();
+        var configs = Path.Combine(workspace.Path, "Configurations");
+        var store = new FileAIConfigurationStore(Path.Combine(workspace.Path, "Library"), configs);
+        store.AddConfiguration(new UserConfiguration
+        {
+            ProviderId = "openai",
+            ModelId = "gpt",
+            Purpose = "Default",
+            DeveloperMessage = "keep me"
+        });
+        var vm = new ModelManagementViewModel(store);
+        var item = Assert.Single(vm.Models);
+        item.Purpose = "Validation";
+
+        await vm.SaveModelCommand.ExecuteAsync(item);
+
+        var reloaded = new FileAIConfigurationStore(Path.Combine(workspace.Path, "Library"), configs);
+        Assert.Equal("keep me", Assert.Single(reloaded.GetAllConfigurations()).DeveloperMessage);
+    }
+
+    [Fact]
     public async Task AddModelCommand_defaults_new_models_to_default_purpose()
     {
         using var workspace = new TempDirectory();

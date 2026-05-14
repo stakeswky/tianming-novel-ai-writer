@@ -23,11 +23,15 @@ public sealed class DefaultAIModelRouter : IAIModelRouter
         if (purposeMatch != null)
             return purposeMatch;
 
-        var active = enabled.FirstOrDefault(config => config.IsActive);
-        if (active != null)
-            return active;
+        var defaultConfig = enabled.FirstOrDefault(config =>
+            string.Equals(config.Purpose, AITaskPurpose.Default.ToString(), StringComparison.OrdinalIgnoreCase)
+            && config.IsActive)
+            ?? enabled.FirstOrDefault(config =>
+                string.Equals(config.Purpose, AITaskPurpose.Default.ToString(), StringComparison.OrdinalIgnoreCase));
+        if (defaultConfig != null)
+            return defaultConfig;
 
         throw new InvalidOperationException(
-            $"No UserConfiguration matches purpose {purpose} and no active default found.");
+            $"No enabled UserConfiguration matches purpose {purpose} and no enabled default-purpose configuration was found.");
     }
 }
