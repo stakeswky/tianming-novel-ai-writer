@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TM.Framework.Common.Models;
 using TM.Framework.Appearance;
 using TM.Framework.Notifications;
+using TM.Framework.SystemMonitor;
 using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
 using TM.Services.Framework.AI.Core;
 using TM.Services.Framework.AI.Core.Routing;
@@ -199,6 +200,11 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<FileNotificationHistoryStore>(),
                 sp.GetRequiredService<IPortableNotificationSink>(),
                 sp.GetRequiredService<IPortableNotificationSoundPlayer>()));
+        s.AddSingleton<IPortableSystemMonitorProbe, MacOSSystemMonitorProbe>();
+        s.AddSingleton<MacOSSystemMonitorProbe>(sp =>
+            (MacOSSystemMonitorProbe)sp.GetRequiredService<IPortableSystemMonitorProbe>());
+        s.AddSingleton(sp =>
+            new PortableSystemMonitorService(sp.GetRequiredService<IPortableSystemMonitorProbe>()));
 
         // Navigation
         s.AddSingleton<PageRegistry>(_ => RegisterPages(new PageRegistry()));

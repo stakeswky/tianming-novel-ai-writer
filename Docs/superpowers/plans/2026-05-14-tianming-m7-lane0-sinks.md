@@ -166,7 +166,7 @@ Commit with title: `Wire macOS speech output into notification sound player`.
 
 ## Step 4: Wire MacOSSystemMonitorProbe to PortableSystemMonitorService
 
-- [ ] **Step 4.1: Write red tests**
+- [x] **Step 4.1: Write red tests**
 
 Extend DI assertions:
 
@@ -177,17 +177,17 @@ Assert.NotNull(sp.GetRequiredService<PortableSystemMonitorService>());
 
 Add a unit test with a `CountingSystemMonitorProbe`, construct `PortableSystemMonitorService`, call `CaptureSnapshot`, and assert the fake probe was read.
 
-- [ ] **Step 4.2: Run red**
+- [x] **Step 4.2: Run red**
 
 Run focused tests: `dotnet test tests/Tianming.Desktop.Avalonia.Tests/Tianming.Desktop.Avalonia.Tests.csproj --filter "Build_ResolvesMacOSPlatformSinks|System_monitor_service_reads_registered_probe"`
 
 Expected: DI assertion fails before registration.
 
-- [ ] **Step 4.3: Implement**
+- [x] **Step 4.3: Implement**
 
 Register `IPortableSystemMonitorProbe` as `MacOSSystemMonitorProbe` and `PortableSystemMonitorService` from the registered probe.
 
-- [ ] **Step 4.4: Verify and commit**
+- [x] **Step 4.4: Verify and commit**
 
 Run the focused filter and `dotnet build Tianming.MacMigration.sln`.
 

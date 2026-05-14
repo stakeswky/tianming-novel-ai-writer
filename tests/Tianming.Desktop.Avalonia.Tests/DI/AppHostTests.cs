@@ -8,6 +8,7 @@ using Tianming.Desktop.Avalonia.ViewModels;
 using TM.Framework.Appearance;
 using TM.Framework.Notifications;
 using TM.Framework.Platform;
+using TM.Framework.SystemMonitor;
 using Xunit;
 
 namespace Tianming.Desktop.Avalonia.Tests.DI;
@@ -65,6 +66,9 @@ public class AppHostTests
         Assert.IsType<MacOSSpeechOutput>(
             sp.GetRequiredService<IPortableSpeechOutput>());
         Assert.NotNull(sp.GetRequiredService<IPortableNotificationSoundPlayer>());
+        Assert.IsType<MacOSSystemMonitorProbe>(
+            sp.GetRequiredService<IPortableSystemMonitorProbe>());
+        Assert.NotNull(sp.GetRequiredService<PortableSystemMonitorService>());
     }
 
     [Fact]
