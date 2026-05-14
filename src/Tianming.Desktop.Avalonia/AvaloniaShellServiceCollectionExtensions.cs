@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TM.Framework.Appearance;
@@ -12,7 +15,9 @@ using TM.Services.Framework.AI.SemanticKernel.Conversation.Mapping;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Parsing;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Thinking;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools;
+using TM.Services.Modules.ProjectData.Context;
 using TM.Services.Modules.ProjectData.Generation.Wal;
+using TM.Services.Modules.ProjectData.Implementations;
 using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
@@ -36,6 +41,8 @@ using TM.Services.Modules.ProjectData.Modules.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Schema;
 using TM.Services.Modules.ProjectData.Humanize;
 using TM.Services.Modules.ProjectData.Humanize.Rules;
+using TM.Services.Modules.ProjectData.Implementations.Tracking.Rules;
+using TM.Services.Modules.ProjectData.Models.Tracking;
 using TM.Services.Modules.ProjectData.Tracking.Layers;
 using TM.Services.Modules.ProjectData.Tracking.Locator;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
@@ -181,6 +188,24 @@ public static class AvaloniaShellServiceCollectionExtensions
         // M4.4 章节生成状态追踪
         s.AddSingleton<ChapterGenerationStore>(sp =>
             new ChapterGenerationStore(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+
+        // M6.5 ContextService 拆分
+        s.AddSingleton<IDesignContextService>(sp =>
+            new DesignContextService(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IGenerationContextService>(sp =>
+            new GenerationContextService(
+                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
+                (chapterId, ct) => BuildFactSnapshotAsync(sp, chapterId, ct),
+                ct => BuildDesignElementNamesAsync(sp, ct),
+                (chapterId, ct) => BuildPreviousChaptersSummaryAsync(sp, chapterId, ct)));
+        s.AddSingleton<IValidationContextService>(sp =>
+            new ValidationContextService(
+                ct => Task.FromResult(new LedgerRuleSetProvider().GetRuleSetForGate()),
+                (chapterId, ct) => BuildFactSnapshotAsync(sp, chapterId, ct)));
+        s.AddSingleton<IPackagingContextService>(sp =>
+            new PackagingContextService(
+                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
+                sp.GetRequiredService<IDesignContextService>()));
 
         // M6.2 Humanize + CHANGES Canonicalize
         s.AddSingleton<FileHumanizeRulesStore>(sp =>
@@ -350,5 +375,119 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts);
         reg.Register<UsageStatisticsViewModel,  UsageStatisticsPage>(PageKeys.AIUsage);
         return reg;
+    }
+
+    private static async Task<FactSnapshot> BuildFactSnapshotAsync(IServiceProvider sp, string chapterId, CancellationToken ct)
+    {
+        var projectRoot = sp.GetRequiredService<ICurrentProjectService>().ProjectRoot;
+        var chapterAdapter = sp.GetRequiredService<ModuleDataAdapter<ChapterCategory, ChapterData>>();
+        var characterAdapter = sp.GetRequiredService<ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData>>();
+        var factionAdapter = sp.GetRequiredService<ModuleDataAdapter<FactionRulesCategory, FactionRulesData>>();
+        var locationAdapter = sp.GetRequiredService<ModuleDataAdapter<LocationRulesCategory, LocationRulesData>>();
+
+        await chapterAdapter.LoadAsync().ConfigureAwait(false);
+        await characterAdapter.LoadAsync().ConfigureAwait(false);
+        await factionAdapter.LoadAsync().ConfigureAwait(false);
+        await locationAdapter.LoadAsync().ConfigureAwait(false);
+
+        var chapter = chapterAdapter.GetData().FirstOrDefault(x => string.Equals(x.Id, chapterId, StringComparison.Ordinal));
+        var characterIds = MapIdsByName(characterAdapter.GetData(), chapter?.ReferencedCharacterNames, x => x.Id, x => x.Name);
+        var factionIds = MapIdsByName(factionAdapter.GetData(), chapter?.ReferencedFactionNames, x => x.Id, x => x.Name);
+        var locationIds = MapIdsByName(locationAdapter.GetData(), chapter?.ReferencedLocationNames, x => x.Id, x => x.Name);
+
+        var source = new FileFactSnapshotGuideSource(projectRoot, projectRoot);
+        var extractor = new PortableFactSnapshotExtractor(source);
+        return await extractor
+            .ExtractSnapshotAsync(
+                chapterId,
+                characterIds,
+                locationIds,
+                null,
+                null,
+                null,
+                null,
+                factionIds,
+                ct)
+            .ConfigureAwait(false);
+    }
+
+    private static async Task<DesignElementNames> BuildDesignElementNamesAsync(IServiceProvider sp, CancellationToken ct)
+    {
+        var characterAdapter = sp.GetRequiredService<ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData>>();
+        var factionAdapter = sp.GetRequiredService<ModuleDataAdapter<FactionRulesCategory, FactionRulesData>>();
+        var locationAdapter = sp.GetRequiredService<ModuleDataAdapter<LocationRulesCategory, LocationRulesData>>();
+        var plotAdapter = sp.GetRequiredService<ModuleDataAdapter<PlotRulesCategory, PlotRulesData>>();
+
+        await characterAdapter.LoadAsync().ConfigureAwait(false);
+        await factionAdapter.LoadAsync().ConfigureAwait(false);
+        await locationAdapter.LoadAsync().ConfigureAwait(false);
+        await plotAdapter.LoadAsync().ConfigureAwait(false);
+        ct.ThrowIfCancellationRequested();
+
+        var characterNames = DistinctNames(characterAdapter.GetData().Select(x => x.Name));
+        return new DesignElementNames
+        {
+            CharacterNames = characterNames,
+            FactionNames = DistinctNames(factionAdapter.GetData().Select(x => x.Name)),
+            LocationNames = DistinctNames(locationAdapter.GetData().Select(x => x.Name)),
+            PlotKeyNames = DistinctNames(plotAdapter.GetData().Select(x => x.Name)),
+            PovCharacterNames = characterNames,
+        };
+    }
+
+    private static async Task<string> BuildPreviousChaptersSummaryAsync(IServiceProvider sp, string chapterId, CancellationToken ct)
+    {
+        var chapterAdapter = sp.GetRequiredService<ModuleDataAdapter<ChapterCategory, ChapterData>>();
+        await chapterAdapter.LoadAsync().ConfigureAwait(false);
+        ct.ThrowIfCancellationRequested();
+
+        var chapters = chapterAdapter.GetData()
+            .OrderBy(x => x.ChapterNumber)
+            .ThenBy(x => x.Id, StringComparer.Ordinal)
+            .ToList();
+        var current = chapters.FirstOrDefault(x => string.Equals(x.Id, chapterId, StringComparison.Ordinal));
+        if (current is null)
+            return string.Empty;
+
+        var previous = chapters
+            .Where(x => x.ChapterNumber > 0 && x.ChapterNumber < current.ChapterNumber)
+            .TakeLast(3)
+            .Select(x => $"第{x.ChapterNumber}章 {x.ChapterTitle}: {x.GetCoreSummary()}")
+            .ToList();
+
+        return previous.Count == 0 ? string.Empty : string.Join("\n", previous);
+    }
+
+    private static List<string> DistinctNames(IEnumerable<string> names)
+    {
+        return names
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static IReadOnlyCollection<string>? MapIdsByName<T>(
+        IEnumerable<T> items,
+        IReadOnlyCollection<string>? names,
+        Func<T, string> idSelector,
+        Func<T, string> nameSelector)
+    {
+        if (names == null || names.Count == 0)
+            return null;
+
+        var wanted = names
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (wanted.Count == 0)
+            return null;
+
+        var ids = items
+            .Where(item => wanted.Contains(nameSelector(item)))
+            .Select(idSelector)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return ids.Count == 0 ? null : ids;
     }
 }
