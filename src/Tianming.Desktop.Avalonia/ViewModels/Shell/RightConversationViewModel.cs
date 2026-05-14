@@ -4,6 +4,7 @@ using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels.Conversation;
 using TM.Services.Framework.AI.SemanticKernel;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
+using TM.Services.Modules.ProjectData.StagedChanges;
 
 namespace Tianming.Desktop.Avalonia.ViewModels.Shell;
 
@@ -25,8 +26,9 @@ public partial class RightConversationViewModel : ConversationPanelViewModel
         IConversationOrchestrator orchestrator,
         IFileSessionStore sessionStore,
         IDispatcherScheduler scheduler,
-        IReferenceSuggestionSource? referenceSuggestionSource = null)
-        : base(orchestrator, sessionStore, scheduler, referenceSuggestionSource, seedSamples: true)
+        IReferenceSuggestionSource? referenceSuggestionSource = null,
+        IStagedChangeApprover? approver = null)
+        : base(orchestrator, sessionStore, scheduler, referenceSuggestionSource, approver, seedSamples: true)
     {
     }
 }

@@ -1,6 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using TM.Framework.Common.Models;
 using TM.Framework.Appearance;
 using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
 using TM.Services.Framework.AI.Core;
@@ -12,6 +17,7 @@ using TM.Services.Framework.AI.SemanticKernel.Conversation.Mapping;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Parsing;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Thinking;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools;
+using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools.Write;
 using TM.Services.Modules.ProjectData.Context;
 using TM.Services.Modules.ProjectData.Generation.Wal;
 using TM.Services.Modules.ProjectData.Implementations;
@@ -36,6 +42,7 @@ using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Generate.Outline;
 using TM.Services.Modules.ProjectData.Modules.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Schema;
+using TM.Services.Modules.ProjectData.StagedChanges;
 using TM.Services.Modules.ProjectData.Humanize;
 using TM.Services.Modules.ProjectData.Humanize.Rules;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Rules;
@@ -65,6 +72,11 @@ namespace Tianming.Desktop.Avalonia;
 
 public static class AvaloniaShellServiceCollectionExtensions
 {
+    private static readonly JsonSerializerOptions StagedDataJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
     public static IServiceCollection AddAvaloniaShell(this IServiceCollection s)
     {
         // Infra
@@ -329,12 +341,35 @@ public static class AvaloniaShellServiceCollectionExtensions
             var paths = sp.GetRequiredService<AppPaths>();
             return new FileSessionStore(Path.Combine(paths.AppSupportDirectory, "Sessions"));
         });
+        s.AddSingleton<IStagedChangeStore>(sp =>
+            new FileStagedChangeStore(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
         s.AddSingleton<IConversationTool>(sp =>
             new LookupDataTool(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
         s.AddSingleton<IConversationTool>(sp =>
             new ReadChapterTool(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
         s.AddSingleton<IConversationTool>(sp =>
             new SearchReferencesTool(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IConversationTool>(sp =>
+            new ContentEditTool(sp.GetRequiredService<IStagedChangeStore>()));
+        s.AddSingleton<IConversationTool>(sp =>
+            new DataEditTool(sp.GetRequiredService<IStagedChangeStore>()));
+        s.AddSingleton<IConversationTool>(sp =>
+            new WorkspaceEditTool(sp.GetRequiredService<IStagedChangeStore>()));
+        s.AddSingleton<IStagedChangeApprover>(sp => new StagedChangeApprover(
+            sp.GetRequiredService<IStagedChangeStore>(),
+            content: async (chapterId, newContent, ct) =>
+            {
+                var projectRoot = sp.GetRequiredService<ICurrentProjectService>().ProjectRoot;
+                var store = new ChapterContentStore(Path.Combine(projectRoot, "Generated", "chapters"));
+                ct.ThrowIfCancellationRequested();
+                await store.SaveChapterAsync(chapterId, newContent).ConfigureAwait(false);
+            },
+            data: (category, dataId, dataJson, ct) => ApplyDataChangeAsync(sp, category, dataId, dataJson, ct),
+            workspace: async (relativePath, newContent, ct) =>
+            {
+                var projectRoot = sp.GetRequiredService<ICurrentProjectService>().ProjectRoot;
+                await WriteWorkspaceFileAsync(projectRoot, relativePath, newContent, ct).ConfigureAwait(false);
+            }));
         s.AddSingleton<ConversationOrchestrator>(sp =>
             new ConversationOrchestrator(
                 sp.GetRequiredService<OpenAICompatibleChatClient>(),
@@ -388,5 +423,107 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts);
         reg.Register<UsageStatisticsViewModel,  UsageStatisticsPage>(PageKeys.AIUsage);
         return reg;
+    }
+
+    private static Task ApplyDataChangeAsync(
+        IServiceProvider sp,
+        string category,
+        string dataId,
+        string dataJson,
+        CancellationToken ct)
+        => category switch
+        {
+            "Characters" or "characters" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "WorldRules" or "worldrules" or "world" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<WorldRulesCategory, WorldRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "Factions" or "factions" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<FactionRulesCategory, FactionRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "Locations" or "locations" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<LocationRulesCategory, LocationRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "Plot" or "plot" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<PlotRulesCategory, PlotRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "CreativeMaterials" or "creativematerials" or "materials" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<CreativeMaterialCategory, CreativeMaterialData>>(),
+                dataId,
+                dataJson,
+                ct),
+            _ => throw new InvalidOperationException($"Unsupported staged data category '{category}'."),
+        };
+
+    private static async Task ApplyTypedDataChangeAsync<TCategory, TData>(
+        ModuleDataAdapter<TCategory, TData> adapter,
+        string dataId,
+        string dataJson,
+        CancellationToken ct)
+        where TCategory : class, ICategory
+        where TData : class, IDataItem
+    {
+        ct.ThrowIfCancellationRequested();
+        await adapter.LoadAsync().ConfigureAwait(false);
+
+        var item = JsonSerializer.Deserialize<TData>(dataJson, StagedDataJsonOptions)
+            ?? throw new InvalidOperationException("Staged data payload could not be deserialized.");
+
+        var existing = adapter.GetData().FirstOrDefault(entry => string.Equals(entry.Id, dataId, StringComparison.Ordinal));
+        item.Id = string.IsNullOrWhiteSpace(item.Id) ? dataId : item.Id;
+
+        if (string.IsNullOrWhiteSpace(item.Category))
+        {
+            item.Category = existing?.Category
+                ?? adapter.GetCategories().FirstOrDefault()?.Name
+                ?? throw new InvalidOperationException("No category available for staged data change.");
+        }
+
+        if (string.IsNullOrWhiteSpace(item.CategoryId))
+        {
+            item.CategoryId = existing?.CategoryId ?? string.Empty;
+        }
+
+        await adapter.UpdateAsync(item).ConfigureAwait(false);
+    }
+
+    private static async Task WriteWorkspaceFileAsync(
+        string projectRoot,
+        string relativePath,
+        string newContent,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            throw new InvalidOperationException("Workspace staged change requires a relativePath.");
+        }
+
+        var rootFullPath = Path.GetFullPath(projectRoot);
+        var targetPath = Path.GetFullPath(Path.Combine(projectRoot, relativePath));
+        if (!targetPath.StartsWith(rootFullPath, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Workspace staged change path escapes the project root.");
+        }
+
+        var parent = Path.GetDirectoryName(targetPath);
+        if (!string.IsNullOrEmpty(parent))
+        {
+            Directory.CreateDirectory(parent);
+        }
+
+        var tempPath = targetPath + ".tmp";
+        await File.WriteAllTextAsync(tempPath, newContent, ct).ConfigureAwait(false);
+        File.Move(tempPath, targetPath, overwrite: true);
     }
 }
