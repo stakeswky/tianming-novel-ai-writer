@@ -33,6 +33,8 @@ using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Generate.Outline;
 using TM.Services.Modules.ProjectData.Modules.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Schema;
+using TM.Services.Modules.ProjectData.Tracking.Layers;
+using TM.Services.Modules.ProjectData.Tracking.Locator;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
@@ -184,6 +186,20 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton<ITrackingDebtDetector, PledgeDetector>();
         s.AddSingleton<ITrackingDebtDetector, SecretRevealDetector>();
         s.AddSingleton(sp => new TrackingDebtRegistry(sp.GetServices<ITrackingDebtDetector>()));
+
+        // M6.4 校验分层 + 向量定位
+        s.AddSingleton(sp => new FileVectorSearchService(
+            sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
+            sp.GetRequiredService<ITextEmbedder>()));
+        s.AddSingleton<FileVectorSearchServiceAdapter>();
+        s.AddSingleton<IVectorSearchService>(sp => sp.GetRequiredService<FileVectorSearchServiceAdapter>());
+        s.AddSingleton<IConsistencyLayer, StructuralLayer>();
+        s.AddSingleton<IConsistencyLayer, EntityLayer>();
+        s.AddSingleton<IConsistencyLayer, ForeshadowLayer>();
+        s.AddSingleton<IConsistencyLayer, TimelineLayer>();
+        s.AddSingleton<IConsistencyLayer, RelationshipLayer>();
+        s.AddSingleton(sp => new LayeredConsistencyChecker(sp.GetServices<IConsistencyLayer>()));
+        s.AddSingleton(sp => new ConsistencyIssueLocator(sp.GetRequiredService<IVectorSearchService>()));
 
         s.AddTransient<OutlineViewModel>();
         s.AddTransient<VolumeDesignViewModel>();
