@@ -20,8 +20,10 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
     private readonly IConversationOrchestrator? _orchestrator;
     private readonly IFileSessionStore? _sessionStore;
     private readonly BulkEmitter? _emitter;
+    private readonly IReferenceSuggestionSource? _referenceSuggestionSource;
     private ConversationSession? _currentSession;
     private CancellationTokenSource? _cts;
+    private CancellationTokenSource? _referenceSuggestionCts;
 
     [ObservableProperty] private string _selectedMode = "ask";
     [ObservableProperty] private string _inputDraft = string.Empty;
@@ -42,8 +44,9 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
     public ObservableCollection<SessionListItemVm> SessionHistory { get; } = new();
     public ObservableCollection<ReferenceItemVm> ReferenceCandidates { get; } = new();
 
-    public ConversationPanelViewModel(bool seedSamples = true)
+    public ConversationPanelViewModel(bool seedSamples = true, IReferenceSuggestionSource? referenceSuggestionSource = null)
     {
+        _referenceSuggestionSource = referenceSuggestionSource;
         if (seedSamples)
             SeedSamples();
     }
@@ -52,11 +55,13 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         IConversationOrchestrator orchestrator,
         IFileSessionStore sessionStore,
         IDispatcherScheduler scheduler,
+        IReferenceSuggestionSource? referenceSuggestionSource = null,
         bool seedSamples = false)
     {
         _orchestrator = orchestrator;
         _sessionStore = sessionStore;
         _emitter = new BulkEmitter(scheduler);
+        _referenceSuggestionSource = referenceSuggestionSource;
         _emitter.Start(SampleBubbles);
         if (seedSamples)
             SeedSamples();
@@ -234,23 +239,41 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         var index = value.LastIndexOf('@');
         if (index < 0 || index == value.Length - 1)
         {
-            IsReferencePopupOpen = false;
+            ClearReferenceSuggestions();
             return;
         }
 
         var query = value[(index + 1)..];
         if (string.IsNullOrWhiteSpace(query))
         {
-            IsReferencePopupOpen = false;
+            ClearReferenceSuggestions();
             return;
         }
 
-        PopulateReferenceCandidates(query);
+        _referenceSuggestionCts?.Cancel();
+        _referenceSuggestionCts?.Dispose();
+        _referenceSuggestionCts = new CancellationTokenSource();
+        _ = PopulateReferenceCandidatesAsync(query, _referenceSuggestionCts.Token);
     }
 
-    private void PopulateReferenceCandidates(string query)
+    private async Task PopulateReferenceCandidatesAsync(string query, CancellationToken ct)
     {
+        var candidates = _referenceSuggestionSource == null
+            ? GetFallbackReferenceCandidates(query)
+            : await _referenceSuggestionSource.SuggestAsync(query, ct);
+
+        if (ct.IsCancellationRequested)
+            return;
+
         ReferenceCandidates.Clear();
+        foreach (var candidate in candidates.Take(10))
+            ReferenceCandidates.Add(candidate);
+
+        IsReferencePopupOpen = ReferenceCandidates.Count > 0;
+    }
+
+    private static IReadOnlyList<ReferenceItemVm> GetFallbackReferenceCandidates(string query)
+    {
         var samples = new[]
         {
             new ReferenceItemVm { Id = "ch-001", Name = "第 1 章 风起青萍", Category = "Chapter" },
@@ -258,13 +281,18 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
             new ReferenceItemVm { Id = "world-jiuzhou", Name = "九州大陆", Category = "World" },
         };
 
-        foreach (var sample in samples)
-        {
-            if (sample.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
-                ReferenceCandidates.Add(sample);
-        }
+        return samples
+            .Where(sample => sample.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
 
-        IsReferencePopupOpen = ReferenceCandidates.Count > 0;
+    private void ClearReferenceSuggestions()
+    {
+        _referenceSuggestionCts?.Cancel();
+        _referenceSuggestionCts?.Dispose();
+        _referenceSuggestionCts = null;
+        ReferenceCandidates.Clear();
+        IsReferencePopupOpen = false;
     }
 
     [RelayCommand]
@@ -331,6 +359,8 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
     {
         _cts?.Cancel();
         _cts?.Dispose();
+        _referenceSuggestionCts?.Cancel();
+        _referenceSuggestionCts?.Dispose();
         _emitter?.Stop();
     }
 }

@@ -24,8 +24,9 @@ public partial class RightConversationViewModel : ConversationPanelViewModel
     public RightConversationViewModel(
         IConversationOrchestrator orchestrator,
         IFileSessionStore sessionStore,
-        IDispatcherScheduler scheduler)
-        : base(orchestrator, sessionStore, scheduler, seedSamples: true)
+        IDispatcherScheduler scheduler,
+        IReferenceSuggestionSource? referenceSuggestionSource = null)
+        : base(orchestrator, sessionStore, scheduler, referenceSuggestionSource, seedSamples: true)
     {
     }
 }

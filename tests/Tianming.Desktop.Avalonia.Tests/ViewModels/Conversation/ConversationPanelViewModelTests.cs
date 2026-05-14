@@ -151,6 +151,26 @@ public class ConversationPanelViewModelTests
         Assert.DoesNotContain("预览", vm.SampleBubbles[^1].Content);
     }
 
+    [Fact]
+    public async Task InputDraft_with_at_query_uses_injected_reference_provider_results()
+    {
+        var vm = new ConversationPanelViewModel(
+            seedSamples: false,
+            referenceSuggestionSource: new StubReferenceSuggestionSource(
+            [
+                new ReferenceItemVm { Id = "world-jiuzhou", Name = "九州大陆", Category = "World" },
+                new ReferenceItemVm { Id = "char-jiu", Name = "九璃", Category = "Character" },
+            ]))
+        {
+            InputDraft = "hello @九"
+        };
+
+        await WaitForAsync(() => vm.ReferenceCandidates.Count == 2);
+
+        Assert.True(vm.IsReferencePopupOpen);
+        Assert.Equal(["九州大陆", "九璃"], vm.ReferenceCandidates.Select(item => item.Name));
+    }
+
     private static async IAsyncEnumerable<ChatStreamDelta> AsyncDeltas(params ChatStreamDelta[] items)
     {
         foreach (var item in items)
@@ -158,6 +178,19 @@ public class ConversationPanelViewModelTests
             await Task.Yield();
             yield return item;
         }
+    }
+
+    private static async Task WaitForAsync(Func<bool> condition)
+    {
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            if (condition())
+                return;
+
+            await Task.Delay(10);
+        }
+
+        Assert.True(condition(), "Timed out waiting for async condition.");
     }
 
     private sealed class StubOrchestrator : IConversationOrchestrator
@@ -189,5 +222,11 @@ public class ConversationPanelViewModelTests
 
         public Task DeleteSessionAsync(string sessionId, CancellationToken ct = default)
             => Task.CompletedTask;
+    }
+
+    private sealed class StubReferenceSuggestionSource(IReadOnlyList<ReferenceItemVm> results) : IReferenceSuggestionSource
+    {
+        public Task<IReadOnlyList<ReferenceItemVm>> SuggestAsync(string query, CancellationToken ct = default)
+            => Task.FromResult(results);
     }
 }

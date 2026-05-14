@@ -40,6 +40,7 @@ using Tianming.Desktop.Avalonia.Theme;
 using Tianming.Desktop.Avalonia.ViewModels;
 using Tianming.Desktop.Avalonia.ViewModels.Design;
 using Tianming.Desktop.Avalonia.ViewModels.Editor;
+using Tianming.Desktop.Avalonia.ViewModels.Conversation;
 using Tianming.Desktop.Avalonia.ViewModels.AI;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
@@ -248,6 +249,7 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<AgentModeMapper>(),
                 sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
         s.AddSingleton<IConversationOrchestrator>(sp => sp.GetRequiredService<ConversationOrchestrator>());
+        s.AddSingleton<IReferenceSuggestionSource, ReferenceSuggestionSource>();
 
         // M4.3 章节编辑器 VM
         s.AddTransient<EditorWorkspaceViewModel>(sp =>
