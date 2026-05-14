@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using TM.Services.Modules.ProjectData.Generation.Wal;
 using Xunit;
@@ -54,5 +55,40 @@ public class FileGenerationJournalTests
 
         var entries = await journal.ReadAllAsync("ch-001");
         Assert.Empty(entries);
+    }
+
+    [Fact]
+    public async Task Append_with_path_like_chapter_id_stays_inside_wal_directory()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"tm-wal-{Guid.NewGuid():N}");
+        var journal = new FileGenerationJournal(dir);
+        const string chapterId = "../vol1\\ch/007";
+
+        await journal.AppendAsync(new GenerationJournalEntry { ChapterId = chapterId, Step = GenerationStep.PrepareStart });
+
+        var walRoot = Path.Combine(dir, ".wal");
+        var files = Directory.GetFiles(walRoot, "*.journal.jsonl", SearchOption.AllDirectories);
+        var directories = Directory.GetDirectories(walRoot, "*", SearchOption.AllDirectories);
+
+        Assert.Single(files);
+        Assert.Empty(directories);
+        Assert.StartsWith(walRoot, Path.GetDirectoryName(files[0])!, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ListPending_decodes_chapter_ids_with_separators_and_traversal_tokens()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"tm-wal-{Guid.NewGuid():N}");
+        var journal = new FileGenerationJournal(dir);
+        const string chapterId = "../vol1\\ch/008";
+
+        await journal.AppendAsync(new GenerationJournalEntry { ChapterId = chapterId, Step = GenerationStep.ContentSaved });
+
+        var pending = await journal.ListPendingAsync();
+        var entries = await journal.ReadAllAsync(chapterId);
+
+        Assert.Equal([chapterId], pending.ToArray());
+        Assert.Single(entries);
+        Assert.Equal(chapterId, entries[0].ChapterId);
     }
 }
