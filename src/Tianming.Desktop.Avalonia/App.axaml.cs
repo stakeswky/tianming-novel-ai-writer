@@ -34,7 +34,14 @@ public partial class App : Application
             {
                 var recovery = App.Services?.GetService<GenerationRecoveryService>();
                 if (recovery != null)
-                    await recovery.ReplayAsync().ConfigureAwait(false);
+                {
+                    var discovered = await recovery.ReplayAsync().ConfigureAwait(false);
+                    if (discovered > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[WAL Recovery] discovered {discovered} pending generation journals; automatic resume is not enabled in M6.3.");
+                    }
+                }
             }
             catch (Exception ex)
             {

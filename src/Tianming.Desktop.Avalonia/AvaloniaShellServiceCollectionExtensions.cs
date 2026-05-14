@@ -179,12 +179,17 @@ public static class AvaloniaShellServiceCollectionExtensions
             new ChapterGenerationStore(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
 
         // M6.3 WAL + 生成恢复
-        s.AddSingleton<IGenerationJournal>(sp =>
+        s.AddTransient<IGenerationJournal>(sp =>
             new FileGenerationJournal(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
         s.AddSingleton(sp =>
             new GenerationRecoveryService(
-                sp.GetRequiredService<IGenerationJournal>(),
-                async (_, _, _) => await Task.CompletedTask.ConfigureAwait(false)));
+                () => new FileGenerationJournal(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot),
+                async (_, _, _) =>
+                {
+                    // M6.3 only discovers pending WAL entries at startup. Automatic
+                    // generation resume is intentionally left for a later lane.
+                    await Task.CompletedTask.ConfigureAwait(false);
+                }));
 
         // M6.1 Tracking 债务检测
         s.AddSingleton<ITrackingDebtDetector, EntityDriftDetector>();
