@@ -12,6 +12,7 @@ using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using TM.Framework.UI.Workspace.RightPanel.Modes;
 using TM.Services.Framework.AI.SemanticKernel;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
+using TM.Services.Modules.ProjectData.StagedChanges;
 
 namespace Tianming.Desktop.Avalonia.ViewModels.Conversation;
 
@@ -21,6 +22,7 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
     private readonly IFileSessionStore? _sessionStore;
     private readonly BulkEmitter? _emitter;
     private readonly IReferenceSuggestionSource? _referenceSuggestionSource;
+    private readonly IStagedChangeApprover? _approver;
     private ConversationSession? _currentSession;
     private CancellationTokenSource? _cts;
     private CancellationTokenSource? _referenceSuggestionCts;
@@ -56,12 +58,14 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         IFileSessionStore sessionStore,
         IDispatcherScheduler scheduler,
         IReferenceSuggestionSource? referenceSuggestionSource = null,
+        IStagedChangeApprover? approver = null,
         bool seedSamples = false)
     {
         _orchestrator = orchestrator;
         _sessionStore = sessionStore;
         _emitter = new BulkEmitter(scheduler);
         _referenceSuggestionSource = referenceSuggestionSource;
+        _approver = approver;
         _emitter.Start(SampleBubbles);
         if (seedSamples)
             SeedSamples();
@@ -204,6 +208,42 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         var item = SessionHistory.FirstOrDefault(session => session.Id == sessionId);
         if (item != null)
             SessionHistory.Remove(item);
+    }
+
+    [RelayCommand]
+    private async Task ApproveStagedAsync(object? parameter)
+    {
+        var (stagedId, card) = ResolveStagedCommandParameter(parameter);
+        if (_approver == null || string.IsNullOrWhiteSpace(stagedId))
+        {
+            return;
+        }
+
+        if (await _approver.ApproveAsync(stagedId).ConfigureAwait(false) && card != null)
+            card.State = ToolCallState.Applied;
+    }
+
+    [RelayCommand]
+    private async Task RejectStagedAsync(object? parameter)
+    {
+        var (stagedId, card) = ResolveStagedCommandParameter(parameter);
+        if (_approver == null || string.IsNullOrWhiteSpace(stagedId))
+        {
+            return;
+        }
+
+        if (await _approver.RejectAsync(stagedId).ConfigureAwait(false) && card != null)
+            card.State = ToolCallState.Rejected;
+    }
+
+    private static (string? StagedId, ConversationToolCallVm? Card) ResolveStagedCommandParameter(object? parameter)
+    {
+        return parameter switch
+        {
+            ConversationToolCallVm card => (card.StagedId, card),
+            string stagedId => (stagedId, null),
+            _ => (null, null)
+        };
     }
 
     partial void OnSelectedHistoryItemChanged(SessionListItemVm? value)
@@ -369,6 +409,7 @@ public sealed class BulkEmitter
 {
     private readonly IDispatcherScheduler _scheduler;
     private readonly Queue<ChatStreamDelta> _pending = new();
+    private readonly Dictionary<string, ToolCallDelta> _toolCallsById = new(StringComparer.Ordinal);
     private readonly object _lock = new();
     private ObservableCollection<ConversationBubbleVm>? _bubbles;
     private IDisposable? _handle;
@@ -419,10 +460,13 @@ public sealed class BulkEmitter
                 assistant.Content += answer.Text;
                 break;
             case ToolCallDelta tool:
-                assistant.Content += $"\n[tool:{tool.ToolName}] {tool.ArgumentsJson}";
+                _toolCallsById[tool.ToolCallId] = tool;
+                if (!IsStagedWriteTool(tool.ToolName))
+                    assistant.Content += $"\n[tool:{tool.ToolName}] {tool.ArgumentsJson}";
                 break;
             case ToolResultDelta result:
-                assistant.Content += $"\n[result:{result.ToolCallId}] {result.ResultText}";
+                if (!TryAddStagedToolCard(assistant, result))
+                    assistant.Content += $"\n[result:{result.ToolCallId}] {result.ResultText}";
                 break;
             case PlanStepDelta step:
                 assistant.Content += $"\n{step.Step.Index}. {step.Step.Title}";
@@ -462,6 +506,46 @@ public sealed class BulkEmitter
         bubbles.Add(assistant);
         return assistant;
     }
+
+    private bool TryAddStagedToolCard(ConversationBubbleVm assistant, ToolResultDelta result)
+    {
+        var stagedId = ExtractStagedId(result.ResultText);
+        if (string.IsNullOrWhiteSpace(stagedId))
+            return false;
+
+        _toolCallsById.TryGetValue(result.ToolCallId, out var tool);
+        assistant.ToolCalls.Add(new ConversationToolCallVm
+        {
+            ToolCallId = result.ToolCallId,
+            StagedId = stagedId,
+            ToolName = tool?.ToolName ?? "staged_change",
+            ArgumentsPreview = tool?.ArgumentsJson ?? result.ResultText,
+            State = ToolCallState.Pending,
+        });
+        return true;
+    }
+
+    private static string? ExtractStagedId(string text)
+    {
+        const string prefix = "stg-";
+        var start = text.IndexOf(prefix, StringComparison.Ordinal);
+        if (start < 0)
+            return null;
+
+        var end = start + prefix.Length;
+        while (end < text.Length && IsStagedIdCharacter(text[end]))
+            end++;
+
+        return text[start..end];
+    }
+
+    private static bool IsStagedIdCharacter(char ch)
+        => char.IsLetterOrDigit(ch) || ch == '-';
+
+    private static bool IsStagedWriteTool(string toolName)
+        => toolName.Equals("content_edit", StringComparison.OrdinalIgnoreCase)
+            || toolName.Equals("data_edit", StringComparison.OrdinalIgnoreCase)
+            || toolName.Equals("workspace_edit", StringComparison.OrdinalIgnoreCase);
 
     private sealed class ImmediateDispatcherScheduler : IDispatcherScheduler
     {

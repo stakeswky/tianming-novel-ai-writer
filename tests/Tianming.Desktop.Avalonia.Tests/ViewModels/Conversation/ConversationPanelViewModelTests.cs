@@ -7,8 +7,10 @@ using Tianming.Desktop.Avalonia.Controls;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Tests.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels.Conversation;
+using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
 using TM.Services.Framework.AI.SemanticKernel;
+using TM.Services.Modules.ProjectData.StagedChanges;
 using Xunit;
 
 namespace Tianming.Desktop.Avalonia.Tests.ViewModels.Conversation;
@@ -171,6 +173,74 @@ public class ConversationPanelViewModelTests
         Assert.Equal(["九州大陆", "九璃"], vm.ReferenceCandidates.Select(item => item.Name));
     }
 
+    [Fact]
+    public async Task ApproveStagedAsync_calls_approver_with_staged_id()
+    {
+        var approver = new StubStagedChangeApprover();
+        var vm = new ConversationPanelViewModel(
+            new StubOrchestrator { StreamFunc = (_, _) => AsyncDeltas() },
+            new StubSessionStore(),
+            new FakeDispatcherScheduler(),
+            approver: approver,
+            seedSamples: false);
+
+        await vm.ApproveStagedCommand.ExecuteAsync("stg-123");
+
+        Assert.Equal("stg-123", approver.ApprovedId);
+    }
+
+    [Fact]
+    public async Task ApproveStagedAsync_updates_tool_call_card_state()
+    {
+        var approver = new StubStagedChangeApprover();
+        var vm = new ConversationPanelViewModel(
+            new StubOrchestrator { StreamFunc = (_, _) => AsyncDeltas() },
+            new StubSessionStore(),
+            new FakeDispatcherScheduler(),
+            approver: approver,
+            seedSamples: false);
+        var card = new ConversationToolCallVm { StagedId = "stg-card" };
+
+        await vm.ApproveStagedCommand.ExecuteAsync(card);
+
+        Assert.Equal("stg-card", approver.ApprovedId);
+        Assert.Equal(ToolCallState.Applied, card.State);
+    }
+
+    [Fact]
+    public async Task RejectStagedAsync_calls_approver_with_staged_id()
+    {
+        var approver = new StubStagedChangeApprover();
+        var vm = new ConversationPanelViewModel(
+            new StubOrchestrator { StreamFunc = (_, _) => AsyncDeltas() },
+            new StubSessionStore(),
+            new FakeDispatcherScheduler(),
+            approver: approver,
+            seedSamples: false);
+
+        await vm.RejectStagedCommand.ExecuteAsync("stg-456");
+
+        Assert.Equal("stg-456", approver.RejectedId);
+    }
+
+    [Fact]
+    public async Task RejectStagedAsync_updates_tool_call_card_state()
+    {
+        var approver = new StubStagedChangeApprover();
+        var vm = new ConversationPanelViewModel(
+            new StubOrchestrator { StreamFunc = (_, _) => AsyncDeltas() },
+            new StubSessionStore(),
+            new FakeDispatcherScheduler(),
+            approver: approver,
+            seedSamples: false);
+        var card = new ConversationToolCallVm { StagedId = "stg-card" };
+
+        await vm.RejectStagedCommand.ExecuteAsync(card);
+
+        Assert.Equal("stg-card", approver.RejectedId);
+        Assert.Equal(ToolCallState.Rejected, card.State);
+    }
+
     private static async IAsyncEnumerable<ChatStreamDelta> AsyncDeltas(params ChatStreamDelta[] items)
     {
         foreach (var item in items)
@@ -228,5 +298,23 @@ public class ConversationPanelViewModelTests
     {
         public Task<IReadOnlyList<ReferenceItemVm>> SuggestAsync(string query, CancellationToken ct = default)
             => Task.FromResult(results);
+    }
+
+    private sealed class StubStagedChangeApprover : IStagedChangeApprover
+    {
+        public string? ApprovedId { get; private set; }
+        public string? RejectedId { get; private set; }
+
+        public Task<bool> ApproveAsync(string changeId, CancellationToken ct = default)
+        {
+            ApprovedId = changeId;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> RejectAsync(string changeId, CancellationToken ct = default)
+        {
+            RejectedId = changeId;
+            return Task.FromResult(true);
+        }
     }
 }

@@ -4,6 +4,7 @@ using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels.Conversation;
 using TM.Services.Framework.AI.SemanticKernel;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
+using TM.Services.Modules.ProjectData.StagedChanges;
 
 namespace Tianming.Desktop.Avalonia.ViewModels.Shell;
 
@@ -14,6 +15,18 @@ public sealed class ConversationBubbleVm
     public string           Content       { get; set; } = string.Empty;
     public string?          ThinkingBlock { get; set; }
     public DateTime         Timestamp     { get; set; } = DateTime.Now;
+    public System.Collections.ObjectModel.ObservableCollection<ConversationToolCallVm> ToolCalls { get; } = new();
+}
+
+public sealed partial class ConversationToolCallVm : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
+{
+    public string ToolCallId { get; set; } = string.Empty;
+    public string StagedId { get; set; } = string.Empty;
+    public string ToolName { get; set; } = string.Empty;
+    public string ArgumentsPreview { get; set; } = string.Empty;
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    private ToolCallState _state = ToolCallState.Pending;
 }
 
 public partial class RightConversationViewModel : ConversationPanelViewModel
@@ -25,8 +38,9 @@ public partial class RightConversationViewModel : ConversationPanelViewModel
         IConversationOrchestrator orchestrator,
         IFileSessionStore sessionStore,
         IDispatcherScheduler scheduler,
-        IReferenceSuggestionSource? referenceSuggestionSource = null)
-        : base(orchestrator, sessionStore, scheduler, referenceSuggestionSource, seedSamples: true)
+        IReferenceSuggestionSource? referenceSuggestionSource = null,
+        IStagedChangeApprover? approver = null)
+        : base(orchestrator, sessionStore, scheduler, referenceSuggestionSource, approver, seedSamples: true)
     {
     }
 }

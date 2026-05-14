@@ -16,10 +16,16 @@ public class ToolCallCard : TemplatedControl
         AvaloniaProperty.Register<ToolCallCard, ICommand?>(nameof(ApproveCommand));
     public static readonly StyledProperty<ICommand?> RejectCommandProperty =
         AvaloniaProperty.Register<ToolCallCard, ICommand?>(nameof(RejectCommand));
+    public static readonly StyledProperty<object?> ApproveCommandParameterProperty =
+        AvaloniaProperty.Register<ToolCallCard, object?>(nameof(ApproveCommandParameter));
+    public static readonly StyledProperty<object?> RejectCommandParameterProperty =
+        AvaloniaProperty.Register<ToolCallCard, object?>(nameof(RejectCommandParameter));
 
     public string ToolName { get => GetValue(ToolNameProperty); set => SetValue(ToolNameProperty, value); }
     public string? ArgumentsPreview { get => GetValue(ArgumentsPreviewProperty); set => SetValue(ArgumentsPreviewProperty, value); }
     public ToolCallState State { get => GetValue(StateProperty); set => SetValue(StateProperty, value); }
     public ICommand? ApproveCommand { get => GetValue(ApproveCommandProperty); set => SetValue(ApproveCommandProperty, value); }
     public ICommand? RejectCommand { get => GetValue(RejectCommandProperty); set => SetValue(RejectCommandProperty, value); }
+    public object? ApproveCommandParameter { get => GetValue(ApproveCommandParameterProperty); set => SetValue(ApproveCommandParameterProperty, value); }
+    public object? RejectCommandParameter { get => GetValue(RejectCommandParameterProperty); set => SetValue(RejectCommandParameterProperty, value); }
 }

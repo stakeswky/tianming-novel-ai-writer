@@ -56,6 +56,24 @@ public class BulkEmitterTests
     }
 
     [Fact]
+    public void Staged_tool_result_renders_tool_call_card_instead_of_plain_text()
+    {
+        var bubbles = new ObservableCollection<ConversationBubbleVm>();
+        var emitter = new BulkEmitter();
+
+        emitter.Apply(bubbles, new ToolCallDelta("tool-1", "content_edit", "{\"chapterId\":\"ch-001\"}"));
+        emitter.Apply(bubbles, new ToolResultDelta("tool-1", "已提议修改章节 ch-001（待审核：stg-abc123）。"));
+
+        var bubble = Assert.Single(bubbles);
+        var card = Assert.Single(bubble.ToolCalls);
+        Assert.Equal("content_edit", card.ToolName);
+        Assert.Equal("stg-abc123", card.StagedId);
+        Assert.Equal(ToolCallState.Pending, card.State);
+        Assert.DoesNotContain("[tool:", bubble.Content);
+        Assert.DoesNotContain("[result:", bubble.Content);
+    }
+
+    [Fact]
     public void Stop_disposes_recurring_schedule()
     {
         var bubbles = new ObservableCollection<ConversationBubbleVm>();
