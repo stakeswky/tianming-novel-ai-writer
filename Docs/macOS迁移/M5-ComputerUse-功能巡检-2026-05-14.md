@@ -109,7 +109,7 @@ R3. 右侧对话 `@` 引用建议未显示。
 - 观察：输入保留，但未出现引用候选。
 - 影响：项目数据引用入口可能不可见；本轮不能确认是无匹配数据还是弹层/数据源问题。
 - 建议：增加一个已知 fixture 或使用现有项目中文关键词复测，并确认 `ReferenceSuggestionSource.SuggestAsync` 是否返回候选。
-- Lane R 处理：代码层已排除数据源问题（本提交）。新增 fixture 测试确认项目内存在 `ch001` 章节时，`ReferenceSuggestionSource.SuggestAsync("ch")` 返回 Chapter 候选；原巡检仍需要用同类 fixture 项目做 Computer Use 实机复跑，以区分无匹配数据、输入法候选条遮挡或弹层视觉问题。
+- Lane R 处理：代码层已排除数据源问题（commit `6422510`）。新增 fixture 测试确认项目内存在 `ch001` 章节时，`ReferenceSuggestionSource.SuggestAsync("ch")` 返回 Chapter 候选；原巡检仍需要用同类 fixture 项目做 Computer Use 实机复跑，以区分无匹配数据、输入法候选条遮挡或弹层视觉问题。
 
 ## 未覆盖项
 
