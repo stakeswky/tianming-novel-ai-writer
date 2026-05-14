@@ -47,8 +47,9 @@ public sealed class GenerationContextService : IGenerationContextService
         TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Characters.CharacterRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Characters.CharacterRulesData> characterAdapter,
         TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Factions.FactionRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Factions.FactionRulesData> factionAdapter,
         TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Location.LocationRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Location.LocationRulesData> locationAdapter,
-        TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Plot.PlotRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Plot.PlotRulesData> plotAdapter)
-        : this(projectRoot, new ProjectContextDataBuilder(projectRoot, chapterAdapter, characterAdapter, factionAdapter, locationAdapter, plotAdapter))
+        TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Plot.PlotRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Plot.PlotRulesData> plotAdapter,
+        TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Worldview.WorldRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Worldview.WorldRulesData> worldRuleAdapter)
+        : this(projectRoot, new ProjectContextDataBuilder(projectRoot, chapterAdapter, characterAdapter, factionAdapter, locationAdapter, plotAdapter, worldRuleAdapter))
     {
     }
 

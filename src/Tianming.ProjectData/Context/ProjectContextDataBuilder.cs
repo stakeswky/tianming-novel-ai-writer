@@ -7,12 +7,14 @@ using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
 using TM.Services.Modules.ProjectData.Models.Design.Plot;
+using TM.Services.Modules.ProjectData.Models.Design.Worldview;
 using TM.Services.Modules.ProjectData.Models.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Models.Tracking;
 using TM.Services.Modules.ProjectData.Modules.Design.CharacterRules;
 using TM.Services.Modules.ProjectData.Modules.Design.FactionRules;
 using TM.Services.Modules.ProjectData.Modules.Design.LocationRules;
 using TM.Services.Modules.ProjectData.Modules.Design.PlotRules;
+using TM.Services.Modules.ProjectData.Modules.Design.WorldRules;
 using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Schema;
 using TM.Services.Modules.ProjectData.Implementations;
@@ -27,6 +29,7 @@ public sealed class ProjectContextDataBuilder
     private readonly ModuleDataAdapter<FactionRulesCategory, FactionRulesData> _factionAdapter;
     private readonly ModuleDataAdapter<LocationRulesCategory, LocationRulesData> _locationAdapter;
     private readonly ModuleDataAdapter<PlotRulesCategory, PlotRulesData>? _plotAdapter;
+    private readonly ModuleDataAdapter<WorldRulesCategory, WorldRulesData>? _worldRuleAdapter;
 
     public ProjectContextDataBuilder(
         string projectRoot,
@@ -34,7 +37,8 @@ public sealed class ProjectContextDataBuilder
         ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData> characterAdapter,
         ModuleDataAdapter<FactionRulesCategory, FactionRulesData> factionAdapter,
         ModuleDataAdapter<LocationRulesCategory, LocationRulesData> locationAdapter,
-        ModuleDataAdapter<PlotRulesCategory, PlotRulesData>? plotAdapter = null)
+        ModuleDataAdapter<PlotRulesCategory, PlotRulesData>? plotAdapter = null,
+        ModuleDataAdapter<WorldRulesCategory, WorldRulesData>? worldRuleAdapter = null)
     {
         _projectRoot = projectRoot;
         _chapterAdapter = chapterAdapter;
@@ -42,6 +46,7 @@ public sealed class ProjectContextDataBuilder
         _factionAdapter = factionAdapter;
         _locationAdapter = locationAdapter;
         _plotAdapter = plotAdapter;
+        _worldRuleAdapter = worldRuleAdapter;
     }
 
     public async Task<FactSnapshot> BuildFactSnapshotAsync(string chapterId, CancellationToken ct = default)
@@ -55,7 +60,7 @@ public sealed class ProjectContextDataBuilder
 
         var source = new FileFactSnapshotGuideSource(_projectRoot, _projectRoot);
         var extractor = new PortableFactSnapshotExtractor(source);
-        return await extractor
+        var snapshot = await extractor
             .ExtractSnapshotAsync(
                 chapterId,
                 characterIds,
@@ -67,6 +72,11 @@ public sealed class ProjectContextDataBuilder
                 factionIds,
                 ct)
             .ConfigureAwait(false);
+
+        snapshot.CharacterDescriptions = BuildCharacterDescriptions(characterIds);
+        snapshot.LocationDescriptions = BuildLocationDescriptions(locationIds);
+        snapshot.WorldRuleConstraints = BuildWorldRuleConstraints();
+        return snapshot;
     }
 
     public async Task<DesignElementNames> BuildDesignElementNamesAsync(CancellationToken ct = default)
@@ -116,7 +126,67 @@ public sealed class ProjectContextDataBuilder
         await _locationAdapter.LoadAsync().ConfigureAwait(false);
         if (_plotAdapter != null)
             await _plotAdapter.LoadAsync().ConfigureAwait(false);
+        if (_worldRuleAdapter != null)
+            await _worldRuleAdapter.LoadAsync().ConfigureAwait(false);
         ct.ThrowIfCancellationRequested();
+    }
+
+    private Dictionary<string, CharacterCoreDescription> BuildCharacterDescriptions(IReadOnlyCollection<string>? characterIds)
+    {
+        if (characterIds == null || characterIds.Count == 0)
+            return new Dictionary<string, CharacterCoreDescription>(StringComparer.OrdinalIgnoreCase);
+
+        return _characterAdapter.GetData()
+            .Where(character => characterIds.Contains(character.Id, StringComparer.OrdinalIgnoreCase))
+            .Where(character => !string.IsNullOrWhiteSpace(character.Id))
+            .ToDictionary(
+                character => character.Id,
+                character => new CharacterCoreDescription
+                {
+                    Id = character.Id,
+                    Name = character.Name,
+                    HairColor = ExtractHairColor(character.Appearance),
+                    Appearance = character.Appearance,
+                    PersonalityTags = ParseTags(string.Join(",", character.FlawBelief, character.Identity, character.Want))
+                },
+                StringComparer.OrdinalIgnoreCase);
+    }
+
+    private Dictionary<string, LocationCoreDescription> BuildLocationDescriptions(IReadOnlyCollection<string>? locationIds)
+    {
+        if (locationIds == null || locationIds.Count == 0)
+            return new Dictionary<string, LocationCoreDescription>(StringComparer.OrdinalIgnoreCase);
+
+        return _locationAdapter.GetData()
+            .Where(location => locationIds.Contains(location.Id, StringComparer.OrdinalIgnoreCase))
+            .Where(location => !string.IsNullOrWhiteSpace(location.Id))
+            .ToDictionary(
+                location => location.Id,
+                location => new LocationCoreDescription
+                {
+                    Id = location.Id,
+                    Name = location.Name,
+                    Description = location.Description,
+                    Features = ParseTags(string.Join(",", location.Description, location.Terrain, string.Join(",", location.Landmarks)))
+                },
+                StringComparer.OrdinalIgnoreCase);
+    }
+
+    private List<WorldRuleConstraint> BuildWorldRuleConstraints()
+    {
+        if (_worldRuleAdapter == null)
+            return [];
+
+        return _worldRuleAdapter.GetData()
+            .Where(rule => !string.IsNullOrWhiteSpace(rule.Id) && !string.IsNullOrWhiteSpace(rule.HardRules))
+            .Select(rule => new WorldRuleConstraint
+            {
+                RuleId = rule.Id,
+                RuleName = rule.Name,
+                Constraint = rule.HardRules,
+                IsHardConstraint = true
+            })
+            .ToList();
     }
 
     private static List<string> DistinctNames(IEnumerable<string> names)
@@ -150,5 +220,24 @@ public sealed class ProjectContextDataBuilder
             .ToList();
 
         return ids.Count == 0 ? null : ids;
+    }
+
+    private static string ExtractHairColor(string? appearance)
+    {
+        if (string.IsNullOrWhiteSpace(appearance))
+            return string.Empty;
+
+        var markers = new[] { "黑发", "白发", "银发", "金发", "蓝发", "红发", "褐发", "灰发", "青发", "紫发" };
+        return markers.FirstOrDefault(appearance.Contains, string.Empty);
+    }
+
+    private static List<string> ParseTags(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? []
+            : value.Split([',', '，', '、', ';', '；'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(tag => !string.IsNullOrWhiteSpace(tag))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
     }
 }
