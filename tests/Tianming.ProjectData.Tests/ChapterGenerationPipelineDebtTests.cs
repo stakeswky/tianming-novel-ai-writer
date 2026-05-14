@@ -42,6 +42,148 @@ public class ChapterGenerationPipelineDebtTests
         Assert.Equal(TrackingDebtCategory.Deadline, debt.Category);
     }
 
+    [Fact]
+    public async Task SaveGeneratedChapter_with_missing_pledge_guide_records_no_pledge_debt()
+    {
+        using var workspace = new TempDirectory();
+        var sink = new InMemoryTrackingSink();
+        var pipeline = CreatePipeline(workspace.Path, sink, new PledgeDetector());
+
+        var result = await pipeline.SaveGeneratedChapterStrictAsync(
+            "vol1_ch9",
+            "林衡束起黑发。\n---CHANGES---\n" + EmptyChangesJson(),
+            new FactSnapshot(),
+            packagedTitle: "无承诺指南");
+
+        Assert.True(result.Success, result.ErrorMessage);
+        Assert.Empty(sink.RecordedDebts);
+    }
+
+    [Fact]
+    public async Task SaveGeneratedChapter_loads_pledge_guide_from_volume_guides()
+    {
+        using var workspace = new TempDirectory();
+        await WriteJsonAsync(
+            System.IO.Path.Combine(workspace.Path, "vol1", "guides", "PledgeGuide.json"),
+            new PledgeGuide
+            {
+                Pledges =
+                {
+                    ["pledge-1"] = new PledgeEntry
+                    {
+                        Name = "护送九璃",
+                        PromisedAtChapter = "vol1_ch2",
+                        DeadlineChapter = "vol1_ch4",
+                        IsFulfilled = false,
+                    },
+                },
+            });
+        var sink = new InMemoryTrackingSink();
+        var pipeline = CreatePipeline(workspace.Path, sink, new PledgeDetector());
+
+        var result = await pipeline.SaveGeneratedChapterStrictAsync(
+            "vol1_ch9",
+            "林衡束起黑发。\n---CHANGES---\n" + EmptyChangesJson(),
+            new FactSnapshot(),
+            packagedTitle: "承诺过期");
+
+        Assert.True(result.Success, result.ErrorMessage);
+        var debt = Assert.Single(sink.RecordedDebts);
+        Assert.Equal(TrackingDebtCategory.Pledge, debt.Category);
+        Assert.Equal("pledge-1", debt.EntityId);
+    }
+
+    [Fact]
+    public async Task SaveGeneratedChapter_with_missing_secret_guide_records_no_secret_debt()
+    {
+        using var workspace = new TempDirectory();
+        var sink = new InMemoryTrackingSink();
+        var pipeline = CreatePipeline(workspace.Path, sink, new SecretRevealDetector());
+
+        var result = await pipeline.SaveGeneratedChapterStrictAsync(
+            "vol1_ch9",
+            "林衡束起黑发。\n---CHANGES---\n" + EmptyChangesJson(),
+            new FactSnapshot(),
+            packagedTitle: "无秘密指南");
+
+        Assert.True(result.Success, result.ErrorMessage);
+        Assert.Empty(sink.RecordedDebts);
+    }
+
+    [Fact]
+    public async Task SaveGeneratedChapter_loads_secret_guide_from_volume_guides()
+    {
+        using var workspace = new TempDirectory();
+        await WriteJsonAsync(
+            System.IO.Path.Combine(workspace.Path, "vol1", "guides", "SecretGuide.json"),
+            new SecretGuide
+            {
+                Secrets =
+                {
+                    ["secret-1"] = new SecretEntry
+                    {
+                        Name = "命火血脉",
+                        IsRevealed = true,
+                        ActualRevealChapter = "vol1_ch3",
+                        ExpectedRevealChapter = "vol1_ch8",
+                    },
+                },
+            });
+        var sink = new InMemoryTrackingSink();
+        var pipeline = CreatePipeline(workspace.Path, sink, new SecretRevealDetector());
+
+        var result = await pipeline.SaveGeneratedChapterStrictAsync(
+            "vol1_ch9",
+            "林衡束起黑发。\n---CHANGES---\n" + EmptyChangesJson(),
+            new FactSnapshot(),
+            packagedTitle: "秘密提前揭露");
+
+        Assert.True(result.Success, result.ErrorMessage);
+        var debt = Assert.Single(sink.RecordedDebts);
+        Assert.Equal(TrackingDebtCategory.SecretReveal, debt.Category);
+        Assert.Equal("secret-1", debt.EntityId);
+    }
+
+    [Fact]
+    public async Task SaveGeneratedChapter_persists_pledge_debt_to_tracking_debt_file()
+    {
+        using var workspace = new TempDirectory();
+        await WriteJsonAsync(
+            System.IO.Path.Combine(workspace.Path, "vol1", "guides", "PledgeGuide.json"),
+            new PledgeGuide
+            {
+                Pledges =
+                {
+                    ["pledge-1"] = new PledgeEntry
+                    {
+                        Name = "归还玉牌",
+                        PromisedAtChapter = "vol1_ch1",
+                        DeadlineChapter = "vol1_ch2",
+                        IsFulfilled = false,
+                    },
+                },
+            });
+        var pipeline = new ChapterGenerationPipeline(
+            new ContentGenerationPreparer(new GenerationGate(new LedgerConsistencyChecker(), new LedgerRuleSetProvider())),
+            new ChapterContentStore(workspace.Path),
+            new GenerationStatisticsRecorder(),
+            new ChapterTrackingDispatcher(new FileChapterTrackingSink(workspace.Path)),
+            debtRegistry: new TrackingDebtRegistry(new ITrackingDebtDetector[] { new PledgeDetector() }));
+
+        var result = await pipeline.SaveGeneratedChapterStrictAsync(
+            "vol1_ch5",
+            "林衡束起黑发。\n---CHANGES---\n" + EmptyChangesJson(),
+            new FactSnapshot(),
+            packagedTitle: "承诺持久化");
+
+        Assert.True(result.Success, result.ErrorMessage);
+        var persisted = await ReadJsonAsync<List<TrackingDebt>>(
+            System.IO.Path.Combine(workspace.Path, "tracking_debts_vol1.json"));
+        var debt = Assert.Single(persisted);
+        Assert.Equal(TrackingDebtCategory.Pledge, debt.Category);
+        Assert.Equal("pledge-1", debt.EntityId);
+    }
+
     private static string EmptyChangesJson()
     {
         return """
@@ -57,6 +199,38 @@ public class ChapterGenerationPipelineDebtTests
           "ItemTransfers": []
         }
         """;
+    }
+
+    private static ChapterGenerationPipeline CreatePipeline(
+        string workspacePath,
+        IChapterTrackingSink sink,
+        params ITrackingDebtDetector[] detectors)
+    {
+        return new ChapterGenerationPipeline(
+            new ContentGenerationPreparer(new GenerationGate(new LedgerConsistencyChecker(), new LedgerRuleSetProvider())),
+            new ChapterContentStore(workspacePath),
+            new GenerationStatisticsRecorder(),
+            new ChapterTrackingDispatcher(sink),
+            debtRegistry: new TrackingDebtRegistry(detectors));
+    }
+
+    private static async Task WriteJsonAsync<T>(string path, T value)
+    {
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
+        var json = System.Text.Json.JsonSerializer.Serialize(value, new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true,
+        });
+        await File.WriteAllTextAsync(path, json);
+    }
+
+    private static async Task<T> ReadJsonAsync<T>(string path)
+    {
+        var json = await File.ReadAllTextAsync(path);
+        return System.Text.Json.JsonSerializer.Deserialize<T>(json, new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        })!;
     }
 
     private sealed class InMemoryTrackingSink : IChapterTrackingSink

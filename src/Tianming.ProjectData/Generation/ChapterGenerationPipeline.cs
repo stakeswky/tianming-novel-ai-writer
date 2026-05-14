@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
 using TM.Services.Modules.ProjectData.Models.Guides;
@@ -90,8 +93,8 @@ namespace TM.Services.Modules.ProjectData.Implementations
                             var context = new TrackingDebtDetectionContext
                             {
                                 Foreshadowings = await LoadForeshadowingGuideAsync().ConfigureAwait(false),
-                                Pledges = await LoadPledgeGuideAsync().ConfigureAwait(false),
-                                Secrets = await LoadSecretGuideAsync().ConfigureAwait(false),
+                                Pledges = await LoadPledgeGuideAsync(chapterId).ConfigureAwait(false),
+                                Secrets = await LoadSecretGuideAsync(chapterId).ConfigureAwait(false),
                             };
                             var debts = await _debtRegistry
                                 .DetectAllAsync(chapterId, prepared.ParsedChanges, factSnapshot, context)
@@ -202,14 +205,52 @@ namespace TM.Services.Modules.ProjectData.Implementations
             return await _factSnapshotGuideSource.GetForeshadowingStatusGuideAsync().ConfigureAwait(false);
         }
 
-        private Task<PledgeGuide?> LoadPledgeGuideAsync()
+        private Task<PledgeGuide?> LoadPledgeGuideAsync(string chapterId)
         {
-            return Task.FromResult<PledgeGuide?>(null);
+            return LoadVolumeGuideAsync<PledgeGuide>(chapterId, "PledgeGuide.json");
         }
 
-        private Task<SecretGuide?> LoadSecretGuideAsync()
+        private Task<SecretGuide?> LoadSecretGuideAsync(string chapterId)
         {
-            return Task.FromResult<SecretGuide?>(null);
+            return LoadVolumeGuideAsync<SecretGuide>(chapterId, "SecretGuide.json");
+        }
+
+        private async Task<T?> LoadVolumeGuideAsync<T>(string chapterId, string fileName)
+        {
+            var volume = ParseVolume(chapterId);
+            if (volume <= 0)
+                return default;
+
+            var path = Path.Combine(_contentStore.ChaptersDirectory, $"vol{volume}", "guides", fileName);
+            if (!File.Exists(path))
+                return default;
+
+            try
+            {
+                var json = await File.ReadAllTextAsync(path).ConfigureAwait(false);
+                return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                });
+            }
+            catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+            {
+                Console.Error.WriteLine($"Warning: failed to load tracking guide {path}: {ex.Message}");
+                return default;
+            }
+        }
+
+        private static int ParseVolume(string chapterId)
+        {
+            var match = Regex.Match(
+                chapterId ?? string.Empty,
+                @"(?:vol|v)(\d+)[_\-]?(?:ch|c|chapter)?\d+|^(\d+)_\d+",
+                RegexOptions.IgnoreCase);
+            if (!match.Success)
+                return 0;
+
+            var value = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+            return int.TryParse(value, out var volume) ? volume : 0;
         }
     }
 }
