@@ -1,0 +1,99 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Packaging"
+             xmlns:bk="using:TM.Services.Modules.ProjectData.Backup"
+             x:Class="Tianming.Desktop.Avalonia.Views.Packaging.PackagingPage"
+             x:CompileBindings="False"
+             x:DataType="vm:PackagingViewModel"
+             FontFamily="{DynamicResource FontUI}">
+  <ScrollViewer Background="{DynamicResource SurfaceCanvasBrush}">
+    <StackPanel Margin="20" Spacing="16">
+      <Border Background="{DynamicResource SurfacePanelBrush}" Padding="16">
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="① 预检"
+                       FontSize="{DynamicResource FontSizeH3}"
+                       FontWeight="{DynamicResource FontWeightSemibold}"/>
+            <Button Classes="ghost"
+                    Content="跑预检"
+                    Command="{Binding RunPreflightCommand}"/>
+          </StackPanel>
+          <ItemsControl ItemsSource="{Binding PreflightIssues}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:PreflightIssueVm">
+                <TextBlock Text="{Binding Message}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           TextWrapping="Wrap"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Border Background="{DynamicResource SurfacePanelBrush}" Padding="16">
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="② 导出 ZIP"
+                       FontSize="{DynamicResource FontSizeH3}"
+                       FontWeight="{DynamicResource FontWeightSemibold}"/>
+            <Button Classes="primary"
+                    Content="导出全书 ZIP"
+                    Command="{Binding ExportZipCommand}"/>
+          </StackPanel>
+          <TextBlock Text="{Binding ExportStatus}"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+
+      <Border Background="{DynamicResource SurfacePanelBrush}" Padding="16">
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="③ 备份 + 恢复"
+                       FontSize="{DynamicResource FontSizeH3}"
+                       FontWeight="{DynamicResource FontWeightSemibold}"/>
+            <TextBox Width="240"
+                     Text="{Binding BackupNote, Mode=TwoWay}"
+                     Watermark="备注（可选）"/>
+            <Button Classes="primary"
+                    Content="创建快照"
+                    Command="{Binding CreateBackupCommand}"/>
+            <Button Classes="ghost"
+                    Content="刷新"
+                    Command="{Binding RefreshBackupsCommand}"/>
+          </StackPanel>
+          <ItemsControl ItemsSource="{Binding Backups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="bk:BackupEntry">
+                <Border Padding="8"
+                        Margin="0,4,0,0"
+                        Background="{DynamicResource SurfaceCanvasBrush}"
+                        CornerRadius="{DynamicResource RadiusSm}">
+                  <Grid ColumnDefinitions="*,Auto,Auto">
+                    <StackPanel Grid.Column="0">
+                      <TextBlock Text="{Binding Id}"
+                                 FontWeight="{DynamicResource FontWeightSemibold}"/>
+                      <TextBlock Text="{Binding Note}"
+                                 Foreground="{DynamicResource TextTertiaryBrush}"/>
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Classes="ghost"
+                            Content="恢复"
+                            Command="{Binding $parent[ItemsControl].DataContext.RestoreBackupCommand}"
+                            CommandParameter="{Binding Id}"/>
+                    <Button Grid.Column="2"
+                            Classes="ghost"
+                            Content="删除"
+                            Margin="6,0,0,0"
+                            Command="{Binding $parent[ItemsControl].DataContext.DeleteBackupCommand}"
+                            CommandParameter="{Binding Id}"/>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

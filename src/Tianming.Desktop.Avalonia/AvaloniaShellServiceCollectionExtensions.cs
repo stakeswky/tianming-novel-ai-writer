@@ -23,6 +23,7 @@ using TM.Services.Modules.ProjectData.BookPipeline.Steps;
 using TM.Services.Modules.ProjectData.Context;
 using TM.Services.Modules.ProjectData.Generation.Wal;
 using TM.Services.Modules.ProjectData.Implementations;
+using TM.Services.Modules.ProjectData.Backup;
 using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
@@ -49,6 +50,8 @@ using TM.Services.Modules.ProjectData.Humanize;
 using TM.Services.Modules.ProjectData.Humanize.Rules;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Rules;
 using TM.Services.Modules.ProjectData.Models.Tracking;
+using TM.Services.Modules.ProjectData.Packaging;
+using TM.Services.Modules.ProjectData.Packaging.Preflight;
 using TM.Services.Modules.ProjectData.Tracking.Layers;
 using TM.Services.Modules.ProjectData.Tracking.Locator;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
@@ -63,6 +66,7 @@ using Tianming.Desktop.Avalonia.ViewModels.Conversation;
 using Tianming.Desktop.Avalonia.ViewModels.AI;
 using Tianming.Desktop.Avalonia.ViewModels.Book;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
+using Tianming.Desktop.Avalonia.ViewModels.Packaging;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using Tianming.Desktop.Avalonia.Views;
 using Tianming.Desktop.Avalonia.Views.AI;
@@ -70,6 +74,7 @@ using Tianming.Desktop.Avalonia.Views.Book;
 using Tianming.Desktop.Avalonia.Views.Design;
 using Tianming.Desktop.Avalonia.Views.Editor;
 using Tianming.Desktop.Avalonia.Views.Generate;
+using Tianming.Desktop.Avalonia.Views.Packaging;
 using Tianming.Desktop.Avalonia.Views.Shell;
 
 namespace Tianming.Desktop.Avalonia;
@@ -227,6 +232,11 @@ public static class AvaloniaShellServiceCollectionExtensions
             new PackagingContextService(
                 sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
                 sp.GetRequiredService<IDesignContextService>()));
+        s.AddSingleton<IPreflightChecker>(sp =>
+            new DefaultPreflightChecker(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IBookExporter, ZipBookExporter>();
+        s.AddSingleton<IProjectBackupService>(sp =>
+            new FileProjectBackupService(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
 
         // M6.2 Humanize + CHANGES Canonicalize
         s.AddSingleton<FileHumanizeRulesStore>(sp =>
@@ -347,6 +357,7 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<ApiKeysViewModel>();
         s.AddTransient<PromptManagementViewModel>();
         s.AddTransient<UsageStatisticsViewModel>();
+        s.AddTransient<PackagingViewModel>();
 
         // M4.5+ AI 对话面板：编排器、工具与会话持久化。
         s.AddSingleton<OpenAICompatibleChatClient>(sp =>
@@ -444,6 +455,7 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<ApiKeysViewModel,          ApiKeysPage>(PageKeys.AIKeys);
         reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts);
         reg.Register<UsageStatisticsViewModel,  UsageStatisticsPage>(PageKeys.AIUsage);
+        reg.Register<PackagingViewModel,        PackagingPage>(PageKeys.Packaging);
         return reg;
     }
 
