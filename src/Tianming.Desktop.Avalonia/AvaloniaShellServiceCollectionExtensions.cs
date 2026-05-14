@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using TM.Framework.Common.Models;
 using TM.Framework.Appearance;
 using TM.Framework.Notifications;
+using TM.Framework.Preferences;
+using TM.Framework.SystemInfo;
 using TM.Framework.SystemMonitor;
 using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
 using TM.Services.Framework.AI.Core;
@@ -215,6 +217,19 @@ public static class AvaloniaShellServiceCollectionExtensions
             new PortableDoNotDisturbController(sp.GetRequiredService<DoNotDisturbSettingsData>()));
         s.AddSingleton(_ => new PortableToastStyleData());
         s.AddSingleton(_ => new PortableSystemIntegrationSettings());
+
+        // Lane C 设置：UI 分辨率 / 加载动画 / 显示偏好 / 语言区域 / 运行环境 settings + controller。
+        // Settings 走 Singleton 默认值；Controller 接 settings。日志 / 代理 / 数据清理 / 系统信息
+        // probe 留 deferred（Card 内 read-only 展示）。
+        s.AddSingleton(_ => PortableUIResolutionSettings.CreateDefault());
+        s.AddSingleton(_ => PortableLoadingAnimationSettings.CreateDefault());
+        s.AddSingleton(_ => PortableDisplaySettings.CreateDefault());
+        s.AddSingleton(_ => PortableLocaleSettings.CreateDefault());
+        s.AddSingleton(_ => new PortableRuntimeEnvironmentSettings());
+        s.AddSingleton<PortableDisplayController>(sp =>
+            new PortableDisplayController(sp.GetRequiredService<PortableDisplaySettings>()));
+        s.AddSingleton<PortableLocaleController>(sp =>
+            new PortableLocaleController(sp.GetRequiredService<PortableLocaleSettings>()));
 
         // Navigation
         s.AddSingleton<PageRegistry>(_ => RegisterPages(new PageRegistry()));
