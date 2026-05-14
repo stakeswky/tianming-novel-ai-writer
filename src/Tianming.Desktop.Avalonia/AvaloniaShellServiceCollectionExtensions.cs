@@ -69,6 +69,7 @@ using Tianming.Desktop.Avalonia.ViewModels.AI;
 using Tianming.Desktop.Avalonia.ViewModels.Book;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
 using Tianming.Desktop.Avalonia.ViewModels.Packaging;
+using Tianming.Desktop.Avalonia.ViewModels.Settings;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using Tianming.Desktop.Avalonia.Views;
 using Tianming.Desktop.Avalonia.Views.AI;
@@ -77,6 +78,7 @@ using Tianming.Desktop.Avalonia.Views.Design;
 using Tianming.Desktop.Avalonia.Views.Editor;
 using Tianming.Desktop.Avalonia.Views.Generate;
 using Tianming.Desktop.Avalonia.Views.Packaging;
+using Tianming.Desktop.Avalonia.Views.Settings;
 using Tianming.Desktop.Avalonia.Views.Shell;
 
 namespace Tianming.Desktop.Avalonia;
@@ -434,6 +436,9 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<ApiKeysViewModel>();
         s.AddTransient<PromptManagementViewModel>();
         s.AddTransient<UsageStatisticsViewModel>();
+
+        // M7 Lane A 设置
+        s.AddTransient<SettingsShellViewModel>();
         s.AddTransient<PackagingViewModel>();
 
         // M4.5+ AI 对话面板：编排器、工具与会话持久化。
@@ -508,7 +513,7 @@ public static class AvaloniaShellServiceCollectionExtensions
     {
         reg.Register<WelcomeViewModel,     WelcomeView>(PageKeys.Welcome, "欢迎");
         reg.Register<DashboardViewModel,   DashboardView>(PageKeys.Dashboard, "仪表盘");
-        reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Settings, "设置");
+        reg.Register<SettingsShellViewModel, SettingsShellView>(PageKeys.Settings, "设置");
 
         // M4.3 章节编辑器
         reg.Register<EditorWorkspaceViewModel, EditorWorkspaceView>(PageKeys.Editor, "草稿");

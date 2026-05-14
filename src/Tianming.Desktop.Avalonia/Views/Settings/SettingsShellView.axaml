@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Settings"
+             x:Class="Tianming.Desktop.Avalonia.Views.Settings.SettingsShellView"
+             x:DataType="vm:SettingsShellViewModel">
+  <Grid ColumnDefinitions="220,*">
+    <!-- 子导航 -->
+    <Border Grid.Column="0"
+            Background="{DynamicResource SurfaceContainerBrush}"
+            BorderBrush="{DynamicResource BorderSubtleBrush}"
+            BorderThickness="0,0,1,0"
+            Padding="12">
+      <StackPanel Spacing="4">
+        <TextBlock Text="设置" FontSize="20" FontWeight="SemiBold" Margin="6,4,0,12"/>
+        <ListBox ItemsSource="{Binding SubNavItems}"
+                 SelectedItem="{Binding SelectedItem}"
+                 Background="Transparent"
+                 BorderThickness="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:SettingsSubNavItem">
+              <StackPanel Orientation="Horizontal" Spacing="10" Margin="2">
+                <TextBlock Text="{Binding Icon}" FontSize="16"/>
+                <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </StackPanel>
+    </Border>
+    <!-- 内容宿主：Task 1 占位 TextBlock；Task 2 改为 ContentControl 绑 CurrentPageViewModel -->
+    <Border Grid.Column="1" Padding="24">
+      <TextBlock Text="选择左侧子项以查看设置"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Foreground="{DynamicResource TextSecondaryBrush}"/>
+    </Border>
+  </Grid>
+</UserControl>
