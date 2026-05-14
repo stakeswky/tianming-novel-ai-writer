@@ -290,8 +290,8 @@ Commit with title: `Document the macOS IME limitation for at-references`.
 
 ## Final Verification
 
-- [ ] Run `dotnet build Tianming.MacMigration.sln` and confirm 0 warnings / 0 errors.
-- [ ] Run `dotnet test Tianming.MacMigration.sln` and confirm all tests pass.
-- [ ] Run `Scripts/build-dev-bundle.sh`, `codesign -dvv /tmp/TianmingDev.app`, and `plutil -p /tmp/TianmingDev.app/Contents/Info.plist`.
-- [ ] Launch `/tmp/TianmingDev.app` and verify Computer Use `get_app_state("dev.tianming.avalonia.manualtest")` returns a window tree.
-- [ ] Capture startup log evidence that appearance monitoring initialized or note if no explicit log exists.
+- [x] Run `dotnet build Tianming.MacMigration.sln` and confirm 0 warnings / 0 errors.
+- [x] Run `dotnet test Tianming.MacMigration.sln` and confirm all tests pass.
+- [x] Run `Scripts/build-dev-bundle.sh`, `codesign -dvv /tmp/TianmingDev.app`, and `plutil -p /tmp/TianmingDev.app/Contents/Info.plist`.
+- [x] Launch `/tmp/TianmingDev.app` and verify Computer Use `get_app_state("dev.tianming.avalonia.manualtest")` returns a window tree.
+- [x] Capture startup log evidence that appearance monitoring initialized or note if no explicit log exists.
