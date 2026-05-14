@@ -57,6 +57,31 @@ public class ZipBookExporterTests
     }
 
     [Fact]
+    public async Task ExportAsync_excludes_staging_directory()
+    {
+        using var workspace = new TempDirectory("tm-exp");
+        var chaptersDir = Path.Combine(workspace.Path, "Generated", "chapters");
+        var rootStagingDir = Path.Combine(workspace.Path, ".staging");
+        var nestedStagingDir = Path.Combine(workspace.Path, "Generated", ".staging");
+        Directory.CreateDirectory(chaptersDir);
+        Directory.CreateDirectory(rootStagingDir);
+        Directory.CreateDirectory(nestedStagingDir);
+        await File.WriteAllTextAsync(Path.Combine(chaptersDir, "vol1_ch1.md"), "Chapter 1");
+        await File.WriteAllTextAsync(Path.Combine(rootStagingDir, "old.md"), "old draft");
+        await File.WriteAllTextAsync(Path.Combine(nestedStagingDir, "draft.md"), "nested draft");
+
+        using var output = new TempFile(".zip");
+        var exporter = new ZipBookExporter();
+
+        await exporter.ExportAsync(workspace.Path, output.Path);
+
+        using var zip = ZipFile.OpenRead(output.Path);
+        Assert.Contains(zip.Entries, entry => entry.FullName == "Generated/chapters/vol1_ch1.md");
+        Assert.DoesNotContain(zip.Entries, entry => entry.FullName == ".staging/old.md");
+        Assert.DoesNotContain(zip.Entries, entry => entry.FullName == "Generated/.staging/draft.md");
+    }
+
+    [Fact]
     public async Task Export_allows_output_zip_inside_project_root()
     {
         using var workspace = new TempDirectory("tm-exp");
