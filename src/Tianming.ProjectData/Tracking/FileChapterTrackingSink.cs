@@ -272,6 +272,29 @@ namespace TM.Services.Modules.ProjectData.Implementations
             await SaveAsync(VolumeFile("item_state_guide", chapterId), guide).ConfigureAwait(false);
         }
 
+        public async Task RecordTrackingDebtsAsync(string chapterId, IReadOnlyList<TrackingDebt> debts)
+        {
+            if (debts == null || debts.Count == 0)
+                return;
+
+            var volume = ParseVolume(chapterId);
+            var merged = (await LoadTrackingDebtsAsync(volume).ConfigureAwait(false)).ToList();
+            merged.RemoveAll(debt => string.Equals(debt.ChapterId, chapterId, StringComparison.OrdinalIgnoreCase));
+            merged.AddRange(debts);
+
+            await SaveAsync(DebtFile(volume), merged).ConfigureAwait(false);
+        }
+
+        public async Task<IReadOnlyList<TrackingDebt>> LoadTrackingDebtsAsync(int volume)
+        {
+            var path = Path.Combine(_rootDirectory, DebtFile(volume));
+            if (!File.Exists(path))
+                return Array.Empty<TrackingDebt>();
+
+            var json = await File.ReadAllTextAsync(path).ConfigureAwait(false);
+            return JsonSerializer.Deserialize<List<TrackingDebt>>(json, _jsonOptions) ?? new List<TrackingDebt>();
+        }
+
         public async Task RemoveCharacterStateAsync(string chapterId)
         {
             var guide = await LoadAsync<CharacterStateGuide>(VolumeFile("character_state_guide", chapterId)).ConfigureAwait(false);
@@ -407,13 +430,21 @@ namespace TM.Services.Modules.ProjectData.Implementations
             return $"{prefix}_vol{ParseVolume(chapterId)}.json";
         }
 
+        private static string DebtFile(int volume)
+        {
+            return $"tracking_debts_vol{volume}.json";
+        }
+
         private static int ParseVolume(string chapterId)
         {
             var match = System.Text.RegularExpressions.Regex.Match(chapterId ?? string.Empty, @"(?:vol|v)(\d+)|^(\d+)_", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             if (!match.Success)
-                return 0;
+                throw new InvalidOperationException($"Unrecognized chapter id format: {chapterId}");
             var value = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
-            return int.TryParse(value, out var volume) ? volume : 0;
+            if (!int.TryParse(value, out var volume))
+                throw new InvalidOperationException($"Unrecognized chapter id format: {chapterId}");
+
+            return volume;
         }
 
         private static int CompareChapterId(string left, string right)
@@ -428,10 +459,13 @@ namespace TM.Services.Modules.ProjectData.Implementations
         {
             var match = System.Text.RegularExpressions.Regex.Match(chapterId ?? string.Empty, @"(?:vol|v)(\d+)_(?:ch|c)(\d+)|^(\d+)_(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             if (!match.Success)
-                return (0, 0);
+                throw new InvalidOperationException($"Unrecognized chapter id format: {chapterId}");
             var volumeText = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[3].Value;
             var chapterText = match.Groups[2].Success ? match.Groups[2].Value : match.Groups[4].Value;
-            return (int.Parse(volumeText), int.Parse(chapterText));
+            if (!int.TryParse(volumeText, out var volume) || !int.TryParse(chapterText, out var chapter))
+                throw new InvalidOperationException($"Unrecognized chapter id format: {chapterId}");
+
+            return (volume, chapter);
         }
 
         private static void SortByChapter<T>(List<T> items, Func<T, string> getChapter)

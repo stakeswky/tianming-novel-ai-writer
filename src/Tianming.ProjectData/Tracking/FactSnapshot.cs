@@ -17,6 +17,7 @@ namespace TM.Services.Modules.ProjectData.Models.Tracking
         [JsonPropertyName("Timeline")] public List<TimelineSnapshot> Timeline { get; set; } = new();
         [JsonPropertyName("CharacterLocations")] public List<CharacterLocationSnapshot> CharacterLocations { get; set; } = new();
         [JsonPropertyName("ItemStates")] public List<ItemStateSnapshot> ItemStates { get; set; } = new();
+        [JsonPropertyName("TrackingDebts")] public List<TrackingDebt> TrackingDebts { get; set; } = new();
     }
 
     public class CharacterCoreDescription

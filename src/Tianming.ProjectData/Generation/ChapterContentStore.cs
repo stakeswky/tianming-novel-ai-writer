@@ -22,6 +22,8 @@ namespace TM.Services.Modules.ProjectData.Implementations
             Directory.CreateDirectory(_chaptersDirectory);
         }
 
+        public string ChaptersDirectory => _chaptersDirectory;
+
         public async Task<ChapterSaveResult> SaveChapterAsync(string chapterId, string content)
         {
             if (string.IsNullOrWhiteSpace(chapterId))

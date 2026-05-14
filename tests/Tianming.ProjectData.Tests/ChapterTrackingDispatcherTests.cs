@@ -159,6 +159,17 @@ public class ChapterTrackingDispatcherTests
             return Task.CompletedTask;
         }
 
+        public Task RecordTrackingDebtsAsync(string chapterId, IReadOnlyList<TrackingDebt> debts)
+        {
+            Events.Add($"debt:{chapterId}:{debts.Count}");
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<TrackingDebt>> LoadTrackingDebtsAsync(int volume)
+        {
+            return Task.FromResult<IReadOnlyList<TrackingDebt>>(Array.Empty<TrackingDebt>());
+        }
+
         public Task RemoveCharacterStateAsync(string chapterId)
         {
             Events.Add($"remove-character:{chapterId}");

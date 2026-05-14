@@ -207,4 +207,37 @@ namespace TM.Services.Modules.ProjectData.Models.Guides
         [JsonPropertyName("Event")] public string Event { get; set; } = string.Empty;
         [JsonPropertyName("Importance")] public string Importance { get; set; } = "normal";
     }
+
+    public class PledgeGuide
+    {
+        [JsonPropertyName("Module")] public string Module { get; set; } = "PledgeGuide";
+        [JsonPropertyName("SourceBookId")] public string SourceBookId { get; set; } = string.Empty;
+        [JsonPropertyName("Pledges")] public Dictionary<string, PledgeEntry> Pledges { get; set; } = new();
+    }
+
+    public class PledgeEntry
+    {
+        [JsonPropertyName("Name")] public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("PromisedByCharacterId")] public string PromisedByCharacterId { get; set; } = string.Empty;
+        [JsonPropertyName("PromisedAtChapter")] public string PromisedAtChapter { get; set; } = string.Empty;
+        [JsonPropertyName("DeadlineChapter")] public string DeadlineChapter { get; set; } = string.Empty;
+        [JsonPropertyName("IsFulfilled")] public bool IsFulfilled { get; set; }
+        [JsonPropertyName("FulfilledAtChapter")] public string FulfilledAtChapter { get; set; } = string.Empty;
+    }
+
+    public class SecretGuide
+    {
+        [JsonPropertyName("Module")] public string Module { get; set; } = "SecretGuide";
+        [JsonPropertyName("SourceBookId")] public string SourceBookId { get; set; } = string.Empty;
+        [JsonPropertyName("Secrets")] public Dictionary<string, SecretEntry> Secrets { get; set; } = new();
+    }
+
+    public class SecretEntry
+    {
+        [JsonPropertyName("Name")] public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("IsRevealed")] public bool IsRevealed { get; set; }
+        [JsonPropertyName("ExpectedRevealChapter")] public string ExpectedRevealChapter { get; set; } = string.Empty;
+        [JsonPropertyName("ActualRevealChapter")] public string ActualRevealChapter { get; set; } = string.Empty;
+        [JsonPropertyName("HoldersCharacterIds")] public List<string> HoldersCharacterIds { get; set; } = new();
+    }
 }
