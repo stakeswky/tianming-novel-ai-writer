@@ -28,8 +28,23 @@ namespace TM.Services.Modules.ProjectData.Humanize
                     return new HumanizeRulesConfig();
                 }
 
-                var json = File.ReadAllText(_filePath);
-                return JsonSerializer.Deserialize<HumanizeRulesConfig>(json, JsonOptions) ?? new HumanizeRulesConfig();
+                try
+                {
+                    var json = File.ReadAllText(_filePath);
+                    return JsonSerializer.Deserialize<HumanizeRulesConfig>(json, JsonOptions) ?? new HumanizeRulesConfig();
+                }
+                catch (IOException)
+                {
+                    return new HumanizeRulesConfig();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return new HumanizeRulesConfig();
+                }
+                catch (JsonException)
+                {
+                    return new HumanizeRulesConfig();
+                }
             }
         }
 
