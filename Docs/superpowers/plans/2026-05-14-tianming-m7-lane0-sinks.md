@@ -137,7 +137,7 @@ Commit with title: `Wire macOS notification sink into dispatcher`.
 
 ## Step 3: Wire MacOSSpeechOutput to PortableNotificationSoundPlayer
 
-- [ ] **Step 3.1: Write red tests**
+- [x] **Step 3.1: Write red tests**
 
 Extend DI assertions:
 
@@ -148,17 +148,17 @@ Assert.NotNull(sp.GetRequiredService<IPortableNotificationSoundPlayer>());
 
 Add a sound-player unit test with a `RecordingSpeechOutput`, `PortableNotificationSoundOptions` where `VoiceBroadcast.IsEnabled = true`, call `BroadcastNotificationAsync`, and assert the speech output receives the text.
 
-- [ ] **Step 3.2: Run red**
+- [x] **Step 3.2: Run red**
 
 Run focused tests: `dotnet test tests/Tianming.Desktop.Avalonia.Tests/Tianming.Desktop.Avalonia.Tests.csproj --filter "Build_ResolvesMacOSPlatformSinks|Sound_player_broadcast_uses_registered_speech_output"`
 
 Expected: DI assertion fails before registration.
 
-- [ ] **Step 3.3: Implement**
+- [x] **Step 3.3: Implement**
 
 Register `IPortableSoundOutput` as `MacOSNotificationSoundOutput`, `IPortableSpeechOutput` as `MacOSSpeechOutput`, `PortableNotificationSoundOptions`, and `IPortableNotificationSoundPlayer` as `PortableNotificationSoundPlayer`.
 
-- [ ] **Step 3.4: Verify and commit**
+- [x] **Step 3.4: Verify and commit**
 
 Run the focused filter and `dotnet build Tianming.MacMigration.sln`.
 

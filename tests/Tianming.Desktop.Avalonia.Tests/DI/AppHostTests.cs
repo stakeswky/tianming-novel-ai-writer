@@ -62,6 +62,9 @@ public class AppHostTests
         Assert.IsType<MacOSNotificationSink>(
             sp.GetRequiredService<IPortableNotificationSink>());
         Assert.NotNull(sp.GetRequiredService<PortableNotificationDispatcher>());
+        Assert.IsType<MacOSSpeechOutput>(
+            sp.GetRequiredService<IPortableSpeechOutput>());
+        Assert.NotNull(sp.GetRequiredService<IPortableNotificationSoundPlayer>());
     }
 
     [Fact]

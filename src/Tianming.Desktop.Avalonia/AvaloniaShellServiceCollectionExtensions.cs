@@ -165,6 +165,25 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton<IPortableNotificationSink, MacOSNotificationSink>();
         s.AddSingleton<MacOSNotificationSink>(sp =>
             (MacOSNotificationSink)sp.GetRequiredService<IPortableNotificationSink>());
+        s.AddSingleton<IPortableSoundOutput, MacOSNotificationSoundOutput>();
+        s.AddSingleton<MacOSNotificationSoundOutput>(sp =>
+            (MacOSNotificationSoundOutput)sp.GetRequiredService<IPortableSoundOutput>());
+        s.AddSingleton<IPortableSpeechOutput, MacOSSpeechOutput>();
+        s.AddSingleton<MacOSSpeechOutput>(sp =>
+            (MacOSSpeechOutput)sp.GetRequiredService<IPortableSpeechOutput>());
+        s.AddSingleton(_ => new PortableNotificationSoundOptions
+        {
+            SoundScheme = PortableSoundSchemeData.CreateDefault(),
+            VolumeAndDevice = PortableVolumeAndDeviceData.CreateDefault(),
+            VoiceBroadcast = PortableVoiceBroadcastData.CreateDefault()
+        });
+        s.AddSingleton<IPortableNotificationSoundPlayer>(sp =>
+            new PortableNotificationSoundPlayer(
+                sp.GetRequiredService<PortableNotificationSoundOptions>(),
+                sp.GetRequiredService<IPortableSoundOutput>(),
+                sp.GetRequiredService<IPortableSpeechOutput>()));
+        s.AddSingleton<PortableNotificationSoundPlayer>(sp =>
+            (PortableNotificationSoundPlayer)sp.GetRequiredService<IPortableNotificationSoundPlayer>());
         s.AddSingleton(sp =>
             new FileNotificationHistoryStore(System.IO.Path.Combine(
                 sp.GetRequiredService<AppPaths>().AppSupportDirectory,
@@ -178,7 +197,8 @@ public static class AvaloniaShellServiceCollectionExtensions
             new PortableNotificationDispatcher(
                 sp.GetRequiredService<PortableNotificationDispatcherOptions>(),
                 sp.GetRequiredService<FileNotificationHistoryStore>(),
-                sp.GetRequiredService<IPortableNotificationSink>()));
+                sp.GetRequiredService<IPortableNotificationSink>(),
+                sp.GetRequiredService<IPortableNotificationSoundPlayer>()));
 
         // Navigation
         s.AddSingleton<PageRegistry>(_ => RegisterPages(new PageRegistry()));
