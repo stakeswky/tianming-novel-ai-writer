@@ -408,13 +408,13 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
                     args = new Dictionary<string, object?>();
                 }
 
-                var toolResult = await tool.InvokeAsync(args, ct);
+                var toolResult = await tool.InvokeStructuredAsync(args, ct);
 
                 // Yield tool result
-                yield return new ToolResultDelta(toolCall.Id, toolResult);
+                yield return new ToolResultDelta(toolCall.Id, toolResult.ResultText, toolResult.StagedId);
 
                 // Add tool result as a "tool" message
-                messages.Add(new OpenAICompatibleChatMessage("tool", toolResult)
+                messages.Add(new OpenAICompatibleChatMessage("tool", toolResult.ResultText)
                 {
                     // We need to track tool_call_id for OpenAI API, but for simplicity
                     // we pass it via the content prefix
@@ -425,7 +425,7 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
                 {
                     FunctionName = tool.Name,
                     Arguments = toolCall.Arguments,
-                    Result = toolResult,
+                    Result = toolResult.ResultText,
                     Status = ToolCallStatus.Completed,
                     StartTime = DateTime.Now,
                     EndTime = DateTime.Now,

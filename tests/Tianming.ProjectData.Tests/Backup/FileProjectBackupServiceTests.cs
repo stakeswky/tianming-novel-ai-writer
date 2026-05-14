@@ -78,11 +78,49 @@ public class FileProjectBackupServiceTests
         using var workspace = new TempDirectory();
         Directory.CreateDirectory(Path.Combine(workspace.Path, ".staged"));
         await File.WriteAllTextAsync(Path.Combine(workspace.Path, ".staged", "stg-001.json"), "{}");
+        Directory.CreateDirectory(Path.Combine(workspace.Path, "Generated"));
+        await File.WriteAllTextAsync(Path.Combine(workspace.Path, "Generated", "ch-001.md"), "Chapter 1");
         var service = new FileProjectBackupService(workspace.Path);
 
         var backupId = await service.CreateBackupAsync("snapshot");
 
-        Assert.False(Directory.Exists(Path.Combine(workspace.Path, ".backups", backupId, ".staged")));
+        var backupDir = Path.Combine(workspace.Path, ".backups", backupId);
+        Assert.True(File.Exists(Path.Combine(backupDir, "Generated", "ch-001.md")));
+        Assert.False(Directory.Exists(Path.Combine(backupDir, ".staged")));
+    }
+
+    [Fact]
+    public async Task CreateBackup_excludes_staging_directory()
+    {
+        using var workspace = new TempDirectory();
+        Directory.CreateDirectory(Path.Combine(workspace.Path, ".staging"));
+        Directory.CreateDirectory(Path.Combine(workspace.Path, "Generated"));
+        await File.WriteAllTextAsync(Path.Combine(workspace.Path, ".staging", "draft.md"), "draft");
+        await File.WriteAllTextAsync(Path.Combine(workspace.Path, "Generated", "ch-001.md"), "Chapter 1");
+        var service = new FileProjectBackupService(workspace.Path);
+
+        var backupId = await service.CreateBackupAsync("snapshot");
+
+        var backupDir = Path.Combine(workspace.Path, ".backups", backupId);
+        Assert.True(File.Exists(Path.Combine(backupDir, "Generated", "ch-001.md")));
+        Assert.False(Directory.Exists(Path.Combine(backupDir, ".staging")));
+    }
+
+    [Fact]
+    public async Task CreateBackup_excludes_wal_directory()
+    {
+        using var workspace = new TempDirectory();
+        Directory.CreateDirectory(Path.Combine(workspace.Path, ".wal"));
+        Directory.CreateDirectory(Path.Combine(workspace.Path, "Generated"));
+        await File.WriteAllTextAsync(Path.Combine(workspace.Path, ".wal", "chapter.jsonl"), "{}");
+        await File.WriteAllTextAsync(Path.Combine(workspace.Path, "Generated", "ch-001.md"), "Chapter 1");
+        var service = new FileProjectBackupService(workspace.Path);
+
+        var backupId = await service.CreateBackupAsync("snapshot");
+
+        var backupDir = Path.Combine(workspace.Path, ".backups", backupId);
+        Assert.True(File.Exists(Path.Combine(backupDir, "Generated", "ch-001.md")));
+        Assert.False(Directory.Exists(Path.Combine(backupDir, ".wal")));
     }
 
     private sealed class TempDirectory : System.IDisposable

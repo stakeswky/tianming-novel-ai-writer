@@ -17,17 +17,19 @@ public sealed class WorkspaceEditToolTests
         var store = new FileStagedChangeStore(root);
         var tool = new WorkspaceEditTool(store);
 
-        var result = await tool.InvokeAsync(new Dictionary<string, object?>
+        var result = await tool.InvokeStructuredAsync(new Dictionary<string, object?>
         {
             ["relativePath"] = "README.md",
             ["newContent"] = "# rewritten",
             ["reason"] = "refresh intro",
         }, default);
 
-        Assert.Contains("待审核", result);
+        Assert.Contains("待审核", result.ResultText);
+        Assert.False(string.IsNullOrWhiteSpace(result.StagedId));
 
         var pending = await store.ListPendingAsync();
         var change = Assert.Single(pending);
+        Assert.Equal(result.StagedId, change.Id);
         Assert.Equal(StagedChangeType.WorkspaceEdit, change.ChangeType);
         Assert.Equal("README.md", change.TargetId);
         Assert.Equal("# rewritten", change.NewContentSnippet);

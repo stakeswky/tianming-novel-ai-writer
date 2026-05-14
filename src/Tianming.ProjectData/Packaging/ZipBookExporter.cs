@@ -12,6 +12,7 @@ public sealed class ZipBookExporter : IBookExporter
     private static readonly HashSet<string> ExcludedDirectories = new(StringComparer.OrdinalIgnoreCase)
     {
         ".staged",
+        ".staging",
         ".wal",
         ".backups",
         "bin",

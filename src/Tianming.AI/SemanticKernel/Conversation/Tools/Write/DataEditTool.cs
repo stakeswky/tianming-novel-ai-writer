@@ -34,20 +34,23 @@ public sealed class DataEditTool : IConversationTool
         """;
 
     public async Task<string> InvokeAsync(IReadOnlyDictionary<string, object?> args, CancellationToken ct)
+        => (await InvokeStructuredAsync(args, ct).ConfigureAwait(false)).ResultText;
+
+    public async Task<ConversationToolResult> InvokeStructuredAsync(IReadOnlyDictionary<string, object?> args, CancellationToken ct)
     {
         if (!args.TryGetValue("category", out var categoryObj) || categoryObj is not string category)
         {
-            return "错误：缺少 category 参数。";
+            return new ConversationToolResult("错误：缺少 category 参数。");
         }
 
         if (!args.TryGetValue("dataId", out var dataIdObj) || dataIdObj is not string dataId)
         {
-            return "错误：缺少 dataId 参数。";
+            return new ConversationToolResult("错误：缺少 dataId 参数。");
         }
 
         if (!args.TryGetValue("dataJson", out var dataJsonObj) || dataJsonObj is not string dataJson)
         {
-            return "错误：缺少 dataJson 参数。";
+            return new ConversationToolResult("错误：缺少 dataJson 参数。");
         }
 
         var reason = args.TryGetValue("reason", out var reasonObj) ? reasonObj as string : "(no reason)";
@@ -61,6 +64,8 @@ public sealed class DataEditTool : IConversationTool
         };
 
         var id = await _store.StageAsync(change, ct).ConfigureAwait(false);
-        return $"已提议修改 {category}/{dataId}（待审核：{id}）。请用户在 ToolCallCard 上批准或拒绝。";
+        return new ConversationToolResult(
+            $"已提议修改 {category}/{dataId}（待审核：{id}）。请用户在 ToolCallCard 上批准或拒绝。",
+            id);
     }
 }

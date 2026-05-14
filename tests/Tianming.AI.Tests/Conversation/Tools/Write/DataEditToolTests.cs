@@ -17,7 +17,7 @@ public sealed class DataEditToolTests
         var store = new FileStagedChangeStore(root);
         var tool = new DataEditTool(store);
 
-        var result = await tool.InvokeAsync(new Dictionary<string, object?>
+        var result = await tool.InvokeStructuredAsync(new Dictionary<string, object?>
         {
             ["category"] = "Characters",
             ["dataId"] = "char-001",
@@ -25,10 +25,12 @@ public sealed class DataEditToolTests
             ["reason"] = "update profile",
         }, default);
 
-        Assert.Contains("待审核", result);
+        Assert.Contains("待审核", result.ResultText);
+        Assert.False(string.IsNullOrWhiteSpace(result.StagedId));
 
         var pending = await store.ListPendingAsync();
         var change = Assert.Single(pending);
+        Assert.Equal(result.StagedId, change.Id);
         Assert.Equal(StagedChangeType.DataEdit, change.ChangeType);
         Assert.Equal("Characters:char-001", change.TargetId);
         Assert.Equal("{\"name\":\"Lin Heng\"}", change.PayloadJson);

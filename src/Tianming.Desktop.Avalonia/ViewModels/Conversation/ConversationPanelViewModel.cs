@@ -241,7 +241,6 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         return parameter switch
         {
             ConversationToolCallVm card => (card.StagedId, card),
-            string stagedId => (stagedId, null),
             _ => (null, null)
         };
     }
@@ -509,38 +508,20 @@ public sealed class BulkEmitter
 
     private bool TryAddStagedToolCard(ConversationBubbleVm assistant, ToolResultDelta result)
     {
-        var stagedId = ExtractStagedId(result.ResultText);
-        if (string.IsNullOrWhiteSpace(stagedId))
+        if (string.IsNullOrWhiteSpace(result.StagedId))
             return false;
 
         _toolCallsById.TryGetValue(result.ToolCallId, out var tool);
         assistant.ToolCalls.Add(new ConversationToolCallVm
         {
             ToolCallId = result.ToolCallId,
-            StagedId = stagedId,
+            StagedId = result.StagedId,
             ToolName = tool?.ToolName ?? "staged_change",
             ArgumentsPreview = tool?.ArgumentsJson ?? result.ResultText,
             State = ToolCallState.Pending,
         });
         return true;
     }
-
-    private static string? ExtractStagedId(string text)
-    {
-        const string prefix = "stg-";
-        var start = text.IndexOf(prefix, StringComparison.Ordinal);
-        if (start < 0)
-            return null;
-
-        var end = start + prefix.Length;
-        while (end < text.Length && IsStagedIdCharacter(text[end]))
-            end++;
-
-        return text[start..end];
-    }
-
-    private static bool IsStagedIdCharacter(char ch)
-        => char.IsLetterOrDigit(ch) || ch == '-';
 
     private static bool IsStagedWriteTool(string toolName)
         => toolName.Equals("content_edit", StringComparison.OrdinalIgnoreCase)
