@@ -28,13 +28,13 @@
 
 ## Step 0: Commit the Lane 0 plan
 
-- [ ] **Step 0.1: Save this plan and scan for incomplete placeholder wording**
+- [x] **Step 0.1: Save this plan and scan for incomplete placeholder wording**
 
 Run: `printf '%s\n' 'T''BD' 'TO''DO' > /tmp/lane0-placeholder-patterns && rg -n -f /tmp/lane0-placeholder-patterns Docs/superpowers/plans/2026-05-14-tianming-m7-lane0-sinks.md`
 
 Expected: no matches.
 
-- [ ] **Step 0.2: Commit**
+- [x] **Step 0.2: Commit**
 
 ```bash
 git add Docs/superpowers/plans/2026-05-14-tianming-m7-lane0-sinks.md
@@ -51,7 +51,7 @@ Not-tested: Implementation starts after this plan"
 
 ## Step 1: Wire MacOSSystemAppearanceMonitor to ThemeBridge
 
-- [ ] **Step 1.1: Write red tests**
+- [x] **Step 1.1: Write red tests**
 
 Add tests in `tests/Tianming.Desktop.Avalonia.Tests/Theme/MacOSAppearanceBridgeTests.cs`:
 
@@ -90,17 +90,17 @@ Assert.NotNull(sp.GetRequiredService<IPortableSystemAppearanceMonitor>());
 Assert.NotNull(sp.GetRequiredService<PortableSystemFollowRuntime>());
 ```
 
-- [ ] **Step 1.2: Run red**
+- [x] **Step 1.2: Run red**
 
 Run: `dotnet test tests/Tianming.Desktop.Avalonia.Tests/Tianming.Desktop.Avalonia.Tests.csproj --filter "System_appearance_dark_event_switches_application_to_dark|Build_ResolvesMacOSPlatformSinks"`
 
 Expected: FAIL because `ThemeBridge` forces Light and DI does not expose the monitor/runtime.
 
-- [ ] **Step 1.3: Implement**
+- [x] **Step 1.3: Implement**
 
 Register `IPortableSystemAppearanceProbe`, `IPortableSystemAppearanceMonitor`, `PortableSystemFollowSettings`, `PortableSystemFollowController`, and `PortableSystemFollowRuntime`. Call `PortableSystemFollowRuntime.InitializeAsync()` in `AppLifecycle.OnStartupAsync()` and dispose it on shutdown. Change `ThemeBridge.ApplyCore` and `InitializeAsync` to set `ThemeVariant.Dark` when the applied theme plan color mode is dark.
 
-- [ ] **Step 1.4: Verify and commit**
+- [x] **Step 1.4: Verify and commit**
 
 Run the focused test filter above, then `dotnet build Tianming.MacMigration.sln`.
 

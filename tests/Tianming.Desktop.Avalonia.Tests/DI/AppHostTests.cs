@@ -5,6 +5,7 @@ using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
 using Tianming.Desktop.Avalonia.Shell;
 using Tianming.Desktop.Avalonia.ViewModels;
+using TM.Framework.Appearance;
 using TM.Framework.Platform;
 using Xunit;
 
@@ -48,6 +49,15 @@ public class AppHostTests
         Assert.NotNull(sp.GetRequiredService<IBreadcrumbSource>());
         Assert.NotNull(sp.GetRequiredService<IKeychainHealthProbe>());
         Assert.NotNull(sp.GetRequiredService<IOnnxHealthProbe>());
+    }
+
+    [Fact]
+    public async Task Build_ResolvesMacOSPlatformSinks()
+    {
+        await using var sp = (ServiceProvider)AppHost.Build();
+        Assert.IsType<MacOSSystemAppearanceMonitor>(
+            sp.GetRequiredService<IPortableSystemAppearanceMonitor>());
+        Assert.NotNull(sp.GetRequiredService<PortableSystemFollowRuntime>());
     }
 
     [Fact]

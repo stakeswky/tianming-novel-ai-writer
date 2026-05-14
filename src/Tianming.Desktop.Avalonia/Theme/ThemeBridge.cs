@@ -41,18 +41,20 @@ public sealed class ThemeBridge
             app.Resources[kv.Key] = new SolidColorBrush(color);
         }
 
-        // 亮色 only（Mac UI 基建决策）
-        app.RequestedThemeVariant = ThemeVariant.Light;
-        _log.LogInformation("Applied theme {Theme} (forced Light)", request.Plan.ThemeType);
+        app.RequestedThemeVariant = ToAvaloniaVariant(request.Plan.ColorMode);
+        _log.LogInformation("Applied theme {Theme} ({Variant})", request.Plan.ThemeType, app.RequestedThemeVariant);
     }
 
     private void ApplyLightDarkVariant(PortableThemeType type)
     {
         var app = Application.Current;
         if (app is null) return;
-        // 亮色 only（Mac UI 基建决策）
-        app.RequestedThemeVariant = ThemeVariant.Light;
+        var plan = PortableThemeApplicationPlanner.CreateBuiltInPlan(type);
+        app.RequestedThemeVariant = ToAvaloniaVariant(plan.ColorMode);
     }
+
+    private static ThemeVariant ToAvaloniaVariant(PortableThemeColorMode colorMode)
+        => colorMode == PortableThemeColorMode.Dark ? ThemeVariant.Dark : ThemeVariant.Light;
 
     private static bool TryParseHex(string s, out Color color)
     {

@@ -128,6 +128,39 @@ public static class AvaloniaShellServiceCollectionExtensions
             return new PortableThemeStateController(state, bridge.ApplyAsync);
         });
         s.AddSingleton<ThemeBridge>();
+        s.AddSingleton<IPortableSystemAppearanceProbe, MacOSSystemAppearanceProbe>();
+        s.AddSingleton<MacOSSystemAppearanceProbe>(sp =>
+            (MacOSSystemAppearanceProbe)sp.GetRequiredService<IPortableSystemAppearanceProbe>());
+        s.AddSingleton<IPortableSystemAppearanceMonitor>(sp =>
+            new MacOSSystemAppearanceMonitor(sp.GetRequiredService<IPortableSystemAppearanceProbe>()));
+        s.AddSingleton<MacOSSystemAppearanceMonitor>(sp =>
+            (MacOSSystemAppearanceMonitor)sp.GetRequiredService<IPortableSystemAppearanceMonitor>());
+        s.AddSingleton(_ =>
+        {
+            var settings = PortableSystemFollowSettings.CreateDefault();
+            settings.Enabled = true;
+            settings.AutoStart = true;
+            settings.DelaySeconds = 0;
+            settings.ShowNotification = false;
+            settings.EnableSmartDelay = false;
+            return settings;
+        });
+        s.AddSingleton<PortableSystemFollowController>(sp =>
+        {
+            var controller = sp.GetRequiredService<PortableThemeStateController>();
+            return new PortableSystemFollowController(
+                sp.GetRequiredService<PortableSystemFollowSettings>(),
+                () => controller.CurrentTheme,
+                async (theme, ct) =>
+                {
+                    await controller.SwitchThemeAsync(theme, cancellationToken: ct).ConfigureAwait(false);
+                });
+        });
+        s.AddSingleton<PortableSystemFollowRuntime>(sp =>
+            new PortableSystemFollowRuntime(
+                sp.GetRequiredService<PortableSystemFollowSettings>(),
+                sp.GetRequiredService<IPortableSystemAppearanceMonitor>(),
+                sp.GetRequiredService<PortableSystemFollowController>().HandleAppearanceChangedAsync));
 
         // Navigation
         s.AddSingleton<PageRegistry>(_ => RegisterPages(new PageRegistry()));
