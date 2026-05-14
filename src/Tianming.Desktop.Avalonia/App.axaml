@@ -5,12 +5,14 @@
              xmlns:vc="using:Tianming.Desktop.Avalonia.ViewModels.Conversation"
              xmlns:vmd="using:Tianming.Desktop.Avalonia.ViewModels.Design"
              xmlns:vmg="using:Tianming.Desktop.Avalonia.ViewModels.Generate"
+             xmlns:vmb="using:Tianming.Desktop.Avalonia.ViewModels.Book"
              xmlns:vmai="using:Tianming.Desktop.Avalonia.ViewModels.AI"
              xmlns:v="using:Tianming.Desktop.Avalonia.Views"
              xmlns:vcv="using:Tianming.Desktop.Avalonia.Views.Conversation"
              xmlns:vsh="using:Tianming.Desktop.Avalonia.Views.Shell"
              xmlns:vd="using:Tianming.Desktop.Avalonia.Views.Design"
              xmlns:vg="using:Tianming.Desktop.Avalonia.Views.Generate"
+             xmlns:vbk="using:Tianming.Desktop.Avalonia.Views.Book"
              xmlns:vai="using:Tianming.Desktop.Avalonia.Views.AI"
              xmlns:vme="using:Tianming.Desktop.Avalonia.ViewModels.Editor"
              xmlns:ve="using:Tianming.Desktop.Avalonia.Views.Editor"
@@ -70,6 +72,9 @@
     <!-- ChapterPipelinePage 独立 view -->
     <DataTemplate DataType="vmg:ChapterPipelineViewModel">
       <vg:ChapterPipelinePage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmb:BookPipelineViewModel">
+      <vbk:BookPipelinePage/>
     </DataTemplate>
     <!-- M4.6 AI 管理 -->
     <DataTemplate DataType="vmai:ModelManagementViewModel">

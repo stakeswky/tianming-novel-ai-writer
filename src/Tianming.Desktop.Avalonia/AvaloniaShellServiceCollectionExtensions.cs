@@ -18,6 +18,8 @@ using TM.Services.Framework.AI.SemanticKernel.Conversation.Parsing;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Thinking;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools.Write;
+using TM.Services.Modules.ProjectData.BookPipeline;
+using TM.Services.Modules.ProjectData.BookPipeline.Steps;
 using TM.Services.Modules.ProjectData.Context;
 using TM.Services.Modules.ProjectData.Generation.Wal;
 using TM.Services.Modules.ProjectData.Implementations;
@@ -59,10 +61,12 @@ using Tianming.Desktop.Avalonia.ViewModels.Design;
 using Tianming.Desktop.Avalonia.ViewModels.Editor;
 using Tianming.Desktop.Avalonia.ViewModels.Conversation;
 using Tianming.Desktop.Avalonia.ViewModels.AI;
+using Tianming.Desktop.Avalonia.ViewModels.Book;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using Tianming.Desktop.Avalonia.Views;
 using Tianming.Desktop.Avalonia.Views.AI;
+using Tianming.Desktop.Avalonia.Views.Book;
 using Tianming.Desktop.Avalonia.Views.Design;
 using Tianming.Desktop.Avalonia.Views.Editor;
 using Tianming.Desktop.Avalonia.Views.Generate;
@@ -291,6 +295,23 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<INavigationService>(),
                 sp.GetRequiredService<ChapterGenerationStore>(),
                 sp.GetRequiredService<ModuleDataAdapter<ChapterCategory, ChapterData>>()));
+        s.AddSingleton<IBookGenerationJournal>(sp =>
+            new FileBookGenerationJournal(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IBookPipelineStep, DesignStep>();
+        s.AddSingleton<IBookPipelineStep, OutlineStep>();
+        s.AddSingleton<IBookPipelineStep, VolumeStep>();
+        s.AddSingleton<IBookPipelineStep, ChapterPlanningStep>();
+        s.AddSingleton<IBookPipelineStep, BlueprintStep>();
+        s.AddSingleton<IBookPipelineStep, GenerateStep>();
+        s.AddSingleton<IBookPipelineStep, HumanizeStep>();
+        s.AddSingleton<IBookPipelineStep, GateStep>();
+        s.AddSingleton<IBookPipelineStep, SaveStep>();
+        s.AddSingleton<IBookPipelineStep, IndexStep>();
+        s.AddSingleton(sp =>
+            new BookGenerationOrchestrator(
+                sp.GetServices<IBookPipelineStep>(),
+                sp.GetRequiredService<IBookGenerationJournal>()));
+        s.AddTransient<BookPipelineViewModel>();
 
         // M4.6 AI 管理：模型配置 / Keychain / 提示词 / 用量统计。
         s.AddSingleton<IApiKeySecretStore>(_ => new MacOSKeychainApiKeySecretStore(new ProcessSecurityCommandRunner()));
@@ -418,6 +439,7 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<ChapterPlanningViewModel,  DesignModulePage>(PageKeys.GenerateChapter);
         reg.Register<BlueprintViewModel,        DesignModulePage>(PageKeys.GenerateBlueprint);
         reg.Register<ChapterPipelineViewModel,  ChapterPipelinePage>(PageKeys.GeneratePipeline);
+        reg.Register<BookPipelineViewModel,     BookPipelinePage>(PageKeys.BookPipeline);
         reg.Register<ModelManagementViewModel,  ModelManagementPage>(PageKeys.AIModels);
         reg.Register<ApiKeysViewModel,          ApiKeysPage>(PageKeys.AIKeys);
         reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts);

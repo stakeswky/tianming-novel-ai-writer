@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Book"
+             x:Class="Tianming.Desktop.Avalonia.Views.Book.BookPipelinePage"
+             x:CompileBindings="False"
+             x:DataType="vm:BookPipelineViewModel"
+             FontFamily="{DynamicResource FontUI}">
+  <DockPanel Margin="20">
+    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+      <TextBlock Text="{Binding PageTitle}"
+                 FontSize="{DynamicResource FontSizeH1}"
+                 FontWeight="{DynamicResource FontWeightSemibold}"/>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Classes="primary"
+                Content="开始"
+                Command="{Binding StartCommand}"
+                IsEnabled="{Binding StartCommand.CanExecute(null)}"/>
+        <Button Classes="ghost"
+                Content="暂停"
+                Command="{Binding PauseCommand}"
+                IsEnabled="{Binding PauseCommand.CanExecute(null)}"/>
+        <TextBlock Text="{Binding StatusMessage}"
+                   VerticalAlignment="Center"
+                   Margin="12,0,0,0"/>
+      </StackPanel>
+    </StackPanel>
+
+    <ItemsControl ItemsSource="{Binding Steps}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="vm:BookStepVm">
+          <Border Padding="10"
+                  Margin="0,4"
+                  Background="{DynamicResource SurfacePanelBrush}"
+                  CornerRadius="{DynamicResource RadiusSm}">
+            <Grid ColumnDefinitions="100,*,Auto,Auto">
+              <TextBlock Grid.Column="0"
+                         Text="{Binding Status}"
+                         VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1"
+                         Text="{Binding Name}"
+                         FontWeight="{DynamicResource FontWeightSemibold}"
+                         VerticalAlignment="Center"/>
+              <Button Grid.Column="2"
+                      Classes="ghost"
+                      Content="跳过"
+                      Command="{Binding $parent[UserControl].DataContext.SkipStepCommand}"
+                      CommandParameter="{Binding Name}"/>
+              <Button Grid.Column="3"
+                      Classes="ghost"
+                      Content="重跑"
+                      Command="{Binding $parent[UserControl].DataContext.ResetStepCommand}"
+                      CommandParameter="{Binding Name}"/>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </DockPanel>
+</UserControl>
