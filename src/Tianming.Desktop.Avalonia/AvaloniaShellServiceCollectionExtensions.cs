@@ -208,6 +208,14 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton(sp =>
             new PortableSystemMonitorService(sp.GetRequiredService<IPortableSystemMonitorProbe>()));
 
+        // Lane B 设置：通知设置相关 data / controller。
+        // 持 Singleton 让 NotificationsViewModel 与 dispatcher 共享同一份用户配置实例。
+        s.AddSingleton(_ => DoNotDisturbSettingsData.CreateDefault());
+        s.AddSingleton<PortableDoNotDisturbController>(sp =>
+            new PortableDoNotDisturbController(sp.GetRequiredService<DoNotDisturbSettingsData>()));
+        s.AddSingleton(_ => new PortableToastStyleData());
+        s.AddSingleton(_ => new PortableSystemIntegrationSettings());
+
         // Navigation
         s.AddSingleton<PageRegistry>(_ => RegisterPages(new PageRegistry()));
         s.AddSingleton<INavigationService, NavigationService>();
