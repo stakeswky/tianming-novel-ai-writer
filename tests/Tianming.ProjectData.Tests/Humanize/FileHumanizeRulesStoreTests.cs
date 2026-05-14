@@ -32,4 +32,20 @@ public class FileHumanizeRulesStoreTests
         Assert.True(back.PhraseReplacements.ContainsKey("xxx"));
         Assert.Equal(50, back.SentenceLongThreshold);
     }
+
+    [Fact]
+    public void Load_returns_default_when_json_is_malformed()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"tm-hum-{System.Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "humanize_rules.json"), "{ malformed");
+
+        var store = new FileHumanizeRulesStore(dir);
+        var cfg = store.Load();
+
+        Assert.NotNull(cfg);
+        Assert.NotEmpty(cfg.PhraseReplacements);
+        Assert.True(cfg.EnablePunctuation);
+        Assert.Equal(40, cfg.SentenceLongThreshold);
+    }
 }
