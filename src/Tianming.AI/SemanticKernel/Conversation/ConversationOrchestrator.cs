@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TM.Framework.UI.Workspace.RightPanel.Modes;
 using TM.Services.Framework.AI.Core;
+using TM.Services.Framework.AI.Core.Routing;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Config;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Mapping;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Models;
@@ -32,6 +33,7 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
     private readonly PlanModeMapper _planMapper;
     private readonly AgentModeMapper _agentMapper;
     private readonly string? _projectRoot;
+    private readonly IAIModelRouter? _router;
 
     public ConversationOrchestrator(
         OpenAICompatibleChatClient chat,
@@ -41,7 +43,8 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
         AskModeMapper askMapper,
         PlanModeMapper planMapper,
         AgentModeMapper agentMapper,
-        string? projectRoot = null)
+        string? projectRoot = null,
+        IAIModelRouter? router = null)
     {
         _chat = chat ?? throw new ArgumentNullException(nameof(chat));
         _thinking = thinking ?? throw new ArgumentNullException(nameof(thinking));
@@ -51,6 +54,7 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
         _planMapper = planMapper ?? throw new ArgumentNullException(nameof(planMapper));
         _agentMapper = agentMapper ?? throw new ArgumentNullException(nameof(agentMapper));
         _projectRoot = projectRoot;
+        _router = router;
     }
 
     /// <summary>创建新会话或恢复已有会话。</summary>
@@ -170,7 +174,7 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
         ConversationSession session,
         [EnumeratorCancellation] CancellationToken ct)
     {
-        var request = BuildRequest(messages);
+        var request = BuildRequest(AITaskPurpose.Chat, messages);
         var fullContent = "";
 
         await foreach (var chunk in _chat.StreamAsync(request, ct))
@@ -230,7 +234,7 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
         ConversationSession session,
         [EnumeratorCancellation] CancellationToken ct)
     {
-        var request = BuildRequest(messages);
+        var request = BuildRequest(AITaskPurpose.Writing, messages);
         var fullContent = "";
 
         await foreach (var chunk in _chat.StreamAsync(request, ct))
@@ -319,7 +323,7 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
         while (round < maxToolRounds)
         {
             round++;
-            var request = BuildRequest(messages, toolDefinitions);
+            var request = BuildRequest(AITaskPurpose.Chat, messages, toolDefinitions);
             var assistantContent = "";
             List<OpenAICompatibleToolCall>? collectedToolCalls = null;
 
@@ -445,19 +449,33 @@ public sealed class ConversationOrchestrator : IConversationOrchestrator
         });
     }
 
-    private static OpenAICompatibleChatRequest BuildRequest(
+    private OpenAICompatibleChatRequest BuildRequest(
+        AITaskPurpose purpose,
         List<OpenAICompatibleChatMessage> messages,
         List<OpenAICompatibleToolDefinition>? tools = null)
     {
+        var config = _router?.Resolve(purpose) ?? FallbackConfig();
         return new OpenAICompatibleChatRequest
         {
-            BaseUrl = AppConfig.BaseUrl,
-            ApiKey = AppConfig.ApiKey,
-            Model = AppConfig.Model,
+            BaseUrl = config.CustomEndpoint ?? string.Empty,
+            ApiKey = config.ApiKey,
+            Model = config.ModelId,
             Messages = messages,
-            Temperature = AppConfig.Temperature,
-            MaxTokens = AppConfig.MaxTokens,
+            Temperature = config.Temperature,
+            MaxTokens = config.MaxTokens,
             Tools = tools
+        };
+    }
+
+    private static UserConfiguration FallbackConfig()
+    {
+        return new UserConfiguration
+        {
+            CustomEndpoint = AppConfig.BaseUrl,
+            ApiKey = AppConfig.ApiKey,
+            ModelId = AppConfig.Model,
+            Temperature = AppConfig.Temperature ?? 0.7,
+            MaxTokens = AppConfig.MaxTokens ?? 4096,
         };
     }
 

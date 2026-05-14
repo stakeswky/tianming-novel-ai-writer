@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TM.Framework.Appearance;
 using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
 using TM.Services.Framework.AI.Core;
+using TM.Services.Framework.AI.Core.Routing;
 using TM.Services.Framework.AI.Monitoring;
 using TM.Services.Framework.AI.SemanticKernel;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
@@ -286,6 +287,11 @@ public static class AvaloniaShellServiceCollectionExtensions
                 Path.Combine(root, "Configurations"),
                 sp.GetRequiredService<IApiKeySecretStore>());
         });
+        s.AddSingleton<IAIModelRouter>(sp => new DefaultAIModelRouter(
+            () => sp.GetRequiredService<FileAIConfigurationStore>().GetAllConfigurations()));
+        s.AddSingleton<RoutedChatClient>(sp => new RoutedChatClient(
+            sp.GetRequiredService<OpenAICompatibleChatClient>(),
+            sp.GetRequiredService<IAIModelRouter>()));
         s.AddSingleton<FilePromptTemplateStore>(sp =>
         {
             var root = Path.Combine(sp.GetRequiredService<AppPaths>().AppSupportDirectory, "Prompts");

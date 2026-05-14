@@ -17,6 +17,7 @@ public class UserConfiguration
     [JsonPropertyName("ContextWindow")] public int ContextWindow { get; set; }
     [JsonPropertyName("IsActive")] public bool IsActive { get; set; }
     [JsonPropertyName("IsEnabled")] public bool IsEnabled { get; set; } = true;
+    [JsonPropertyName("Purpose")] public string Purpose { get; set; } = "Default";
     [JsonPropertyName("CreatedAt")] public DateTime CreatedAt { get; set; } = DateTime.Now;
     [JsonPropertyName("UpdatedAt")] public DateTime UpdatedAt { get; set; } = DateTime.Now;
 

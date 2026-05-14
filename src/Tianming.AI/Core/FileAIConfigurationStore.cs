@@ -366,6 +366,7 @@ public sealed class FileAIConfigurationStore
             ContextWindow = config.ContextWindow,
             IsActive = config.IsActive,
             IsEnabled = config.IsEnabled,
+            Purpose = config.Purpose,
             CreatedAt = config.CreatedAt,
             UpdatedAt = config.UpdatedAt,
             DeveloperMessage = config.DeveloperMessage
