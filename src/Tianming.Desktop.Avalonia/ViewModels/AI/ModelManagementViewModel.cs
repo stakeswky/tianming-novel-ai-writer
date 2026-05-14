@@ -38,6 +38,7 @@ public partial class ModelManagementViewModel : ObservableObject
 
     // 可用 Provider 列表（从 store 加载）
     public ObservableCollection<string> ProviderIds { get; } = new();
+    public ObservableCollection<DefaultAIProviderOption> Providers { get; } = new();
 
     public ModelManagementViewModel(FileAIConfigurationStore store)
     {
@@ -52,12 +53,18 @@ public partial class ModelManagementViewModel : ObservableObject
     private void LoadProviders()
     {
         var providers = _store.GetAllProviders();
-        var providerIds = providers.Count == 0
-            ? DefaultAIProviders.Options.Select(provider => provider.Id)
-            : providers.Select(provider => provider.Id);
+        var providerOptions = providers.Count == 0
+            ? DefaultAIProviders.Options
+            : providers.Select(provider => new DefaultAIProviderOption(
+                provider.Id,
+                string.IsNullOrWhiteSpace(provider.Name) ? provider.Id : provider.Name));
 
-        foreach (var providerId in providerIds)
+        foreach (var provider in providerOptions)
+        {
+            Providers.Add(provider);
+            var providerId = provider.Id;
             ProviderIds.Add(providerId);
+        }
     }
 
     private void LoadModels()

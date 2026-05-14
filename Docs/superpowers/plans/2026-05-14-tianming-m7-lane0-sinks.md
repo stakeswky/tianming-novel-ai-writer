@@ -251,7 +251,7 @@ Commit with title: `Centralize page display names in PageRegistry`.
 
 ## Step 7: Show provider display names in ModelManagementPage
 
-- [ ] **Step 7.1: Write red test**
+- [x] **Step 7.1: Write red test**
 
 Add to `ModelManagementViewModelTests`:
 
@@ -260,17 +260,17 @@ Assert.Contains(vm.Providers, provider => provider.Id == "openai" && provider.Di
 Assert.DoesNotContain(vm.Providers, provider => provider.DisplayName == provider.Id);
 ```
 
-- [ ] **Step 7.2: Run red**
+- [x] **Step 7.2: Run red**
 
 Run: `dotnet test tests/Tianming.Desktop.Avalonia.Tests/Tianming.Desktop.Avalonia.Tests.csproj --filter Providers_include_display_names`
 
 Expected: FAIL because the VM exposes only `ProviderIds`.
 
-- [ ] **Step 7.3: Implement**
+- [x] **Step 7.3: Implement**
 
 Make `DefaultAIProviderOption` expose `DisplayName`; add `ObservableCollection<DefaultAIProviderOption> Providers` to `ModelManagementViewModel`; keep `ProviderIds` for existing edit rows. Update `ModelManagementPage.axaml` ComboBox to bind `Providers`, selected value to `NewProviderId`, and render `DisplayName`.
 
-- [ ] **Step 7.4: Verify and commit**
+- [x] **Step 7.4: Verify and commit**
 
 Run the focused test and `dotnet build Tianming.MacMigration.sln`.
 
