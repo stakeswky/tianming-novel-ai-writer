@@ -49,13 +49,14 @@
       <controls:SectionCard Header="已配置模型" Subtitle="管理 AI 模型配置，设置默认模型">
         <StackPanel Spacing="8">
           <!-- 表头 -->
-          <Grid ColumnDefinitions="120,120,180,80,80,*" Margin="0,0,0,4">
+          <Grid ColumnDefinitions="120,120,180,80,110,80,*" Margin="0,0,0,4">
             <TextBlock Grid.Column="0" Text="Provider" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
             <TextBlock Grid.Column="1" Text="Model" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
             <TextBlock Grid.Column="2" Text="端点" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
             <TextBlock Grid.Column="3" Text="Temp" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-            <TextBlock Grid.Column="4" Text="状态" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-            <TextBlock Grid.Column="5" Text="操作" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="4" Text="用途" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="5" Text="状态" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Grid.Column="6" Text="操作" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
           </Grid>
 
           <Separator/>
@@ -69,16 +70,21 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Grid ColumnDefinitions="120,120,180,80,80,*" Margin="0,6">
+                <Grid ColumnDefinitions="120,120,180,80,110,80,*" Margin="0,6">
                   <TextBlock Grid.Column="0" Text="{Binding ProviderId}" VerticalAlignment="Center"/>
                   <TextBlock Grid.Column="1" Text="{Binding ModelId}" VerticalAlignment="Center"/>
                   <TextBlock Grid.Column="2" Text="{Binding Endpoint}" VerticalAlignment="Center"
                              Foreground="{DynamicResource TextSecondaryBrush}"
                              TextTrimming="CharacterEllipsis"/>
                   <TextBlock Grid.Column="3" Text="{Binding Temperature, StringFormat=F1}" VerticalAlignment="Center"/>
-                  <TextBlock Grid.Column="4" Text="默认" Foreground="Green" FontWeight="SemiBold"
+                  <ComboBox Grid.Column="4"
+                            ItemsSource="{Binding PurposeOptions}"
+                            SelectedItem="{Binding Purpose, Mode=TwoWay}"
+                            DropDownClosed="OnPurposeDropDownClosed"
+                            MinWidth="100"/>
+                  <TextBlock Grid.Column="5" Text="默认" Foreground="Green" FontWeight="SemiBold"
                              VerticalAlignment="Center" IsVisible="{Binding IsActive}"/>
-                  <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                  <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <Button Content="设为默认"
                             Click="OnSetActiveClick"
                             Tag="{Binding Id}"

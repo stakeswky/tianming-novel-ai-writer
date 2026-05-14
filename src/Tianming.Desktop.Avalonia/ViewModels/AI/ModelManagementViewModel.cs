@@ -11,6 +11,15 @@ namespace Tianming.Desktop.Avalonia.ViewModels.AI;
 /// </summary>
 public partial class ModelManagementViewModel : ObservableObject
 {
+    public static IReadOnlyList<string> PurposeChoices { get; } =
+    [
+        "Default",
+        "Chat",
+        "Writing",
+        "Polish",
+        "Validation",
+    ];
+
     private readonly FileAIConfigurationStore _store;
 
     public ObservableCollection<ModelConfigItem> Models { get; } = new();
@@ -61,7 +70,8 @@ public partial class ModelManagementViewModel : ObservableObject
                 MaxTokens = config.MaxTokens,
                 IsActive = config.IsActive,
                 DisplayName = config.GetDisplayName(),
-                Name = config.Name
+                Name = config.Name,
+                Purpose = string.IsNullOrWhiteSpace(config.Purpose) ? "Default" : config.Purpose
             });
         }
     }
@@ -77,6 +87,7 @@ public partial class ModelManagementViewModel : ObservableObject
             Temperature = NewTemperature,
             MaxTokens = NewMaxTokens,
             Name = NewName,
+            Purpose = "Default",
             IsActive = Models.Count == 0 // 第一个自动设为 active
         };
 
@@ -118,6 +129,7 @@ public partial class ModelManagementViewModel : ObservableObject
             Temperature = item.Temperature,
             MaxTokens = item.MaxTokens,
             Name = item.Name,
+            Purpose = string.IsNullOrWhiteSpace(item.Purpose) ? "Default" : item.Purpose,
             IsActive = item.IsActive
         };
         _store.UpdateConfiguration(config);
@@ -155,4 +167,7 @@ public partial class ModelConfigItem : ObservableObject
     [ObservableProperty] private bool _isActive;
     [ObservableProperty] private string _displayName = string.Empty;
     [ObservableProperty] private string _name = string.Empty;
+    [ObservableProperty] private string _purpose = "Default";
+
+    public IReadOnlyList<string> PurposeOptions { get; } = ModelManagementViewModel.PurposeChoices;
 }
