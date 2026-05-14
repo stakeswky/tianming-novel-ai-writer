@@ -25,10 +25,14 @@ public static class PageKeys
     public static readonly PageKey GenerateChapter   = new("generate.chapter");
     public static readonly PageKey GenerateBlueprint = new("generate.blueprint");
     public static readonly PageKey GeneratePipeline  = new("generate.pipeline");
+    public static readonly PageKey BookPipeline      = new("book.pipeline");
 
     // M4.6 AI 管理
     public static readonly PageKey AIModels = new("ai.models");
     public static readonly PageKey AIKeys   = new("ai.keys");
     public static readonly PageKey AIPrompts = new("ai.prompts");
     public static readonly PageKey AIUsage   = new("ai.usage");
+
+    // M6.9 打包 + 备份
+    public static readonly PageKey Packaging = new("packaging");
 }

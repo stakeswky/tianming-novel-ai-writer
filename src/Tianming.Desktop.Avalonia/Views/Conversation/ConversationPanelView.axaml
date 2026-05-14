@@ -45,7 +45,9 @@
     </Border>
 
     <Grid>
-      <controls:ChatStreamView Bubbles="{Binding SampleBubbles}"/>
+      <controls:ChatStreamView Bubbles="{Binding SampleBubbles}"
+                               ApproveCommand="{Binding ApproveStagedCommand}"
+                               RejectCommand="{Binding RejectStagedCommand}"/>
       <controls:ConversationHistoryDrawer IsVisible="{Binding IsHistoryOpen}"
                                           Sessions="{Binding SessionHistory}"
                                           SelectedSession="{Binding SelectedHistoryItem, Mode=TwoWay}"

@@ -1,6 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using TM.Framework.Common.Models;
 using TM.Framework.Appearance;
 using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
 using TM.Services.Framework.AI.Core;
@@ -12,9 +17,13 @@ using TM.Services.Framework.AI.SemanticKernel.Conversation.Mapping;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Parsing;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Thinking;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools;
+using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools.Write;
+using TM.Services.Modules.ProjectData.BookPipeline;
+using TM.Services.Modules.ProjectData.BookPipeline.Steps;
 using TM.Services.Modules.ProjectData.Context;
 using TM.Services.Modules.ProjectData.Generation.Wal;
 using TM.Services.Modules.ProjectData.Implementations;
+using TM.Services.Modules.ProjectData.Backup;
 using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
@@ -36,10 +45,13 @@ using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Generate.Outline;
 using TM.Services.Modules.ProjectData.Modules.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Schema;
+using TM.Services.Modules.ProjectData.StagedChanges;
 using TM.Services.Modules.ProjectData.Humanize;
 using TM.Services.Modules.ProjectData.Humanize.Rules;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Rules;
 using TM.Services.Modules.ProjectData.Models.Tracking;
+using TM.Services.Modules.ProjectData.Packaging;
+using TM.Services.Modules.ProjectData.Packaging.Preflight;
 using TM.Services.Modules.ProjectData.Tracking.Layers;
 using TM.Services.Modules.ProjectData.Tracking.Locator;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
@@ -52,19 +64,28 @@ using Tianming.Desktop.Avalonia.ViewModels.Design;
 using Tianming.Desktop.Avalonia.ViewModels.Editor;
 using Tianming.Desktop.Avalonia.ViewModels.Conversation;
 using Tianming.Desktop.Avalonia.ViewModels.AI;
+using Tianming.Desktop.Avalonia.ViewModels.Book;
 using Tianming.Desktop.Avalonia.ViewModels.Generate;
+using Tianming.Desktop.Avalonia.ViewModels.Packaging;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using Tianming.Desktop.Avalonia.Views;
 using Tianming.Desktop.Avalonia.Views.AI;
+using Tianming.Desktop.Avalonia.Views.Book;
 using Tianming.Desktop.Avalonia.Views.Design;
 using Tianming.Desktop.Avalonia.Views.Editor;
 using Tianming.Desktop.Avalonia.Views.Generate;
+using Tianming.Desktop.Avalonia.Views.Packaging;
 using Tianming.Desktop.Avalonia.Views.Shell;
 
 namespace Tianming.Desktop.Avalonia;
 
 public static class AvaloniaShellServiceCollectionExtensions
 {
+    private static readonly JsonSerializerOptions StagedDataJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
     public static IServiceCollection AddAvaloniaShell(this IServiceCollection s)
     {
         // Infra
@@ -211,6 +232,11 @@ public static class AvaloniaShellServiceCollectionExtensions
             new PackagingContextService(
                 sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
                 sp.GetRequiredService<IDesignContextService>()));
+        s.AddSingleton<IPreflightChecker>(sp =>
+            new DefaultPreflightChecker(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IBookExporter, ZipBookExporter>();
+        s.AddSingleton<IProjectBackupService>(sp =>
+            new FileProjectBackupService(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
 
         // M6.2 Humanize + CHANGES Canonicalize
         s.AddSingleton<FileHumanizeRulesStore>(sp =>
@@ -279,6 +305,23 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<INavigationService>(),
                 sp.GetRequiredService<ChapterGenerationStore>(),
                 sp.GetRequiredService<ModuleDataAdapter<ChapterCategory, ChapterData>>()));
+        s.AddSingleton<IBookGenerationJournal>(sp =>
+            new FileBookGenerationJournal(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IBookPipelineStep, DesignStep>();
+        s.AddSingleton<IBookPipelineStep, OutlineStep>();
+        s.AddSingleton<IBookPipelineStep, VolumeStep>();
+        s.AddSingleton<IBookPipelineStep, ChapterPlanningStep>();
+        s.AddSingleton<IBookPipelineStep, BlueprintStep>();
+        s.AddSingleton<IBookPipelineStep, GenerateStep>();
+        s.AddSingleton<IBookPipelineStep, HumanizeStep>();
+        s.AddSingleton<IBookPipelineStep, GateStep>();
+        s.AddSingleton<IBookPipelineStep, SaveStep>();
+        s.AddSingleton<IBookPipelineStep, IndexStep>();
+        s.AddSingleton(sp =>
+            new BookGenerationOrchestrator(
+                sp.GetServices<IBookPipelineStep>(),
+                sp.GetRequiredService<IBookGenerationJournal>()));
+        s.AddTransient<BookPipelineViewModel>();
 
         // M4.6 AI 管理：模型配置 / Keychain / 提示词 / 用量统计。
         s.AddSingleton<IApiKeySecretStore>(_ => new MacOSKeychainApiKeySecretStore(new ProcessSecurityCommandRunner()));
@@ -314,6 +357,7 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddTransient<ApiKeysViewModel>();
         s.AddTransient<PromptManagementViewModel>();
         s.AddTransient<UsageStatisticsViewModel>();
+        s.AddTransient<PackagingViewModel>();
 
         // M4.5+ AI 对话面板：编排器、工具与会话持久化。
         s.AddSingleton<OpenAICompatibleChatClient>(sp =>
@@ -329,12 +373,35 @@ public static class AvaloniaShellServiceCollectionExtensions
             var paths = sp.GetRequiredService<AppPaths>();
             return new FileSessionStore(Path.Combine(paths.AppSupportDirectory, "Sessions"));
         });
+        s.AddSingleton<IStagedChangeStore>(sp =>
+            new FileStagedChangeStore(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
         s.AddSingleton<IConversationTool>(sp =>
             new LookupDataTool(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
         s.AddSingleton<IConversationTool>(sp =>
             new ReadChapterTool(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
         s.AddSingleton<IConversationTool>(sp =>
             new SearchReferencesTool(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IConversationTool>(sp =>
+            new ContentEditTool(sp.GetRequiredService<IStagedChangeStore>()));
+        s.AddSingleton<IConversationTool>(sp =>
+            new DataEditTool(sp.GetRequiredService<IStagedChangeStore>()));
+        s.AddSingleton<IConversationTool>(sp =>
+            new WorkspaceEditTool(sp.GetRequiredService<IStagedChangeStore>()));
+        s.AddSingleton<IStagedChangeApprover>(sp => new StagedChangeApprover(
+            sp.GetRequiredService<IStagedChangeStore>(),
+            content: async (chapterId, newContent, ct) =>
+            {
+                var projectRoot = sp.GetRequiredService<ICurrentProjectService>().ProjectRoot;
+                var store = new ChapterContentStore(Path.Combine(projectRoot, "Generated", "chapters"));
+                ct.ThrowIfCancellationRequested();
+                await store.SaveChapterAsync(chapterId, newContent).ConfigureAwait(false);
+            },
+            data: (category, dataId, dataJson, ct) => ApplyDataChangeAsync(sp, category, dataId, dataJson, ct),
+            workspace: async (relativePath, newContent, ct) =>
+            {
+                var projectRoot = sp.GetRequiredService<ICurrentProjectService>().ProjectRoot;
+                await WriteWorkspaceFileAsync(projectRoot, relativePath, newContent, ct).ConfigureAwait(false);
+            }));
         s.AddSingleton<ConversationOrchestrator>(sp =>
             new ConversationOrchestrator(
                 sp.GetRequiredService<OpenAICompatibleChatClient>(),
@@ -383,10 +450,114 @@ public static class AvaloniaShellServiceCollectionExtensions
         reg.Register<ChapterPlanningViewModel,  DesignModulePage>(PageKeys.GenerateChapter);
         reg.Register<BlueprintViewModel,        DesignModulePage>(PageKeys.GenerateBlueprint);
         reg.Register<ChapterPipelineViewModel,  ChapterPipelinePage>(PageKeys.GeneratePipeline);
+        reg.Register<BookPipelineViewModel,     BookPipelinePage>(PageKeys.BookPipeline);
         reg.Register<ModelManagementViewModel,  ModelManagementPage>(PageKeys.AIModels);
         reg.Register<ApiKeysViewModel,          ApiKeysPage>(PageKeys.AIKeys);
         reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts);
         reg.Register<UsageStatisticsViewModel,  UsageStatisticsPage>(PageKeys.AIUsage);
+        reg.Register<PackagingViewModel,        PackagingPage>(PageKeys.Packaging);
         return reg;
+    }
+
+    private static Task ApplyDataChangeAsync(
+        IServiceProvider sp,
+        string category,
+        string dataId,
+        string dataJson,
+        CancellationToken ct)
+        => category switch
+        {
+            "Characters" or "characters" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "WorldRules" or "worldrules" or "world" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<WorldRulesCategory, WorldRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "Factions" or "factions" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<FactionRulesCategory, FactionRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "Locations" or "locations" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<LocationRulesCategory, LocationRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "Plot" or "plot" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<PlotRulesCategory, PlotRulesData>>(),
+                dataId,
+                dataJson,
+                ct),
+            "CreativeMaterials" or "creativematerials" or "materials" => ApplyTypedDataChangeAsync(
+                sp.GetRequiredService<ModuleDataAdapter<CreativeMaterialCategory, CreativeMaterialData>>(),
+                dataId,
+                dataJson,
+                ct),
+            _ => throw new InvalidOperationException($"Unsupported staged data category '{category}'."),
+        };
+
+    private static async Task ApplyTypedDataChangeAsync<TCategory, TData>(
+        ModuleDataAdapter<TCategory, TData> adapter,
+        string dataId,
+        string dataJson,
+        CancellationToken ct)
+        where TCategory : class, ICategory
+        where TData : class, IDataItem
+    {
+        ct.ThrowIfCancellationRequested();
+        await adapter.LoadAsync().ConfigureAwait(false);
+
+        var item = JsonSerializer.Deserialize<TData>(dataJson, StagedDataJsonOptions)
+            ?? throw new InvalidOperationException("Staged data payload could not be deserialized.");
+
+        var existing = adapter.GetData().FirstOrDefault(entry => string.Equals(entry.Id, dataId, StringComparison.Ordinal));
+        item.Id = string.IsNullOrWhiteSpace(item.Id) ? dataId : item.Id;
+
+        if (string.IsNullOrWhiteSpace(item.Category))
+        {
+            item.Category = existing?.Category
+                ?? adapter.GetCategories().FirstOrDefault()?.Name
+                ?? throw new InvalidOperationException("No category available for staged data change.");
+        }
+
+        if (string.IsNullOrWhiteSpace(item.CategoryId))
+        {
+            item.CategoryId = existing?.CategoryId ?? string.Empty;
+        }
+
+        await adapter.UpdateAsync(item).ConfigureAwait(false);
+    }
+
+    private static async Task WriteWorkspaceFileAsync(
+        string projectRoot,
+        string relativePath,
+        string newContent,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            throw new InvalidOperationException("Workspace staged change requires a relativePath.");
+        }
+
+        var rootFullPath = Path.GetFullPath(projectRoot);
+        var targetPath = Path.GetFullPath(Path.Combine(projectRoot, relativePath));
+        if (!targetPath.StartsWith(rootFullPath, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Workspace staged change path escapes the project root.");
+        }
+
+        var parent = Path.GetDirectoryName(targetPath);
+        if (!string.IsNullOrEmpty(parent))
+        {
+            Directory.CreateDirectory(parent);
+        }
+
+        var tempPath = targetPath + ".tmp";
+        await File.WriteAllTextAsync(tempPath, newContent, ct).ConfigureAwait(false);
+        File.Move(tempPath, targetPath, overwrite: true);
     }
 }
