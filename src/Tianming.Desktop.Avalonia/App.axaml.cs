@@ -7,6 +7,7 @@ using LiveChartsCore.SkiaSharpView;
 using Microsoft.Extensions.DependencyInjection;
 using SkiaSharp;
 using Tianming.Desktop.Avalonia.Infrastructure;
+using TM.Services.Modules.ProjectData.Generation.Wal;
 using Tianming.Desktop.Avalonia.ViewModels;
 using Tianming.Desktop.Avalonia.Views;
 
@@ -27,6 +28,19 @@ public partial class App : Application
         AvaloniaEditBootstrap.Initialize();
 
         Services = AppHost.Build();
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var recovery = App.Services?.GetService<GenerationRecoveryService>();
+                if (recovery != null)
+                    await recovery.ReplayAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WAL Recovery] failed: {ex.Message}");
+            }
+        });
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
