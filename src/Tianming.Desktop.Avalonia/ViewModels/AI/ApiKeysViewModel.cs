@@ -43,8 +43,10 @@ public partial class ApiKeysViewModel : ObservableObject
             .GroupBy(c => c.ProviderId)
             .OrderBy(g => g.Key);
 
+        var hasGroups = false;
         foreach (var group in grouped)
         {
+            hasGroups = true;
             var providerName = allProviders
                 .FirstOrDefault(p => p.Id == group.Key)?.Name ?? group.Key;
 
@@ -68,6 +70,18 @@ public partial class ApiKeysViewModel : ObservableObject
             }
 
             Providers.Add(providerGroup);
+        }
+
+        if (!hasGroups && allProviders.Count == 0)
+        {
+            foreach (var provider in DefaultAIProviders.Options)
+            {
+                Providers.Add(new ProviderKeyGroup
+                {
+                    ProviderId = provider.Id,
+                    ProviderName = provider.Name,
+                });
+            }
         }
     }
 
