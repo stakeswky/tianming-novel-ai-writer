@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Conversation"
+             x:Class="Tianming.Desktop.Avalonia.Controls.ReferenceDropdown">
+  <Border IsVisible="{Binding IsOpen, RelativeSource={RelativeSource AncestorType=controls:ReferenceDropdown}}"
+          Background="{DynamicResource SurfacePanelBrush}"
+          Padding="6"
+          CornerRadius="{DynamicResource RadiusMd}"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Top"
+          Margin="0,4,0,0"
+          ZIndex="100">
+    <ListBox ItemsSource="{Binding Items, RelativeSource={RelativeSource AncestorType=controls:ReferenceDropdown}}"
+             SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=controls:ReferenceDropdown}, Mode=TwoWay}"
+             Background="Transparent"
+             MaxHeight="160">
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="vm:ReferenceItemVm">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="{Binding Category}" Foreground="{DynamicResource TextTertiaryBrush}" Width="60"/>
+            <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextPrimaryBrush}"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Border>
+</UserControl>

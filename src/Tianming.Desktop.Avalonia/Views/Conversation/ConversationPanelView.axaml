@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Conversation"
+             x:Class="Tianming.Desktop.Avalonia.Views.Conversation.ConversationPanelView"
+             x:DataType="vm:ConversationPanelViewModel">
+  <DockPanel LastChildFill="True">
+    <Border DockPanel.Dock="Top" Padding="8" Background="{DynamicResource SurfacePanelBrush}">
+      <Grid ColumnDefinitions="*, Auto, Auto">
+        <controls:SegmentedTabs Grid.Column="0"
+                                Items="{Binding ModeSegments}"
+                                SelectedKey="{Binding SelectedMode, Mode=TwoWay}"
+                                SelectCommand="{Binding SelectModeCommand}"/>
+        <Button Grid.Column="1"
+                Classes="ghost"
+                Content="历史"
+                Command="{Binding LoadHistoryCommand}"/>
+        <Button Grid.Column="2"
+                Classes="ghost"
+                Content="新会话"
+                Margin="6,0,0,0"
+                Command="{Binding NewSessionCommand}"/>
+      </Grid>
+    </Border>
+
+    <Border DockPanel.Dock="Bottom" Padding="8" Background="{DynamicResource SurfacePanelBrush}">
+      <Grid RowDefinitions="*, Auto">
+        <TextBox Grid.Row="0"
+                 Text="{Binding InputDraft, Mode=TwoWay}"
+                 Watermark="输入消息，@ 可引用项目数据"
+                 AcceptsReturn="True"
+                 MinHeight="60"/>
+        <controls:ReferenceDropdown Grid.Row="0"
+                                    IsOpen="{Binding IsReferencePopupOpen}"
+                                    Items="{Binding ReferenceCandidates}"
+                                    SelectedItem="{Binding SelectedReferenceItem, Mode=TwoWay}"/>
+        <Button Grid.Row="1"
+                Classes="primary"
+                Content="发送"
+                Margin="0,6,0,0"
+                HorizontalAlignment="Right"
+                Command="{Binding SendCommand}"
+                IsEnabled="{Binding !IsStreaming}"/>
+      </Grid>
+    </Border>
+
+    <Grid>
+      <controls:ChatStreamView Bubbles="{Binding SampleBubbles}"/>
+      <controls:ConversationHistoryDrawer IsVisible="{Binding IsHistoryOpen}"
+                                          Sessions="{Binding SessionHistory}"
+                                          SelectedSession="{Binding SelectedHistoryItem, Mode=TwoWay}"
+                                          HorizontalAlignment="Right"
+                                          Width="240"/>
+    </Grid>
+  </DockPanel>
+</UserControl>

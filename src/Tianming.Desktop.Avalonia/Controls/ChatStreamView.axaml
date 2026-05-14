@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Shell"
+             x:Class="Tianming.Desktop.Avalonia.Controls.ChatStreamView">
+  <ScrollViewer Name="StreamScroll" HorizontalScrollBarVisibility="Disabled">
+    <ItemsControl Name="Items" ItemsSource="{Binding Bubbles, RelativeSource={RelativeSource AncestorType=controls:ChatStreamView}}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="vm:ConversationBubbleVm">
+          <controls:ConversationBubble Role="{Binding Role}"
+                                       ContentText="{Binding Content}"
+                                       ThinkingBlock="{Binding ThinkingBlock}"
+                                       Timestamp="{Binding Timestamp}"
+                                       Margin="0,4"/>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </ScrollViewer>
+</UserControl>

@@ -4,11 +4,16 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 using TM.Framework.Common.Helpers.Id;
+using TM.Framework.UI.Workspace.RightPanel.Modes;
+using TM.Services.Framework.AI.SemanticKernel.Conversation;
+using TM.Services.Framework.AI.SemanticKernel.Conversation.Models;
 
 namespace TM.Services.Framework.AI.SemanticKernel
 {
-    public sealed class FileSessionStore
+    public sealed class FileSessionStore : IFileSessionStore
     {
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
         {
@@ -143,6 +148,76 @@ namespace TM.Services.Framework.AI.SemanticKernel
             }
         }
 
+        public Task SaveSessionAsync(ConversationSession session, CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (!_sessionIndex.TryGetValue(session.Id, out var info))
+            {
+                info = new SessionInfo
+                {
+                    Id = session.Id,
+                    CreatedAt = session.CreatedAt,
+                };
+                _sessionIndex[session.Id] = info;
+            }
+
+            info.Title = string.IsNullOrWhiteSpace(session.Title) ? info.Title : session.Title;
+            info.Mode = ((int)session.Mode).ToString();
+            info.UpdatedAt = DateTime.Now;
+            info.MessageCount = session.History.Count;
+
+            SaveMessages(session.Id, session.History.Select(ToSerializedRecord));
+            return Task.CompletedTask;
+        }
+
+        public Task<ConversationSession?> LoadSessionAsync(string sessionId, CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (!_sessionIndex.TryGetValue(sessionId, out var info))
+                return Task.FromResult<ConversationSession?>(null);
+
+            var session = new ConversationSession
+            {
+                Id = info.Id,
+                Title = info.Title,
+                CreatedAt = info.CreatedAt,
+                Mode = ParseChatMode(info.Mode),
+            };
+
+            foreach (var record in LoadMessages(sessionId))
+            {
+                session.History.Add(ToConversationMessage(record));
+            }
+
+            return Task.FromResult<ConversationSession?>(session);
+        }
+
+        public Task<IReadOnlyList<SessionSummary>> ListSessionsAsync(CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var sessions = GetAllSessions()
+                .Select(session => new SessionSummary
+                {
+                    Id = session.Id,
+                    Title = session.Title,
+                    UpdatedAt = session.UpdatedAt,
+                    MessageCount = session.MessageCount,
+                })
+                .ToList();
+
+            return Task.FromResult<IReadOnlyList<SessionSummary>>(sessions);
+        }
+
+        public Task DeleteSessionAsync(string sessionId, CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+            DeleteSession(sessionId);
+            return Task.CompletedTask;
+        }
+
         private string GetMessagesFilePath(string sessionId)
         {
             return Path.Combine(_sessionsDir, $"{sessionId}.messages.json");
@@ -243,6 +318,50 @@ namespace TM.Services.Framework.AI.SemanticKernel
                 MessageCount = session.MessageCount,
                 Mode = session.Mode,
                 ContextChapterId = session.ContextChapterId
+            };
+        }
+
+        private static SerializedMessageRecord ToSerializedRecord(ConversationMessage message)
+        {
+            return new SerializedMessageRecord
+            {
+                MessageId = message.RunId == Guid.Empty ? Guid.NewGuid().ToString("N") : message.RunId.ToString("N"),
+                Role = message.Role.ToString().ToLowerInvariant(),
+                Summary = message.Summary,
+                Analysis = string.IsNullOrWhiteSpace(message.AnalysisRaw) ? null : message.AnalysisRaw,
+                Timestamp = message.Timestamp,
+            };
+        }
+
+        private static ConversationMessage ToConversationMessage(SerializedMessageRecord record)
+        {
+            return new ConversationMessage
+            {
+                RunId = Guid.TryParse(record.MessageId, out var runId) ? runId : Guid.Empty,
+                Role = ParseConversationRole(record.Role),
+                Timestamp = record.Timestamp,
+                Summary = record.Summary,
+                AnalysisRaw = record.Analysis ?? string.Empty,
+            };
+        }
+
+        private static ConversationRole ParseConversationRole(string? role)
+        {
+            return role?.ToLowerInvariant() switch
+            {
+                "user" => ConversationRole.User,
+                "system" => ConversationRole.System,
+                _ => ConversationRole.Assistant,
+            };
+        }
+
+        private static ChatMode ParseChatMode(string? mode)
+        {
+            return mode switch
+            {
+                "1" => ChatMode.Agent,
+                "2" => ChatMode.Plan,
+                _ => ChatMode.Ask,
             };
         }
     }

@@ -1,12 +1,18 @@
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
 using Tianming.Desktop.Avalonia.Shell;
+using Tianming.Desktop.Avalonia.Tests.Infrastructure;
 using Tianming.Desktop.Avalonia.ViewModels;
 using Tianming.Desktop.Avalonia.ViewModels.Shell;
+using TM.Framework.UI.Workspace.RightPanel.Modes;
+using TM.Services.Framework.AI.SemanticKernel;
+using TM.Services.Framework.AI.SemanticKernel.Conversation;
 using Xunit;
 
 namespace Tianming.Desktop.Avalonia.Tests.ViewModels;
@@ -93,7 +99,10 @@ public class MainWindowViewModelMenuTests
             "tianming-test-" + Guid.NewGuid().ToString("N"));
         var windowStore = new WindowStateStore(System.IO.Path.Combine(tmpRoot, "window.json"));
         var leftNav = new LeftNavViewModel(nav);
-        var rightPanel = new RightConversationViewModel();
+        var rightPanel = new RightConversationViewModel(
+            new StubConversationOrchestrator(),
+            new StubSessionStore(),
+            new FakeDispatcherScheduler());
         var layout = new ThreeColumnLayoutViewModel(windowStore, nav, leftNav, rightPanel);
         var breadcrumb = new NavigationBreadcrumbSource(nav);
         var chrome = new AppChromeViewModel(breadcrumb, nav);
@@ -134,5 +143,38 @@ public class MainWindowViewModelMenuTests
     {
         public Task<StatusIndicator> ProbeAsync(CancellationToken ct = default)
             => Task.FromResult(new StatusIndicator("stub", StatusKind.Success));
+    }
+
+    private sealed class StubConversationOrchestrator : IConversationOrchestrator
+    {
+        public Task<ConversationSession> StartSessionAsync(ChatMode mode, string? sessionId = null, CancellationToken ct = default)
+            => Task.FromResult(new ConversationSession { Mode = mode });
+
+        public async IAsyncEnumerable<ChatStreamDelta> SendAsync(
+            ConversationSession session,
+            string userInput,
+            [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            await Task.Yield();
+            yield break;
+        }
+
+        public Task PersistAsync(ConversationSession session, CancellationToken ct = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubSessionStore : IFileSessionStore
+    {
+        public Task SaveSessionAsync(ConversationSession session, CancellationToken ct = default)
+            => Task.CompletedTask;
+
+        public Task<ConversationSession?> LoadSessionAsync(string sessionId, CancellationToken ct = default)
+            => Task.FromResult<ConversationSession?>(null);
+
+        public Task<IReadOnlyList<SessionSummary>> ListSessionsAsync(CancellationToken ct = default)
+            => Task.FromResult<IReadOnlyList<SessionSummary>>(Array.Empty<SessionSummary>());
+
+        public Task DeleteSessionAsync(string sessionId, CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 }

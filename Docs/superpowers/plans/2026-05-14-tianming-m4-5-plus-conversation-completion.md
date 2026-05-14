@@ -1526,6 +1526,23 @@ Expected: 所有项目全过。
 - [ ] 点候选→输入框插入 `@九州大陆 `
 - [ ] 点"新会话"→消息清空
 
+### Round 3 rework B-3 live verification (2026-05-14)
+
+- [x] Ask 模式默认可见，右栏 Ask / Plan / Agent 三按钮稳定显示。
+- [x] 点击 Plan / Agent / Ask 后窗口未 crash，右栏仍可继续交互。
+- [!] 输入 `hello` 并发送后看到用户气泡，但真实 orchestrator 路径返回可见错误气泡：`[错误] NotSupportedException: The 'file' scheme is not supported.` 这确认 B-1 不再静默回退 demo；附带发现是 chat client / endpoint 配置仍需单独修复后才能拿到真实流式回复。
+- [!] 点击“历史”可进入会话历史视图，但本轮未看到已保存会话条目；附带发现是上述发送失败路径未形成可加载历史记录。
+- [!] 输入 `@九` 的实机路径被当前 macOS 中文输入法候选条拦截，未稳定触发 app 内 ReferenceDropdown；代码层 B-2 已由 `ReferenceSuggestionSourceTests` 和 `ConversationPanelViewModelTests.InputDraft_with_at_query_uses_injected_reference_provider_results` 覆盖。
+- [!] 候选点击补全依赖上一项，未完成实机点击验证；附带发现保留到后续 UI 输入法/焦点专项。
+- [x] 点击“新会话”后消息区清空，输入区回到空会话状态。
+
+Evidence screenshots:
+- `/tmp/tianming-b3-initial.png`
+- `/tmp/tianming-b3-send5.png`
+- `/tmp/tianming-b3-history.png`
+- `/tmp/tianming-b3-reference2.png`
+- `/tmp/tianming-b3-new-session.png`
+
 ---
 
 ## M4.5+ Gate 验收
