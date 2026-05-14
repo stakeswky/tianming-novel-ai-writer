@@ -33,15 +33,18 @@ public sealed class WorkspaceEditTool : IConversationTool
         """;
 
     public async Task<string> InvokeAsync(IReadOnlyDictionary<string, object?> args, CancellationToken ct)
+        => (await InvokeStructuredAsync(args, ct).ConfigureAwait(false)).ResultText;
+
+    public async Task<ConversationToolResult> InvokeStructuredAsync(IReadOnlyDictionary<string, object?> args, CancellationToken ct)
     {
         if (!args.TryGetValue("relativePath", out var relativePathObj) || relativePathObj is not string relativePath)
         {
-            return "错误：缺少 relativePath 参数。";
+            return new ConversationToolResult("错误：缺少 relativePath 参数。");
         }
 
         if (!args.TryGetValue("newContent", out var newContentObj) || newContentObj is not string newContent)
         {
-            return "错误：缺少 newContent 参数。";
+            return new ConversationToolResult("错误：缺少 newContent 参数。");
         }
 
         var reason = args.TryGetValue("reason", out var reasonObj) ? reasonObj as string : "(no reason)";
@@ -54,6 +57,8 @@ public sealed class WorkspaceEditTool : IConversationTool
         };
 
         var id = await _store.StageAsync(change, ct).ConfigureAwait(false);
-        return $"已提议修改文件 {relativePath}（待审核：{id}）。请用户在 ToolCallCard 上批准或拒绝。";
+        return new ConversationToolResult(
+            $"已提议修改文件 {relativePath}（待审核：{id}）。请用户在 ToolCallCard 上批准或拒绝。",
+            id);
     }
 }

@@ -35,10 +35,13 @@ public sealed class ContentEditTool : IConversationTool
         """;
 
     public async Task<string> InvokeAsync(IReadOnlyDictionary<string, object?> args, CancellationToken ct)
+        => (await InvokeStructuredAsync(args, ct).ConfigureAwait(false)).ResultText;
+
+    public async Task<ConversationToolResult> InvokeStructuredAsync(IReadOnlyDictionary<string, object?> args, CancellationToken ct)
     {
         if (!args.TryGetValue("chapterId", out var chapterIdObj) || chapterIdObj is not string chapterId)
         {
-            return "错误：缺少 chapterId 参数。";
+            return new ConversationToolResult("错误：缺少 chapterId 参数。");
         }
 
         var newContent = args.TryGetValue("newContent", out var newContentObj) ? newContentObj as string : null;
@@ -56,6 +59,8 @@ public sealed class ContentEditTool : IConversationTool
         };
 
         var id = await _store.StageAsync(change, ct).ConfigureAwait(false);
-        return $"已提议修改章节 {chapterId}（待审核：{id}）。请用户在 ToolCallCard 上批准或拒绝。";
+        return new ConversationToolResult(
+            $"已提议修改章节 {chapterId}（待审核：{id}）。请用户在 ToolCallCard 上批准或拒绝。",
+            id);
     }
 }
