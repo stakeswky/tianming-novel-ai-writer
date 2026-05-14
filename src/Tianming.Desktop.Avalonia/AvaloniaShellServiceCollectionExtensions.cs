@@ -33,6 +33,8 @@ using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Generate.Outline;
 using TM.Services.Modules.ProjectData.Modules.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Schema;
+using TM.Services.Modules.ProjectData.Humanize;
+using TM.Services.Modules.ProjectData.Humanize.Rules;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
@@ -176,6 +178,26 @@ public static class AvaloniaShellServiceCollectionExtensions
         // M4.4 章节生成状态追踪
         s.AddSingleton<ChapterGenerationStore>(sp =>
             new ChapterGenerationStore(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+
+        // M6.2 Humanize + CHANGES Canonicalize
+        s.AddSingleton<FileHumanizeRulesStore>(sp =>
+        {
+            var paths = sp.GetRequiredService<AppPaths>();
+            return new FileHumanizeRulesStore(Path.Combine(paths.AppSupportDirectory, "Humanize"));
+        });
+        s.AddSingleton<IHumanizeRule>(sp =>
+        {
+            var cfg = sp.GetRequiredService<FileHumanizeRulesStore>().Load();
+            return new PhraseReplaceRule(cfg.PhraseReplacements);
+        });
+        s.AddSingleton<IHumanizeRule, PunctuationRule>();
+        s.AddSingleton<IHumanizeRule>(sp =>
+        {
+            var cfg = sp.GetRequiredService<FileHumanizeRulesStore>().Load();
+            return new SentenceLengthRule(cfg.SentenceLongThreshold);
+        });
+        s.AddSingleton<HumanizePipeline>(sp =>
+            new HumanizePipeline(sp.GetServices<IHumanizeRule>()));
 
         // M6.1 Tracking 债务检测
         s.AddSingleton<ITrackingDebtDetector, EntityDriftDetector>();
