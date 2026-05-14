@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using TM.Framework.Common.Helpers.AI;
+using TM.Services.Framework.AI.Core.Routing;
 using TM.Services.Framework.AI.Monitoring;
 
 namespace TM.Services.Framework.AI.Core;
@@ -18,22 +19,33 @@ public sealed class ConfiguredAITextGenerationService : IPromptTextGenerator
     private readonly Func<HttpClient> _httpClientFactory;
     private readonly ApiKeyRotationService? _keyRotation;
     private readonly FileUsageStatisticsService? _usageStatistics;
+    private readonly IAIModelRouter? _router;
+    private readonly AITaskPurpose _defaultPurpose;
 
     public ConfiguredAITextGenerationService(
         FileAIConfigurationStore configurationStore,
         Func<HttpClient> httpClientFactory,
         ApiKeyRotationService? keyRotation = null,
-        FileUsageStatisticsService? usageStatistics = null)
+        FileUsageStatisticsService? usageStatistics = null,
+        IAIModelRouter? router = null,
+        AITaskPurpose defaultPurpose = AITaskPurpose.Writing)
     {
         _configurationStore = configurationStore ?? throw new ArgumentNullException(nameof(configurationStore));
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _keyRotation = keyRotation;
         _usageStatistics = usageStatistics;
+        _router = router;
+        _defaultPurpose = defaultPurpose;
     }
 
-    public async Task<PromptGenerationAiResult> GenerateAsync(string prompt)
+    public Task<PromptGenerationAiResult> GenerateAsync(string prompt)
     {
-        if (!TryBuildRequest(prompt, out var context, out var errorMessage))
+        return GenerateAsync(prompt, _defaultPurpose);
+    }
+
+    public async Task<PromptGenerationAiResult> GenerateAsync(string prompt, AITaskPurpose purpose)
+    {
+        if (!TryBuildRequest(prompt, purpose, out var context, out var errorMessage))
             return new PromptGenerationAiResult(false, string.Empty, errorMessage);
 
         var excludedKeyIds = new HashSet<string>();
@@ -80,11 +92,19 @@ public sealed class ConfiguredAITextGenerationService : IPromptTextGenerator
         return new PromptGenerationAiResult(false, string.Empty, lastResult?.ErrorMessage ?? "AI生成失败");
     }
 
+    public IAsyncEnumerable<OpenAICompatibleStreamChunk> StreamAsync(
+        string prompt,
+        CancellationToken cancellationToken = default)
+    {
+        return StreamAsync(prompt, _defaultPurpose, cancellationToken);
+    }
+
     public async IAsyncEnumerable<OpenAICompatibleStreamChunk> StreamAsync(
         string prompt,
+        AITaskPurpose purpose,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (!TryBuildRequest(prompt, out var context, out var errorMessage))
+        if (!TryBuildRequest(prompt, purpose, out var context, out var errorMessage))
             throw new InvalidOperationException(errorMessage);
 
         var excludedKeyIds = new HashSet<string>();
@@ -161,54 +181,58 @@ public sealed class ConfiguredAITextGenerationService : IPromptTextGenerator
 
     private bool TryBuildRequest(
         string prompt,
+        AITaskPurpose purpose,
         out GenerationRequestContext context,
         out string errorMessage)
     {
         context = new GenerationRequestContext(string.Empty, new OpenAICompatibleChatRequest());
         errorMessage = string.Empty;
 
-        var activeConfig = _configurationStore.GetActiveConfiguration();
-        if (activeConfig == null)
+        UserConfiguration configuration;
+        if (_router != null)
         {
-            errorMessage = NoActiveConfigurationMessage;
+            try
+            {
+                configuration = _router.Resolve(purpose);
+            }
+            catch (InvalidOperationException ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
+        }
+        else
+        {
+            var activeConfig = _configurationStore.GetActiveConfiguration();
+            if (activeConfig == null)
+            {
+                errorMessage = NoActiveConfigurationMessage;
+                return false;
+            }
+
+            configuration = activeConfig;
+        }
+
+        var provider = _configurationStore.GetProviderById(configuration.ProviderId);
+        if (provider == null && string.IsNullOrWhiteSpace(configuration.CustomEndpoint))
+        {
+            errorMessage = $"未找到供应商: {configuration.ProviderId}";
             return false;
         }
 
-        var provider = _configurationStore.GetProviderById(activeConfig.ProviderId);
-        if (provider == null)
-        {
-            errorMessage = $"未找到供应商: {activeConfig.ProviderId}";
-            return false;
-        }
+        var messages = new List<OpenAICompatibleChatMessage>();
+        if (!string.IsNullOrWhiteSpace(configuration.DeveloperMessage))
+            messages.Add(new OpenAICompatibleChatMessage("system", configuration.DeveloperMessage));
 
-        var endpoint = string.IsNullOrWhiteSpace(activeConfig.CustomEndpoint)
-            ? provider.ApiEndpoint
-            : activeConfig.CustomEndpoint;
-        if (string.IsNullOrWhiteSpace(endpoint))
+        messages.Add(new OpenAICompatibleChatMessage("user", prompt));
+        var request = OpenAICompatibleChatRequestFactory.Build(_configurationStore, configuration, messages);
+        if (string.IsNullOrWhiteSpace(request.BaseUrl))
         {
             errorMessage = "端点地址为空";
             return false;
         }
 
-        var model = _configurationStore.GetModelById(activeConfig.ModelId);
-        var modelName = string.IsNullOrWhiteSpace(model?.Name)
-            ? activeConfig.ModelId
-            : model.Name;
-
-        var messages = new List<OpenAICompatibleChatMessage>();
-        if (!string.IsNullOrWhiteSpace(activeConfig.DeveloperMessage))
-            messages.Add(new OpenAICompatibleChatMessage("system", activeConfig.DeveloperMessage));
-
-        messages.Add(new OpenAICompatibleChatMessage("user", prompt));
-        context = new GenerationRequestContext(activeConfig.ProviderId, new OpenAICompatibleChatRequest
-        {
-            BaseUrl = endpoint,
-            ApiKey = activeConfig.ApiKey,
-            Model = modelName,
-            Messages = messages,
-            Temperature = activeConfig.Temperature,
-            MaxTokens = activeConfig.MaxTokens
-        });
+        context = new GenerationRequestContext(configuration.ProviderId, request);
         return true;
     }
 

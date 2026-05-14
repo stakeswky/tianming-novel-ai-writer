@@ -9,11 +9,16 @@ public sealed class RoutedChatClient
 {
     private readonly OpenAICompatibleChatClient _inner;
     private readonly IAIModelRouter _router;
+    private readonly FileAIConfigurationStore? _configurationStore;
 
-    public RoutedChatClient(OpenAICompatibleChatClient inner, IAIModelRouter router)
+    public RoutedChatClient(
+        OpenAICompatibleChatClient inner,
+        IAIModelRouter router,
+        FileAIConfigurationStore? configurationStore = null)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _router = router ?? throw new ArgumentNullException(nameof(router));
+        _configurationStore = configurationStore;
     }
 
     public OpenAICompatibleChatRequest BuildRequestFor(
@@ -24,7 +29,15 @@ public sealed class RoutedChatClient
         double? overrideTemperature = null)
     {
         var config = _router.Resolve(purpose);
-        return new OpenAICompatibleChatRequest
+        return _configurationStore != null
+            ? OpenAICompatibleChatRequestFactory.Build(
+                _configurationStore,
+                config,
+                messages,
+                tools,
+                overrideMaxTokens,
+                overrideTemperature)
+            : new OpenAICompatibleChatRequest
         {
             BaseUrl = config.CustomEndpoint ?? string.Empty,
             ApiKey = config.ApiKey,
