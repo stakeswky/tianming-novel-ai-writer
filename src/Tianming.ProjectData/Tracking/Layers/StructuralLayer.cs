@@ -8,6 +8,11 @@ using TM.Services.Modules.ProjectData.Models.Tracking;
 
 namespace TM.Services.Modules.ProjectData.Tracking.Layers;
 
+/// <summary>
+/// Chapter-shape validation only.
+/// Legacy <c>ValidateStructuralOnly</c> parity is intentionally split across
+/// <see cref="StructuralLayer"/>, <see cref="TimelineLayer"/>, and <see cref="RelationshipLayer"/>.
+/// </summary>
 public sealed class StructuralLayer : IConsistencyLayer
 {
     public string LayerName => "Structural";

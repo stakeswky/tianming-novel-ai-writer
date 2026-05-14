@@ -11,11 +11,13 @@ public class ConsistencyIssueLocatorTests
     private sealed class StubVectorSearchService : IVectorSearchService
     {
         public List<VectorSearchResult> Results { get; set; } = [];
+        public string LastQuery { get; private set; } = string.Empty;
 
         public VectorSearchMode CurrentMode => VectorSearchMode.Keyword;
 
         public Task<List<VectorSearchResult>> SearchAsync(string query, int topK = 5)
         {
+            LastQuery = query;
             return Task.FromResult(Results);
         }
 
@@ -73,5 +75,38 @@ public class ConsistencyIssueLocatorTests
 
         Assert.Equal(-1, located.ChunkPosition);
         Assert.Equal(0d, located.VectorScore);
+    }
+
+    [Fact]
+    public async Task Uses_ranked_query_search_to_find_matches_beyond_early_chapter_chunks()
+    {
+        var search = new StubVectorSearchService
+        {
+            Results =
+            [
+                new VectorSearchResult
+                {
+                    ChapterId = "ch-999",
+                    Position = 0,
+                    Content = "char-001 出现在别的章节。",
+                    Score = 0.99d
+                },
+                new VectorSearchResult
+                {
+                    ChapterId = "ch-001",
+                    Position = 7,
+                    Content = "char-001 在后段跌回练气阶段。",
+                    Score = 0.87d
+                }
+            ]
+        };
+        var locator = new ConsistencyIssueLocator(search);
+        var issue = new ConsistencyIssue { EntityId = "char-001", IssueType = "LevelRegression" };
+
+        var located = await locator.LocateAsync(issue, "ch-001");
+
+        Assert.Equal("char-001 LevelRegression", search.LastQuery);
+        Assert.Equal(7, located.ChunkPosition);
+        Assert.InRange(located.VectorScore, 0.86d, 0.88d);
     }
 }

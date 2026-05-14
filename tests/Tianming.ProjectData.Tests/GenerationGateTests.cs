@@ -94,6 +94,38 @@ public class GenerationGateTests
         Assert.InRange(issue.VectorScore, 0.74d, 0.76d);
     }
 
+    [Fact]
+    public async Task ValidateAsync_preserves_layered_issues_when_legacy_consistency_fails()
+    {
+        var layered = new LayeredConsistencyChecker([new StubConsistencyLayer()]);
+        var locator = new ConsistencyIssueLocator(new StubVectorSearchService());
+        var gate = new GenerationGate(new LedgerConsistencyChecker(), new LedgerRuleSetProvider(), layered, locator);
+        var snapshot = new FactSnapshot
+        {
+            CharacterStates =
+            [
+                new CharacterStateSnapshot
+                {
+                    Id = "C7M3VT2K9P4NA",
+                    Stage = "A"
+                }
+            ]
+        };
+
+        var result = await gate.ValidateAsync(
+            "CH001",
+            "林衡束起黑发，沿着山路继续前行。\n---CHANGES---\n" + LevelRegressionChangesJson(),
+            snapshot);
+
+        Assert.False(result.Success);
+        Assert.Contains(result.Failures, failure =>
+            failure.Type == FailureType.Consistency &&
+            failure.Errors.Any(error => error.Contains("LevelRegression")));
+        var issue = Assert.Single(result.LayeredIssues!);
+        Assert.Equal("Entity", issue.Layer);
+        Assert.Equal(4, issue.ChunkPosition);
+    }
+
     private static GenerationGate CreateGate()
     {
         return new GenerationGate(new LedgerConsistencyChecker(), new LedgerRuleSetProvider());
@@ -128,7 +160,16 @@ public class GenerationGateTests
 
         public Task<System.Collections.Generic.List<VectorSearchResult>> SearchAsync(string query, int topK = 5)
         {
-            return Task.FromResult(new System.Collections.Generic.List<VectorSearchResult>());
+            return Task.FromResult(new System.Collections.Generic.List<VectorSearchResult>
+            {
+                new()
+                {
+                    ChapterId = "CH001",
+                    Position = 4,
+                    Content = "char-001 在这一段出场。",
+                    Score = 0.75d
+                }
+            });
         }
 
         public Task<System.Collections.Generic.List<VectorSearchResult>> SearchByChapterAsync(string chapterId, int topK = 2)
@@ -151,6 +192,30 @@ public class GenerationGateTests
         return """
         {
           "CharacterStateChanges": [],
+          "ConflictProgress": [],
+          "ForeshadowingActions": [],
+          "NewPlotPoints": [],
+          "LocationStateChanges": [],
+          "FactionStateChanges": [],
+          "TimeProgression": { "TimePeriod": "第一日", "ElapsedTime": "片刻", "KeyTimeEvent": "启程", "Importance": "normal" },
+          "CharacterMovements": [],
+          "ItemTransfers": []
+        }
+        """;
+    }
+
+    private static string LevelRegressionChangesJson()
+    {
+        return """
+        {
+              "CharacterStateChanges": [
+                {
+              "CharacterId": "C7M3VT2K9P4NA",
+              "NewLevel": "B",
+              "KeyEvent": "",
+              "RelationshipChanges": {}
+            }
+          ],
           "ConflictProgress": [],
           "ForeshadowingActions": [],
           "NewPlotPoints": [],

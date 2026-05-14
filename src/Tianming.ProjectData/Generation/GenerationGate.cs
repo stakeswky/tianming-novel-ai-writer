@@ -54,6 +54,16 @@ namespace TM.Services.Modules.ProjectData.Implementations
             result.ContentWithoutChanges = protocolResult.ContentWithoutChanges;
 
             var ruleSet = _ledgerRuleSetProvider.GetRuleSetForGate();
+            if (_layeredConsistencyChecker != null)
+            {
+                await AttachLayeredIssuesAsync(
+                    result,
+                    chapterId,
+                    protocolResult.Changes!,
+                    factSnapshot,
+                    ruleSet).ConfigureAwait(false);
+            }
+
             var consistencyResult = _ledgerConsistencyChecker.Validate(
                 protocolResult.Changes!,
                 factSnapshot,
@@ -65,31 +75,17 @@ namespace TM.Services.Modules.ProjectData.Implementations
                 return result;
             }
 
-            if (_layeredConsistencyChecker != null)
-            {
-                return await ValidateWithLayeredIssuesAsync(
-                    result,
-                    chapterId,
-                    protocolResult.Changes!,
-                    factSnapshot,
-                    ruleSet,
-                    protocolResult.ContentWithoutChanges,
-                    designElements).ConfigureAwait(false);
-            }
-
             var contentToValidate = protocolResult.ContentWithoutChanges ?? string.Empty;
             return await ContinueValidation(result, contentToValidate, factSnapshot, protocolResult.Changes, designElements)
                 .ConfigureAwait(false);
         }
 
-        private async Task<GateResult> ValidateWithLayeredIssuesAsync(
+        private async Task AttachLayeredIssuesAsync(
             GateResult result,
             string chapterId,
             ChapterChanges changes,
             FactSnapshot factSnapshot,
-            LedgerRuleSet ruleSet,
-            string? contentWithoutChanges,
-            DesignElementNames? designElements = null)
+            LedgerRuleSet ruleSet)
         {
             var layered = await _layeredConsistencyChecker!
                 .CheckAsync(changes, factSnapshot, ruleSet)
@@ -106,10 +102,6 @@ namespace TM.Services.Modules.ProjectData.Implementations
                 result.LayeredIssues ??= new List<ConsistencyIssue>();
                 result.LayeredIssues.AddRange(layered.AllIssues);
             }
-
-            var contentToValidate = contentWithoutChanges ?? string.Empty;
-            return await ContinueValidation(result, contentToValidate, factSnapshot, changes, designElements)
-                .ConfigureAwait(false);
         }
 
         private Task<GateResult> ContinueValidation(

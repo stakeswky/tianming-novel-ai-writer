@@ -8,6 +8,7 @@ namespace TM.Services.Modules.ProjectData.Tracking.Locator;
 
 public sealed class ConsistencyIssueLocator
 {
+    private const int RankedSearchTopK = 32;
     private readonly IVectorSearchService _search;
 
     public ConsistencyIssueLocator(IVectorSearchService search)
@@ -26,7 +27,10 @@ public sealed class ConsistencyIssueLocator
         if (string.IsNullOrWhiteSpace(issue.EntityId) || string.IsNullOrWhiteSpace(chapterId))
             return issue;
 
-        var results = await _search.SearchByChapterAsync(chapterId, topK: 8).ConfigureAwait(false);
+        var query = string.IsNullOrWhiteSpace(issue.IssueType)
+            ? issue.EntityId
+            : $"{issue.EntityId} {issue.IssueType}";
+        var results = await _search.SearchAsync(query, topK: RankedSearchTopK).ConfigureAwait(false);
         var bestMatch = results
             .Where(result =>
                 string.Equals(result.ChapterId, chapterId, StringComparison.OrdinalIgnoreCase)
