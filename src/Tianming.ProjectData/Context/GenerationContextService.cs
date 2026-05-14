@@ -16,6 +16,7 @@ public sealed class GenerationContextService : IGenerationContextService
     private readonly FactSnapshotProvider _factProvider;
     private readonly DesignNamesProvider _namesProvider;
     private readonly PreviousChaptersSummaryProvider _summaryProvider;
+    private readonly ProjectContextDataBuilder? _builder;
 
     public GenerationContextService(
         string projectRoot,
@@ -27,6 +28,28 @@ public sealed class GenerationContextService : IGenerationContextService
         _factProvider = factProvider;
         _namesProvider = namesProvider;
         _summaryProvider = summaryProvider;
+    }
+
+    public GenerationContextService(
+        string projectRoot,
+        ProjectContextDataBuilder builder)
+    {
+        _projectRoot = projectRoot;
+        _builder = builder;
+        _factProvider = (chapterId, ct) => _builder.BuildFactSnapshotAsync(chapterId, ct);
+        _namesProvider = ct => _builder.BuildDesignElementNamesAsync(ct);
+        _summaryProvider = (chapterId, ct) => _builder.BuildPreviousChaptersSummaryAsync(chapterId, ct);
+    }
+
+    public GenerationContextService(
+        string projectRoot,
+        TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Generate.ChapterPlanning.ChapterCategory, TM.Services.Modules.ProjectData.Models.Generate.ChapterPlanning.ChapterData> chapterAdapter,
+        TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Characters.CharacterRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Characters.CharacterRulesData> characterAdapter,
+        TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Factions.FactionRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Factions.FactionRulesData> factionAdapter,
+        TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Location.LocationRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Location.LocationRulesData> locationAdapter,
+        TM.Services.Modules.ProjectData.Modules.Schema.ModuleDataAdapter<TM.Services.Modules.ProjectData.Models.Design.Plot.PlotRulesCategory, TM.Services.Modules.ProjectData.Models.Design.Plot.PlotRulesData> plotAdapter)
+        : this(projectRoot, new ProjectContextDataBuilder(projectRoot, chapterAdapter, characterAdapter, factionAdapter, locationAdapter, plotAdapter))
+    {
     }
 
     public async Task<GenerationContext> BuildAsync(string chapterId, CancellationToken ct = default)

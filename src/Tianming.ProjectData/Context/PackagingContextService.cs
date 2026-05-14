@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TM.Services.Modules.ProjectData.Implementations;
 
 namespace TM.Services.Modules.ProjectData.Context;
 
@@ -20,11 +21,13 @@ public sealed class PackagingContextService : IPackagingContextService
 
     private readonly string _projectRoot;
     private readonly IDesignContextService _design;
+    private readonly ChapterContentStore _chapterStore;
 
-    public PackagingContextService(string projectRoot, IDesignContextService design)
+    public PackagingContextService(string projectRoot, IDesignContextService design, ChapterContentStore? chapterStore = null)
     {
         _projectRoot = projectRoot;
         _design = design;
+        _chapterStore = chapterStore ?? new ChapterContentStore(Path.Combine(projectRoot, "Generated", "chapters"));
     }
 
     public async Task<PackagingSnapshot> BuildSnapshotAsync(CancellationToken ct = default)
@@ -35,14 +38,10 @@ public sealed class PackagingContextService : IPackagingContextService
             designs.AddRange(await _design.ListByCategoryAsync(category, ct).ConfigureAwait(false));
         }
 
-        var chaptersDir = Path.Combine(_projectRoot, "Generate", "Chapters");
-        var chapterIds = Directory.Exists(chaptersDir)
-            ? Directory.GetFiles(chaptersDir, "*.md", SearchOption.AllDirectories)
-                .Select(Path.GetFileNameWithoutExtension)
-                .OfType<string>()
-                .Where(name => !string.IsNullOrEmpty(name))
-                .ToList()
-            : [];
+        var chapterIds = (await _chapterStore.GetGeneratedChaptersAsync().ConfigureAwait(false))
+            .Select(chapter => chapter.Id)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .ToList();
 
         return new PackagingSnapshot
         {

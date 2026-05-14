@@ -33,20 +33,11 @@ public sealed class DesignContextService : IDesignContextService
         if (!CategorySubDirs.TryGetValue(category, out var subDir))
             return Array.Empty<DesignReference>();
 
-        var directory = Path.Combine(_projectRoot, subDir);
-        if (!Directory.Exists(directory))
+        var dataPath = Path.Combine(_projectRoot, subDir, "data.json");
+        if (!File.Exists(dataPath))
             return Array.Empty<DesignReference>();
 
-        var results = new List<DesignReference>();
-        foreach (var file in Directory.GetFiles(directory, "*.json", SearchOption.AllDirectories))
-        {
-            ct.ThrowIfCancellationRequested();
-            var reference = await ParseAsync(file, category, ct).ConfigureAwait(false);
-            if (reference is not null)
-                results.Add(reference);
-        }
-
-        return results;
+        return await ParseModuleDataAsync(dataPath, category, ct).ConfigureAwait(false);
     }
 
     public async Task<IReadOnlyList<DesignReference>> SearchAsync(string query, CancellationToken ct = default)
@@ -77,31 +68,69 @@ public sealed class DesignContextService : IDesignContextService
         return null;
     }
 
-    private static async Task<DesignReference?> ParseAsync(string file, string category, CancellationToken ct)
+    private static async Task<IReadOnlyList<DesignReference>> ParseModuleDataAsync(string file, string category, CancellationToken ct)
     {
         try
         {
             var json = await File.ReadAllTextAsync(file, ct).ConfigureAwait(false);
-            var node = JsonNode.Parse(json) as JsonObject;
-            if (node is null)
-                return null;
-
-            return new DesignReference
+            var root = JsonNode.Parse(json);
+            if (root is JsonArray array)
             {
-                Id = node["Id"]?.ToString() ?? Path.GetFileNameWithoutExtension(file),
-                Name = node["Name"]?.ToString() ?? string.Empty,
-                Category = category,
-                Summary = node["Summary"]?.ToString() ?? node["Description"]?.ToString() ?? string.Empty,
-                RawJson = json,
-            };
+                var results = new List<DesignReference>();
+                foreach (var item in array.OfType<JsonObject>())
+                {
+                    var reference = ParseItem(item, category);
+                    if (reference is not null)
+                        results.Add(reference);
+                }
+
+                return results;
+            }
+
+            if (root is JsonObject obj)
+            {
+                var reference = ParseItem(obj, category);
+                return reference is null ? Array.Empty<DesignReference>() : [reference];
+            }
+
+            return Array.Empty<DesignReference>();
         }
         catch (IOException)
         {
-            return null;
+            return Array.Empty<DesignReference>();
         }
         catch (JsonException)
         {
-            return null;
+            return Array.Empty<DesignReference>();
         }
+    }
+
+    private static DesignReference? ParseItem(JsonObject node, string category)
+    {
+        var id = node["Id"]?.ToString();
+        var name = node["Name"]?.ToString();
+        if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(name))
+            return null;
+
+        return new DesignReference
+        {
+            Id = id ?? string.Empty,
+            Name = name ?? string.Empty,
+            Category = category,
+            Summary = FirstNonEmpty(
+                node["Summary"]?.ToString(),
+                node["Description"]?.ToString(),
+                node["OneLineSummary"]?.ToString(),
+                node["OverallIdea"]?.ToString(),
+                node["HardRules"]?.ToString(),
+                node["Goal"]?.ToString(),
+                node["Conflict"]?.ToString()),
+            RawJson = node.ToJsonString(),
+        };
+    }
+
+    private static string FirstNonEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? string.Empty;
     }
 }
