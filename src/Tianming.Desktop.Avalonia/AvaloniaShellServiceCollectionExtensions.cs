@@ -1,10 +1,10 @@
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TM.Framework.Appearance;
 using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
 using TM.Services.Framework.AI.Core;
+using TM.Services.Framework.AI.Core.Routing;
 using TM.Services.Framework.AI.Monitoring;
 using TM.Services.Framework.AI.SemanticKernel;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
@@ -12,7 +12,9 @@ using TM.Services.Framework.AI.SemanticKernel.Conversation.Mapping;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Parsing;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Thinking;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools;
+using TM.Services.Modules.ProjectData.Context;
 using TM.Services.Modules.ProjectData.Generation.Wal;
+using TM.Services.Modules.ProjectData.Implementations;
 using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
@@ -36,6 +38,8 @@ using TM.Services.Modules.ProjectData.Modules.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Schema;
 using TM.Services.Modules.ProjectData.Humanize;
 using TM.Services.Modules.ProjectData.Humanize.Rules;
+using TM.Services.Modules.ProjectData.Implementations.Tracking.Rules;
+using TM.Services.Modules.ProjectData.Models.Tracking;
 using TM.Services.Modules.ProjectData.Tracking.Layers;
 using TM.Services.Modules.ProjectData.Tracking.Locator;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
@@ -182,6 +186,32 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton<ChapterGenerationStore>(sp =>
             new ChapterGenerationStore(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
 
+        // M6.5 ContextService 拆分
+        s.AddSingleton<LedgerRuleSetProvider>();
+        s.AddSingleton(sp =>
+            new ProjectContextDataBuilder(
+                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
+                sp.GetRequiredService<ModuleDataAdapter<ChapterCategory, ChapterData>>(),
+                sp.GetRequiredService<ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData>>(),
+                sp.GetRequiredService<ModuleDataAdapter<FactionRulesCategory, FactionRulesData>>(),
+                sp.GetRequiredService<ModuleDataAdapter<LocationRulesCategory, LocationRulesData>>(),
+                sp.GetRequiredService<ModuleDataAdapter<PlotRulesCategory, PlotRulesData>>(),
+                sp.GetRequiredService<ModuleDataAdapter<WorldRulesCategory, WorldRulesData>>()));
+        s.AddSingleton<IDesignContextService>(sp =>
+            new DesignContextService(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton<IGenerationContextService>(sp =>
+            new GenerationContextService(
+                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
+                sp.GetRequiredService<ProjectContextDataBuilder>()));
+        s.AddSingleton<IValidationContextService>(sp =>
+            new ValidationContextService(
+                sp.GetRequiredService<ProjectContextDataBuilder>(),
+                sp.GetRequiredService<LedgerRuleSetProvider>()));
+        s.AddSingleton<IPackagingContextService>(sp =>
+            new PackagingContextService(
+                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
+                sp.GetRequiredService<IDesignContextService>()));
+
         // M6.2 Humanize + CHANGES Canonicalize
         s.AddSingleton<FileHumanizeRulesStore>(sp =>
         {
@@ -261,6 +291,12 @@ public static class AvaloniaShellServiceCollectionExtensions
                 Path.Combine(root, "Configurations"),
                 sp.GetRequiredService<IApiKeySecretStore>());
         });
+        s.AddSingleton<IAIModelRouter>(sp => new DefaultAIModelRouter(
+            () => sp.GetRequiredService<FileAIConfigurationStore>().GetAllConfigurations()));
+        s.AddSingleton<RoutedChatClient>(sp => new RoutedChatClient(
+            sp.GetRequiredService<OpenAICompatibleChatClient>(),
+            sp.GetRequiredService<IAIModelRouter>(),
+            sp.GetRequiredService<FileAIConfigurationStore>()));
         s.AddSingleton<FilePromptTemplateStore>(sp =>
         {
             var root = Path.Combine(sp.GetRequiredService<AppPaths>().AppSupportDirectory, "Prompts");
@@ -308,7 +344,9 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<AskModeMapper>(),
                 sp.GetRequiredService<PlanModeMapper>(),
                 sp.GetRequiredService<AgentModeMapper>(),
-                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+                sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
+                sp.GetRequiredService<IAIModelRouter>(),
+                sp.GetRequiredService<FileAIConfigurationStore>()));
         s.AddSingleton<IConversationOrchestrator>(sp => sp.GetRequiredService<ConversationOrchestrator>());
         s.AddSingleton<IReferenceSuggestionSource, ReferenceSuggestionSource>();
 

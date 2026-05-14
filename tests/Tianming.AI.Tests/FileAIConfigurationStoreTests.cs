@@ -74,14 +74,16 @@ public class FileAIConfigurationStoreTests
             ProviderId = "openai",
             ModelId = "gpt",
             ApiKey = "secret",
-            IsActive = true
+            IsActive = true,
+            Purpose = "Writing"
         });
         store.AddConfiguration(new UserConfiguration
         {
             Name = "Backup",
             ProviderId = "anthropic",
             ModelId = "claude",
-            ApiKey = "other-secret"
+            ApiKey = "other-secret",
+            Purpose = "Validation"
         });
         var backup = Assert.Single(store.GetAllConfigurations(), config => config.Name == "Backup");
         store.SetActiveConfiguration(backup.Id);
@@ -92,6 +94,7 @@ public class FileAIConfigurationStoreTests
 
         Assert.Equal(3, changes);
         Assert.Equal("Backup", reloaded.GetActiveConfiguration()?.Name);
+        Assert.Equal("Validation", reloaded.GetActiveConfiguration()?.Purpose);
         Assert.All(reloaded.GetAllConfigurations(), config => Assert.False(config.ApiKey.Length > 0));
         Assert.DoesNotContain("secret", json, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("ApiKey", json, StringComparison.OrdinalIgnoreCase);

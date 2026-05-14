@@ -3,6 +3,7 @@ using Tianming.Desktop.Avalonia;
 using Tianming.Desktop.Avalonia.Navigation;
 using Tianming.Desktop.Avalonia.ViewModels.AI;
 using Xunit;
+using TM.Services.Framework.AI.Core.Routing;
 
 namespace Tianming.Desktop.Avalonia.Tests.DI;
 
@@ -29,5 +30,14 @@ public class AIManagementRegistrationTests
         Assert.NotNull(sp.GetRequiredService<ApiKeysViewModel>());
         Assert.NotNull(sp.GetRequiredService<PromptManagementViewModel>());
         Assert.NotNull(sp.GetRequiredService<UsageStatisticsViewModel>());
+    }
+
+    [Fact]
+    public void Build_RegistersRouterServices()
+    {
+        using var sp = (ServiceProvider)AppHost.Build();
+
+        Assert.NotNull(sp.GetRequiredService<IAIModelRouter>());
+        Assert.NotNull(sp.GetRequiredService<RoutedChatClient>());
     }
 }
