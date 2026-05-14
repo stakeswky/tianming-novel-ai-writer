@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Settings"
+             x:Class="Tianming.Desktop.Avalonia.Views.Settings.ThemeFollowSystemPage"
+             x:DataType="vm:ThemeFollowSystemViewModel">
+  <ScrollViewer Padding="24">
+    <StackPanel Spacing="20" MaxWidth="640" HorizontalAlignment="Left">
+
+      <controls:SectionCard Header="跟随系统外观" Subtitle="主题随 macOS 系统外观自动切换">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{Binding FollowSystemStatusText}"
+                     TextWrapping="Wrap"/>
+          <TextBlock Text="如需固定使用 Light 或 Dark，请到「外观主题」页面切换。"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     FontSize="12"
+                     TextWrapping="Wrap"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <controls:SectionCard Header="定时主题" Subtitle="按时间窗、星期或节假日自动切换主题">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{Binding ScheduleStatusText}"
+                     TextWrapping="Wrap"/>
+          <TextBlock Text="（占位 — 后续 milestone 提供完整 schedule 编辑器）"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     FontSize="12"
+                     FontStyle="Italic"
+                     TextWrapping="Wrap"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

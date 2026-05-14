@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:controls="using:Tianming.Desktop.Avalonia.Controls"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Settings"
+             xmlns:app="clr-namespace:TM.Framework.Appearance;assembly=Tianming.Framework"
+             x:Class="Tianming.Desktop.Avalonia.Views.Settings.ThemeSettingsPage"
+             x:DataType="vm:ThemeSettingsViewModel">
+  <ScrollViewer Padding="24">
+    <StackPanel Spacing="20" MaxWidth="640" HorizontalAlignment="Left">
+      <controls:SectionCard Header="主题模式" Subtitle="选择应用使用的主题，切换后立刻生效">
+        <StackPanel Spacing="12">
+          <ComboBox SelectedItem="{Binding SelectedTheme}" Width="220" HorizontalAlignment="Left">
+            <ComboBox.Items>
+              <app:PortableThemeType>Auto</app:PortableThemeType>
+              <app:PortableThemeType>Light</app:PortableThemeType>
+              <app:PortableThemeType>Dark</app:PortableThemeType>
+            </ComboBox.Items>
+          </ComboBox>
+          <TextBlock Text="• Auto：根据 macOS 系统外观（深色/浅色）自动切换"
+                     Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+          <TextBlock Text="• Light / Dark：固定使用指定外观"
+                     Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+          <Button Content="应用" Command="{Binding ApplyThemeCommand}"
+                  HorizontalAlignment="Right" Classes="accent" Margin="0,12,0,0"/>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <controls:SectionCard Header="内置主题预设" Subtitle="Green / Business / ModernBlue 等扩展主题">
+        <TextBlock Text="（后续 milestone 提供：内置主题预设 + 自定义主题导入导出）"
+                   Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+      </controls:SectionCard>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

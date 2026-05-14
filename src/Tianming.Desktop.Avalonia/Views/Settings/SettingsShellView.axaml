@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tianming.Desktop.Avalonia.ViewModels.Settings"
+             x:Class="Tianming.Desktop.Avalonia.Views.Settings.SettingsShellView"
+             x:DataType="vm:SettingsShellViewModel">
+  <Grid ColumnDefinitions="220,*">
+    <!-- 子导航 -->
+    <Border Grid.Column="0"
+            Background="{DynamicResource SurfaceContainerBrush}"
+            BorderBrush="{DynamicResource BorderSubtleBrush}"
+            BorderThickness="0,0,1,0"
+            Padding="12">
+      <StackPanel Spacing="4">
+        <TextBlock Text="设置" FontSize="20" FontWeight="SemiBold" Margin="6,4,0,12"/>
+        <ListBox ItemsSource="{Binding SubNavItems}"
+                 SelectedItem="{Binding SelectedItem}"
+                 Background="Transparent"
+                 BorderThickness="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:SettingsSubNavItem">
+              <StackPanel Orientation="Horizontal" Spacing="10" Margin="2">
+                <TextBlock Text="{Binding Icon}" FontSize="16"/>
+                <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </StackPanel>
+    </Border>
+    <!-- 内容宿主：绑 CurrentPageViewModel，Application.DataTemplates 会按 VM 类型自动选 sub-page；
+         null 时显示空白（设计期 / SelectedItem == null 时的兜底）。 -->
+    <ContentControl Grid.Column="1" Content="{Binding CurrentPageViewModel}"/>
+  </Grid>
+</UserControl>

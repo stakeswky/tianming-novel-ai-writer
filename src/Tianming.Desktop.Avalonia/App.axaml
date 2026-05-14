@@ -18,6 +18,8 @@
              xmlns:vpkg="using:Tianming.Desktop.Avalonia.Views.Packaging"
              xmlns:vme="using:Tianming.Desktop.Avalonia.ViewModels.Editor"
              xmlns:ve="using:Tianming.Desktop.Avalonia.Views.Editor"
+             xmlns:vmset="using:Tianming.Desktop.Avalonia.ViewModels.Settings"
+             xmlns:vset="using:Tianming.Desktop.Avalonia.Views.Settings"
              x:Class="Tianming.Desktop.Avalonia.App">
   <Application.DataTemplates>
     <DataTemplate DataType="vm:WelcomeViewModel">
@@ -96,6 +98,16 @@
     <!-- M4.3 章节编辑器 -->
     <DataTemplate DataType="vme:EditorWorkspaceViewModel">
       <ve:EditorWorkspaceView/>
+    </DataTemplate>
+    <!-- M7 Lane A 设置 -->
+    <DataTemplate DataType="vmset:SettingsShellViewModel">
+      <vset:SettingsShellView/>
+    </DataTemplate>
+    <DataTemplate DataType="vmset:ThemeSettingsViewModel">
+      <vset:ThemeSettingsPage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmset:ThemeFollowSystemViewModel">
+      <vset:ThemeFollowSystemPage/>
     </DataTemplate>
   </Application.DataTemplates>
 

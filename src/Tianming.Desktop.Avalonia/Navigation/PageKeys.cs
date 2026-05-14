@@ -35,4 +35,8 @@ public static class PageKeys
 
     // M6.9 打包 + 备份
     public static readonly PageKey Packaging = new("packaging");
+
+    // M7 Lane A 设置
+    public static readonly PageKey SettingsTheme        = new("settings.theme");
+    public static readonly PageKey SettingsFollowSystem = new("settings.followsystem");
 }
