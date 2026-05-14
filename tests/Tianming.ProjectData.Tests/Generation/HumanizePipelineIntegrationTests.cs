@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using TM.Services.Modules.ProjectData.Humanize;
 using TM.Services.Modules.ProjectData.Humanize.Rules;
@@ -36,5 +37,56 @@ public class HumanizePipelineIntegrationTests
         Assert.True(result.GateResult.Success, string.Join("; ", result.GateResult.GetAllFailures()));
         Assert.Equal("# 第1章\n\n他赢了。", result.PersistedContent);
         Assert.NotNull(result.ParsedChanges);
+    }
+
+    [Fact]
+    public async Task PrepareStrictAsync_does_not_feed_trailing_json_fence_into_humanize_pipeline()
+    {
+        var captureRule = new CaptureRule();
+        var pipeline = new HumanizePipeline(new IHumanizeRule[] { captureRule });
+        var preparer = new ContentGenerationPreparer(
+            new GenerationGate(new LedgerConsistencyChecker(), new LedgerRuleSetProvider()),
+            pipeline);
+
+        var result = await preparer.PrepareStrictAsync(
+            "vol1_ch2",
+            """
+            林衡走进院子。
+
+            ```json
+            {
+              "CharacterStateChanges": [],
+              "ConflictProgress": [],
+              "ForeshadowingActions": [],
+              "NewPlotPoints": [],
+              "LocationStateChanges": [],
+              "FactionStateChanges": [],
+              "TimeProgression": null,
+              "CharacterMovements": [],
+              "ItemTransfers": []
+            }
+            ```
+            """,
+            new FactSnapshot());
+
+        Assert.True(result.GateResult.Success, string.Join("; ", result.GateResult.GetAllFailures()));
+        Assert.NotNull(captureRule.LastInput);
+        Assert.DoesNotContain("```json", captureRule.LastInput);
+        Assert.DoesNotContain("```", captureRule.LastInput);
+    }
+
+    private sealed class CaptureRule : IHumanizeRule
+    {
+        public string? LastInput { get; private set; }
+
+        public string Name => "Capture";
+
+        public int Priority => 1;
+
+        public Task<string> ApplyAsync(string input, HumanizeContext context, CancellationToken ct = default)
+        {
+            LastInput = input;
+            return Task.FromResult(input);
+        }
     }
 }

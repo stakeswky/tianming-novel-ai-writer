@@ -74,6 +74,38 @@ public class ContentGenerationPreparerTests
         Assert.Contains(result.GateResult.Failures, failure => failure.Type == FailureType.Protocol);
     }
 
+    [Fact]
+    public async Task PrepareStrictAsync_strips_leading_json_fence_from_trailing_changes_block()
+    {
+        var preparer = CreatePreparer();
+
+        var result = await preparer.PrepareStrictAsync(
+            "vol1_ch2",
+            """
+            林衡走进院子。
+
+            ```json
+            {
+              "CharacterStateChanges": [],
+              "ConflictProgress": [],
+              "ForeshadowingActions": [],
+              "NewPlotPoints": [],
+              "LocationStateChanges": [],
+              "FactionStateChanges": [],
+              "TimeProgression": null,
+              "CharacterMovements": [],
+              "ItemTransfers": []
+            }
+            ```
+            """,
+            new FactSnapshot());
+
+        Assert.True(result.GateResult.Success, string.Join("; ", result.GateResult.GetAllFailures()));
+        Assert.Equal("# 第2章\n\n林衡走进院子。", result.PersistedContent);
+        Assert.DoesNotContain("```json", result.PersistedContent);
+        Assert.DoesNotContain("```", result.ContentWithoutChanges);
+    }
+
     private static ContentGenerationPreparer CreatePreparer()
     {
         return new ContentGenerationPreparer(

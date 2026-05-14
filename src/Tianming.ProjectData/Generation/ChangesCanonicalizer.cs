@@ -8,17 +8,80 @@ namespace TM.Services.Modules.ProjectData.Implementations
 {
     public static class ChangesCanonicalizer
     {
-        private static readonly (string Chinese, string English)[] CanonicalOrder =
+        private static readonly string[] CanonicalOrder =
         {
-            ("角色状态变化", "CharacterStateChanges"),
-            ("冲突进度", "ConflictProgress"),
-            ("伏笔动作", "ForeshadowingActions"),
-            ("新增剧情", "NewPlotPoints"),
-            ("地点状态变化", "LocationStateChanges"),
-            ("势力状态变化", "FactionStateChanges"),
-            ("时间推进", "TimeProgression"),
-            ("角色移动", "CharacterMovements"),
-            ("物品流转", "ItemTransfers"),
+            "CharacterStateChanges",
+            "ConflictProgress",
+            "ForeshadowingActions",
+            "NewPlotPoints",
+            "LocationStateChanges",
+            "FactionStateChanges",
+            "TimeProgression",
+            "CharacterMovements",
+            "ItemTransfers",
+        };
+
+        private static readonly Dictionary<string, string> KnownAliasMap = new(StringComparer.Ordinal)
+        {
+            ["角色状态变化"] = "CharacterStateChanges",
+            ["角色状态变更"] = "CharacterStateChanges",
+            ["角色变化"] = "CharacterStateChanges",
+            ["冲突进度"] = "ConflictProgress",
+            ["冲突进展"] = "ConflictProgress",
+            ["伏笔动作"] = "ForeshadowingActions",
+            ["伏笔操作"] = "ForeshadowingActions",
+            ["新增情节"] = "NewPlotPoints",
+            ["新情节点"] = "NewPlotPoints",
+            ["新增剧情"] = "NewPlotPoints",
+            ["地点状态变化"] = "LocationStateChanges",
+            ["地点状态变更"] = "LocationStateChanges",
+            ["地点变化"] = "LocationStateChanges",
+            ["势力状态变化"] = "FactionStateChanges",
+            ["势力状态变更"] = "FactionStateChanges",
+            ["势力变化"] = "FactionStateChanges",
+            ["时间推进"] = "TimeProgression",
+            ["时间进展"] = "TimeProgression",
+            ["角色移动"] = "CharacterMovements",
+            ["角色位移"] = "CharacterMovements",
+            ["物品流转"] = "ItemTransfers",
+            ["物品转移"] = "ItemTransfers",
+            ["道具流转"] = "ItemTransfers",
+            ["角色ID"] = "CharacterId",
+            ["角色编号"] = "CharacterId",
+            ["新等级"] = "NewLevel",
+            ["新能力"] = "NewAbilities",
+            ["失去能力"] = "LostAbilities",
+            ["关系变化"] = "RelationshipChanges",
+            ["字段变化"] = "FieldChanges",
+            ["新心理状态"] = "NewMentalState",
+            ["心理状态"] = "NewMentalState",
+            ["关键事件"] = "KeyEvent",
+            ["重要性"] = "Importance",
+            ["冲突ID"] = "ConflictId",
+            ["冲突编号"] = "ConflictId",
+            ["新状态"] = "NewStatus",
+            ["事件"] = "Event",
+            ["伏笔ID"] = "ForeshadowId",
+            ["伏笔编号"] = "ForeshadowId",
+            ["动作"] = "Action",
+            ["关键词"] = "Keywords",
+            ["上下文"] = "Context",
+            ["涉及角色"] = "InvolvedCharacters",
+            ["故事线"] = "Storyline",
+            ["地点ID"] = "LocationId",
+            ["地点编号"] = "LocationId",
+            ["势力ID"] = "FactionId",
+            ["势力编号"] = "FactionId",
+            ["时间段"] = "TimePeriod",
+            ["经过时间"] = "ElapsedTime",
+            ["关键时间事件"] = "KeyTimeEvent",
+            ["出发地"] = "FromLocation",
+            ["目的地"] = "ToLocation",
+            ["物品ID"] = "ItemId",
+            ["物品编号"] = "ItemId",
+            ["物品名称"] = "ItemName",
+            ["原持有者"] = "FromHolder",
+            ["新持有者"] = "ToHolder",
         };
 
         public static string Canonicalize(string rawJson)
@@ -38,28 +101,24 @@ namespace TM.Services.Modules.ProjectData.Implementations
                 return rawJson;
             }
 
-            if (root is not JsonObject obj)
+            if (NormalizeKnownAliases(root) is not JsonObject obj)
             {
                 return rawJson;
             }
 
-            var useEnglishKeys = ShouldUseEnglishKeys(obj);
             var knownKeys = new HashSet<string>(StringComparer.Ordinal);
             var canon = new JsonObject();
 
-            foreach (var (chinese, english) in CanonicalOrder)
+            foreach (var field in CanonicalOrder)
             {
-                knownKeys.Add(chinese);
-                knownKeys.Add(english);
-
-                var outputKey = useEnglishKeys ? english : chinese;
-                if (TryGetCanonicalValue(obj, chinese, english, out var value))
+                knownKeys.Add(field);
+                if (obj.TryGetPropertyValue(field, out var value))
                 {
-                    canon[outputKey] = value?.DeepClone();
+                    canon[field] = value?.DeepClone();
                 }
                 else
                 {
-                    canon[outputKey] = outputKey is "时间推进" or "TimeProgression" ? null : new JsonArray();
+                    canon[field] = field == "TimeProgression" ? null : new JsonArray();
                 }
             }
 
@@ -78,41 +137,36 @@ namespace TM.Services.Modules.ProjectData.Implementations
             });
         }
 
-        private static bool TryGetCanonicalValue(JsonObject obj, string chinese, string english, out JsonNode? value)
+        private static JsonNode? NormalizeKnownAliases(JsonNode? node)
         {
-            if (obj.TryGetPropertyValue(chinese, out value))
+            if (node is JsonObject obj)
             {
-                return true;
-            }
-
-            if (obj.TryGetPropertyValue(english, out value))
-            {
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
-
-        private static bool ShouldUseEnglishKeys(JsonObject obj)
-        {
-            var englishHits = 0;
-            var chineseHits = 0;
-
-            foreach (var (chinese, english) in CanonicalOrder)
-            {
-                if (obj.ContainsKey(english))
+                var normalized = new JsonObject();
+                foreach (var kv in obj)
                 {
-                    englishHits++;
+                    var canonicalKey = KnownAliasMap.TryGetValue(kv.Key, out var mappedKey) ? mappedKey : kv.Key;
+                    var normalizedValue = NormalizeKnownAliases(kv.Value);
+                    if (!normalized.ContainsKey(canonicalKey) || string.Equals(kv.Key, canonicalKey, StringComparison.Ordinal))
+                    {
+                        normalized[canonicalKey] = normalizedValue;
+                    }
                 }
 
-                if (obj.ContainsKey(chinese))
-                {
-                    chineseHits++;
-                }
+                return normalized;
             }
 
-            return englishHits > 0 && englishHits >= chineseHits;
+            if (node is JsonArray array)
+            {
+                var normalizedArray = new JsonArray();
+                foreach (var item in array)
+                {
+                    normalizedArray.Add(NormalizeKnownAliases(item));
+                }
+
+                return normalizedArray;
+            }
+
+            return node?.DeepClone();
         }
     }
 }

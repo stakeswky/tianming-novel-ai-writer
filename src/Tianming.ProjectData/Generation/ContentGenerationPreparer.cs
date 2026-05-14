@@ -274,7 +274,23 @@ namespace TM.Services.Modules.ProjectData.Implementations
                             if (doc.RootElement.ValueKind != JsonValueKind.Object)
                                 return -1;
 
-                            return HasChangesSignature(doc.RootElement) ? i : -1;
+                            if (!HasChangesSignature(doc.RootElement))
+                                return -1;
+
+                            var actualStart = i;
+                            var beforeJson = rawContent[..i].TrimEnd();
+                            var codeBlockIdx = beforeJson.LastIndexOf("```", StringComparison.Ordinal);
+                            if (codeBlockIdx >= 0)
+                            {
+                                var between = beforeJson[(codeBlockIdx + 3)..].Trim();
+                                if (string.IsNullOrEmpty(between) || between.Equals("json", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var lineStart = beforeJson.LastIndexOf('\n', codeBlockIdx);
+                                    actualStart = lineStart >= 0 ? lineStart : codeBlockIdx;
+                                }
+                            }
+
+                            return actualStart;
                         }
                         catch (JsonException)
                         {
