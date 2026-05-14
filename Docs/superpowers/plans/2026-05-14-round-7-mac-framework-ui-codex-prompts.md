@@ -1,0 +1,359 @@
+# Round 7 — Mac 框架能力 UI 接线 + Sink DI 修补 Codex 派单提示词
+
+> 配套：
+> - 功能对齐矩阵 D 区块：`Docs/macOS迁移/功能对齐矩阵.md` L78-106（共 27 项框架能力）
+> - 第三方覆盖核查（2026-05-14）：D 区块 27 项中 **0 项完整接线**、3 项部分接线、24 项仅 lib 无 UI
+> - 关键 red flag：4 个 macOS 平台 sink（`MacOSSystemAppearanceMonitor` / `MacOSNotificationSink` / `MacOSSpeechOutput` / `MacOSSystemMonitorProbe`）**未注册 DI**——即使 UI 接通也跑不起来
+
+---
+
+## 背景
+
+Round 1-6 把 `Tianming.Framework` / `Tianming.AI` / `Tianming.ProjectData` 三个跨平台 lib 推到了几乎完整覆盖原版 Windows 能力；Round 6 完成 v2.8.7 写作内核升级（M6.1-M6.9）并 push 到 main（`81f74dc` → `48a342d`）。
+
+但第三方核查发现 **D 框架能力区块（27 项）几乎没有 Avalonia UI 落地**：
+
+| 状态 | 项数 | 编号 |
+|---|---|---|
+| 🟢 完整接线 | 0 | — |
+| 🟡 部分接线 | 3 | #1 主题底层、#19 代理透明嵌入、#23 运行环境探针 |
+| 🔴 仅 lib 无 UI | 24 | 其余 |
+
+具体 red flag：
+
+- `PageKeys.Settings` 在 `Navigation/PageRegistry.cs:434` 路由到 `PlaceholderView` — 用户点"设置"什么都看不到
+- ViewModels/ 目录 0 个 `*Settings*` / `*Theme*` / `*Notification*` VM
+- 50+ 个 `Portable*` / `MacOS*` lib 类在 Avalonia 端无任何引用（事实死代码）
+- 关键 macOS sink 未注册 DI
+
+这一轮（Round 7）目标：**把 Avalonia 端的"设置"区块从占位升级为真实可用的设置中心**，覆盖矩阵 D 区块 27 项；先修 sink DI 让平台能力跑起来，然后并行做 3 个主题域的 settings page。
+
+---
+
+## 共同前置
+
+仓库根：`/Users/jimmy/Downloads/tianming-novel-ai-writer`
+主分支：`main`（tip `48a342d`，已 push 到 origin）
+
+每条 lane 开自己的 worktree + 分支：
+
+```bash
+cd /Users/jimmy/Downloads/tianming-novel-ai-writer
+# Lane 0 必须先做（其他 lane 的前置）：
+git worktree add /Users/jimmy/Downloads/tianming-m7-lane0-sinks -b m7-lane0-sinks main
+# Lane 0 完成 + merge 后，再开 3 条并行 lane：
+git worktree add /Users/jimmy/Downloads/tianming-m7-lane-a-appearance -b m7-lane-a-appearance main
+git worktree add /Users/jimmy/Downloads/tianming-m7-lane-b-notifications -b m7-lane-b-notifications main
+git worktree add /Users/jimmy/Downloads/tianming-m7-lane-c-system -b m7-lane-c-system main
+```
+
+前置确认（在每个 worktree 跑）：
+
+```bash
+git status                                                          # clean
+dotnet build Tianming.MacMigration.sln --nologo -v minimal          # 0 W / 0 E
+dotnet test Tianming.MacMigration.sln --nologo -v minimal | tail -5 # 1615 passed
+```
+
+---
+
+## 共同工作规范（沿用 Round 3 / Round 6）
+
+1. **进 worktree 第一步用 `superpowers:writing-plans` skill 把本 Lane 提示词翻译为 step-level plan**，落到 `Docs/superpowers/plans/2026-05-XX-tianming-m7-<lane>.md`，再开始执行
+2. **TDD**：每个 step 先写测试 → 红 → 改实现 → 绿 → commit
+3. **commit message** Round 3 同款格式（Constraint / Rejected / Confidence / Scope-risk / Tested / Not-tested）
+4. **commit 粒度**：每个 step 5 的 "Commit" 动作 commit 一次，不要合
+5. **build / test**：每 step 跑 `dotnet build` + `dotnet test`，0 W/E + 全绿才进下一步
+6. **禁止**：`git push`、`--no-verify`、跨 lane 改动、修无关代码
+7. **遇到原版无对应 macOS 等价能力**（如 Windows Registry / TMProtect 等）→ 在 plan 标 "替换 / 降级"，不要硬塞
+8. **遇到 lib API 与 plan 不符** → 以真实 API 为准修正，commit message Constraint 字段说明
+9. **每个 Lane 的 Settings Page 必须接到 `PageKeys.Settings`** 主入口（如果还没有 Settings shell，Lane A 顺手做）
+
+---
+
+## Lane 0：4 个 macOS Sink DI 注册（前置，必先做）
+
+### 给 codex 的提示词
+
+```
+你的任务：把 4 个未注册 DI 的 macOS 平台 sink 接到 Avalonia DI 容器，让平台能力实际跑起来。
+
+仓库根：/Users/jimmy/Downloads/tianming-novel-ai-writer
+Worktree：/Users/jimmy/Downloads/tianming-m7-lane0-sinks
+分支：m7-lane0-sinks（基于 main）
+
+工作流：
+
+【步骤 0】写 plan
+用 superpowers:writing-plans 写 step-level plan：
+- 落到 Docs/superpowers/plans/2026-05-XX-tianming-m7-lane0-sinks.md
+- 标 4 个 sink 各自一个 task
+
+【步骤 1】MacOSSystemAppearanceMonitor 接 ThemeBridge
+
+文件：src/Tianming.Desktop.Avalonia/AvaloniaShellServiceCollectionExtensions.cs
+- 在主题相关 DI 段（grep "PortableThemeStateController"）后注册：
+  s.AddSingleton<MacOSSystemAppearanceParser>();
+  s.AddSingleton<MacOSSystemAppearanceProbe>();
+  s.AddSingleton<MacOSSystemAppearanceMonitor>();
+- 用 AppHost startup 钩子启动 monitor，订阅系统外观变化 → 调 ThemeBridge.ApplyCore()
+- ThemeBridge.ApplyCore() 现在硬编码 Light（App.axaml:16 + ThemeBridge.cs:45/54），改成根据 PortableThemeStateController 当前 type 输出 Light/Dark
+
+测试：
+- tests/Tianming.Desktop.Avalonia.Tests/Theme/ 新增 fake MacOSSystemAppearanceMonitor 单测
+- 断言系统外观变 dark → ThemeBridge 收到事件 → Application.RequestedThemeVariant 切到 Dark
+
+【步骤 2】MacOSNotificationSink 接 PortableNotificationDispatcher
+
+类似步骤 1，注册 sink + 在 dispatcher 里挂接 sink
+新增测试：dispatcher 调度通知时 sink 被调用
+
+【步骤 3】MacOSSpeechOutput 接 PortableNotificationSoundPlayer
+
+注册 sink，把 IPortableSpeechOutput 接到它
+新增测试：sound player 调度语音播报时 speech output 被调用
+
+【步骤 4】MacOSSystemMonitorProbe 接 PortableSystemMonitorService
+
+注册 probe，让 service 通过 probe 拿真实数据
+新增测试：service.RefreshAsync() 调用 probe.CollectAsync()
+
+完成验收：
+- dotnet build 0 W / 0 E
+- dotnet test 全绿，新增 ≥4 条测试
+- 启动 app（dotnet run --project src/Tianming.Desktop.Avalonia/）→ 至少观察到 Avalonia AppearanceVariant 切换日志（说明监听跑起来了）
+
+完成输出：
+- 全部 commit + 标题
+- step 0-4 完成状态
+- 启动日志关键行
+- 附带发现（如有）
+
+不 push，不动 Lane A/B/C 代码。
+```
+
+---
+
+## Lane A：外观 / 主题 / 字体 / 配色 Settings（9 项）
+
+涵盖矩阵 D 区块 #1-#9：主题管理 / 主题冲突解析 / 主题过渡 / 主题跟随 / 定时主题 / 字体管理 / 图片取色 / AI 配色 / 配色历史
+
+### 给 codex 的提示词
+
+```
+你的任务：建立 Avalonia 端的 Settings Shell + 外观主题区子页，把矩阵 D 区块 #1-#9 共 9 项功能从 lib-only 升级到用户可见可控。
+
+仓库根：/Users/jimmy/Downloads/tianming-novel-ai-writer
+Worktree：/Users/jimmy/Downloads/tianming-m7-lane-a-appearance
+分支：m7-lane-a-appearance（基于 Lane 0 merge 后的 main）
+
+工作流：
+
+【步骤 0】写 plan
+用 superpowers:writing-plans 拆 step-level plan，落到：
+  Docs/superpowers/plans/2026-05-XX-tianming-m7-lane-a-appearance.md
+
+建议拆分：
+  Task 1 Settings Shell（PageKeys.Settings 路由 + 子导航容器）
+  Task 2 ThemeSettingsPage（含主题切换 / Auto/Light/Dark + 自定义主题选择）
+  Task 3 ThemeFollowSystemPage（跟随系统 / 定时主题 / 排除时段）
+  Task 4 ThemeTransitionPage（过渡动画设置）
+  Task 5 FontSettingsPage（字体管理 + UI/编辑器字体 + 字体回退）
+  Task 6 ColorSchemeDesignerPage（图片取色 + AI 配色生成 + 历史）
+
+【步骤 1】Settings Shell（解掉 PlaceholderView）
+
+文件：src/Tianming.Desktop.Avalonia/Navigation/PageRegistry.cs
+- PageKeys.Settings 当前路由到 PlaceholderView，改成路由到新建的 SettingsShellView
+- SettingsShellView 是个左侧子导航 + 内容容器（类似 ThreeColumnLayout 但更窄）
+- 子导航条目暂留 6 个 placeholder（"外观主题" / "字体" / "配色设计器" / "通知" / "声音" / "系统"）—— Lane B/C 完成时填后 3 个
+
+LeftNavView：在已有的"项目数据"组下加 "设置" 入口
+
+【步骤 2】ThemeSettingsPage
+
+VM：ThemeSettingsViewModel
+  - ctor 接 PortableThemeStateController + ThemeBridge
+  - ObservableProperty: SelectedThemeType (Light/Dark/Auto/Custom)
+  - Command: SwitchTheme + ImportCustomTheme + ExportCurrentTheme
+View：Views/Settings/ThemeSettingsPage.axaml
+  - 三/四个 RadioButton（Auto/Light/Dark/Custom）
+  - Custom 模式下显示 ListBox 列自定义主题文件
+  - 应用按钮 → controller.RequestSwitch(...)
+
+测试：ThemeSettingsViewModelTests
+  - 切换到 Dark 后断言 controller 收到 RequestSwitch(Dark) + ThemeBridge.ApplyCore 被调（mock）
+
+【步骤 3-6】其他 page（ThemeFollowSystem / ThemeTransition / Font / ColorScheme）按相同模式：
+
+每个 page：
+  - 新建 VM（ctor 注入对应 Portable*/File* lib）
+  - 新建 axaml（按 lib 暴露的 settings 字段渲染 UI 控件）
+  - 在 Settings Shell 子导航注册
+  - DI 在 AvaloniaShellServiceCollectionExtensions 注册
+  - 至少 2 条 VM 单测（一条加载默认设置、一条修改 + 保存）
+
+【特别注意】
+- 主题/字体/配色相关 lib 类繁多，**不要每个 Portable* 类都单独建一个 VM**——按"用户视角的 page"分组，VM 内组合多个 lib（如 ThemeFollowSystemViewModel 同时持有 PortableSystemFollowController + PortableThemeScheduleService + PortableHolidayLibrary）
+- 主题预览：建议 Custom 主题应用前先 dry-run（不影响当前应用主题），用户确认再 Commit
+- 字体页面：先做 UI 字体 + 编辑器字体两类，字体场景预设/性能分析/连字检测等高级功能放后续 milestone（plan 标 "deferred"）
+
+完成验收：
+- 启动 app，"设置 / 外观主题"页可见可点
+- 切换主题真生效（Lane 0 已让 monitor 跑起来 → ThemeBridge 真切换）
+- dotnet build 0 W / 0 E
+- dotnet test 全绿，新增 ≥12 条测试（6 个 page × 2）
+
+完成输出：
+- 全部 commit + 标题
+- Task 1-6 完成状态
+- 启动 app 截图或日志关键行（设置入口可达性证明）
+- 9 项矩阵能力的覆盖状态（哪几项做了/部分/deferred）
+- 附带发现
+
+不 push，不动 Lane B/C 代码。
+```
+
+---
+
+## Lane B：通知 / 声音 / 勿扰 Settings（7 项）
+
+涵盖矩阵 D 区块 #12-#18：Toast / 系统通知 / 系统集成 / 通知历史 / 勿扰 / 声音方案 / 语音播报
+
+### 给 codex 的提示词
+
+```
+你的任务：建立 Avalonia 端通知/声音区子页，覆盖矩阵 D #12-#18 共 7 项。
+
+仓库根：/Users/jimmy/Downloads/tianming-novel-ai-writer
+Worktree：/Users/jimmy/Downloads/tianming-m7-lane-b-notifications
+分支：m7-lane-b-notifications（基于 Lane 0 merge 后的 main）
+
+前置：Lane A 已 merge（建立了 Settings Shell + 子导航容器）。Lane B 在此基础上填"通知"和"声音"两个子导航项。
+
+工作流：
+
+【步骤 0】写 plan
+  Docs/superpowers/plans/2026-05-XX-tianming-m7-lane-b-notifications.md
+
+建议拆分：
+  Task 1 NotificationSettingsPage（Toast 样式 / 类型开关 / 通知历史 / 系统集成 macOS apply plan）
+  Task 2 DoNotDisturbPage（勿扰模式 / 时间窗 / 全屏自动启用 / 例外应用）
+  Task 3 SoundSchemePage（声音方案选择 / 内置方案预览 / 自定义音效库）
+  Task 4 AudioDevicePage（输出/输入设备选择 / 主音量 / EQ）
+  Task 5 VoiceBroadcastPage（语音播报开关 / 速度/音量/音调 / 测试播报）
+  Task 6 NotificationHistoryPage（已读/未读 / 删除 / 清空 / 24h 统计）
+
+【步骤 1-6】每个 page 按 Lane A 同款模式建：VM + axaml + 子导航注册 + DI + 测试
+
+特别注意：
+- Lane 0 已注册 MacOSNotificationSink + MacOSSpeechOutput → 测试通知/播报时可以验证真发声音（macOS osascript display notification / say 命令）
+- 系统集成里的 LaunchAgent / Info.plist URL 协议在矩阵里被标"需平台接线" → 这一轮做"配置数据持久化 + 显示"，真实 LaunchAgent 安装放后续 milestone（plan 标 deferred）
+- 通知历史是用户能看到的最容易测试的 → 优先做这个验证整个通知链路
+
+完成验收：
+- 设置 / 通知 / 勿扰 / 声音 三个子导航条目都可见可点
+- 在通知页测试发一条通知 → Mac 真弹通知 + 通知历史新增一条 → 在通知历史页可见
+- 设勿扰 → 同样测试发通知 → 通知被拦截 → 历史里记为 blocked
+- dotnet build 0 W / 0 E
+- dotnet test 全绿，新增 ≥14 条测试（6 个 page × ~2）
+
+完成输出：同 Lane A 格式。
+
+不 push，不动 Lane A/C 代码。
+```
+
+---
+
+## Lane C：系统设置 / 监控 / 显示 / 语言（11 项）
+
+涵盖矩阵 D 区块 #10、#11、#19-#25、#26、#27：
+- UI 分辨率与缩放 / 加载动画
+- 代理配置（VPN / 测试 / 链路健康）
+- 日志系统（格式 / 级别 / 轮转 / 输出目标）
+- 数据清理
+- 系统信息 / 运行环境 / 诊断信息 / 系统监控
+- 显示偏好 / 语言区域偏好
+
+### 给 codex 的提示词
+
+```
+你的任务：建立 Avalonia 端系统/显示/语言/监控子页，覆盖矩阵 D #10/#11/#19-#27 共 11 项。
+
+仓库根：/Users/jimmy/Downloads/tianming-novel-ai-writer
+Worktree：/Users/jimmy/Downloads/tianming-m7-lane-c-system
+分支：m7-lane-c-system（基于 Lane 0 merge 后的 main）
+
+前置：Lane A 已 merge（建立了 Settings Shell + 子导航）。Lane C 填"系统"子导航项下的 N 个 tab。
+
+工作流：
+
+【步骤 0】写 plan
+  Docs/superpowers/plans/2026-05-XX-tianming-m7-lane-c-system.md
+
+建议拆分：
+  Task 1 DisplaySettingsPage（UI 分辨率 + 加载动画 + 显示偏好 + 语言区域）
+  Task 2 ProxyConfigurationPage（代理路由表 / 测试历史 / 链路健康）
+  Task 3 LogSettingsPage（格式 / 级别 / 轮转 / 输出目标 + 测试)
+  Task 4 DataCleanupPage（清理项扫描 / 选择项 / 执行）
+  Task 5 SystemInfoDashboardPage（系统信息 + 运行环境 + 诊断 + 监控 4-tab 合并）
+
+特别注意：
+- 这一组每个 lib 数据模型都很大（如 PortableProxyChainSelector / PortableProxyChainAnalyzer / PortableProxyChainHealthController 三个一起；如 PortableLogService + PortableLogMaintenance + PortableLogFormatCore + PortableLogLevelCore + PortableLogRotationCore + PortableLogOutputPipeline 六个一起），建议每个 page 内分 tab 而非每个 lib 一个 page
+- Lane 0 已注册 MacOSSystemMonitorProbe → 系统监控页可以显示真实 macOS CPU/内存/温度数据
+- 代理已在 main 上"透明嵌入 HttpClient"，Lane C 加 UI 让用户能查看 + 切换代理链 + 测试出口 IP
+- 数据清理是危险操作 → UI 必须做二次确认 + 显示"会删除什么"预览
+- SystemInfoDashboard 这个 4-in-1 page 是用户最容易感知的 lane 价值产出，建议优先做
+
+完成验收：
+- 设置 / 系统 子导航 5 个 tab 都可见可点
+- 系统信息页：能看到 macOS 真实硬件（Lane 0 接通 sysprofiler）
+- 代理页：能切换代理链 + 一键测试连接
+- dotnet build 0 W / 0 E
+- dotnet test 全绿，新增 ≥10 条测试
+
+完成输出：同 Lane A 格式。
+
+不 push，不动 Lane A/B 代码。
+```
+
+---
+
+## 派发顺序
+
+```
+Lane 0  →  Merge 入 main  →  Lane A → Merge → Lane B + Lane C 并行 → Merge → push
+```
+
+| Lane | 工作量 | 风险 |
+|---|---|---|
+| Lane 0 | 4-6 小时 | 低（DI 注册 + 启动钩子） |
+| Lane A | 1.5-2 天 | 中（建 Settings Shell + 6 个 page） |
+| Lane B | 1-1.5 天 | 中（通知/声音相对独立） |
+| Lane C | 1.5-2 天 | 中-高（系统监控/代理/日志数据模型复杂） |
+
+完成后我（主 thread）会：
+1. 各 worktree 复跑 build/test
+2. 派 review subagent 重新跑 27 项覆盖核查 — 期望 🟢 ≥20 / 🟡 ≤5 / 🔴 ≤2
+3. 顺序 merge（按 Lane 0 → A → B → C，同 Round 3/6 模式）
+4. 清理 worktree + 本地分支
+5. push origin main
+
+---
+
+## 不在 Round 7 范围（明确划线）
+
+- **OAuth / 订阅 / 卡密 / 公告 / SSL pinning / 自动更新**（用户与服务端能力 E 区块）—— 按 user 准则属"真发布级"，v2.8.7 不做
+- **M5 后留 M7 的发布级**：URL Scheme / 文件关联 / Sandbox / Notarization / DMG 制作 —— 移到独立 Lane（M8 打包分发）
+- **保护系统**（反调试 / TMProtect）—— 已知 macOS 不复用，保持 "替换为空"
+- **高级字体功能**（性能分析 / 连字检测 / 场景预设）—— Lane A 内标 deferred
+- **真实 LaunchAgent 安装**（系统集成）—— Lane B 内标 deferred
+
+---
+
+## 已知遗留（跨 Round 累计，本轮可顺手解掉的）
+
+- 主题"Light 占位"（App.axaml:16 + ThemeBridge.cs:45/54）—— **Lane 0 必修**
+- `MacOSSystemAppearanceMonitor` 未注册 DI —— **Lane 0 必修**
+- `OpenAICompatibleChatClient.BuildChatCompletionsUri` 缺 scheme 校验 —— Lane A / B 可顺手提示，但不在本轮 scope
+- macOS 中文 IME 拦截 @候选 —— 平台限制，不在本轮 scope
