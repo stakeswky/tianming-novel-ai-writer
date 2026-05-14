@@ -13,4 +13,7 @@ internal static class DefaultAIProviders
     ];
 }
 
-internal sealed record DefaultAIProviderOption(string Id, string Name);
+public sealed record DefaultAIProviderOption(string Id, string DisplayName)
+{
+    public string Name => DisplayName;
+}

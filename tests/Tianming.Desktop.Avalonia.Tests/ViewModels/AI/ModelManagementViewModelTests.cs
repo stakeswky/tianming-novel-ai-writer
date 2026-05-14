@@ -106,6 +106,20 @@ public class ModelManagementViewModelTests
         Assert.All(vm.ProviderIds, providerId => Assert.False(string.IsNullOrWhiteSpace(providerId)));
     }
 
+    [Fact]
+    public void Empty_library_exposes_default_provider_display_names()
+    {
+        using var workspace = new TempDirectory();
+        var store = new FileAIConfigurationStore(
+            Path.Combine(workspace.Path, "Library"),
+            Path.Combine(workspace.Path, "Configurations"));
+
+        var vm = new ModelManagementViewModel(store);
+
+        Assert.Contains(vm.Providers, provider => provider.Id == "openai" && provider.DisplayName == "OpenAI");
+        Assert.DoesNotContain(vm.Providers, provider => provider.DisplayName == provider.Id);
+    }
+
     private sealed class TempDirectory : IDisposable
     {
         public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"tianming-model-vm-{Guid.NewGuid():N}");

@@ -15,6 +15,7 @@ namespace Tianming.Desktop.Avalonia.ViewModels.Shell;
 public partial class LeftNavViewModel : ObservableObject
 {
     private readonly INavigationService _nav;
+    private readonly PageRegistry _pages;
 
     public ObservableCollection<NavRailGroup> Groups { get; } = new();
 
@@ -23,53 +24,56 @@ public partial class LeftNavViewModel : ObservableObject
     [ObservableProperty] private string _projectWordCount = "186,420 字";
     [ObservableProperty] private string _projectUpdatedAt = "上次更新 22:14";
 
-    public LeftNavViewModel(INavigationService nav)
+    public LeftNavViewModel(INavigationService nav, PageRegistry pages)
     {
         _nav = nav;
+        _pages = pages;
 
         Groups.Add(new NavRailGroup("写作", new List<NavRailItem>
         {
-            new(PageKeys.Welcome,   "欢迎",     "home"),
-            new(PageKeys.Dashboard, "仪表盘",   "layout-dashboard"),
-            new(PageKeys.Editor,    "草稿",     "📝"),
+            new(PageKeys.Welcome,   Label(PageKeys.Welcome),   "home"),
+            new(PageKeys.Dashboard, Label(PageKeys.Dashboard), "layout-dashboard"),
+            new(PageKeys.Editor,    Label(PageKeys.Editor),    "📝"),
         }));
 
         Groups.Add(new NavRailGroup("设计", new List<NavRailItem>
         {
-            new(PageKeys.DesignWorld,     "世界观", "🌍"),
-            new(PageKeys.DesignCharacter, "角色",   "👤"),
-            new(PageKeys.DesignFaction,   "势力",   "⚔️"),
-            new(PageKeys.DesignLocation,  "地点",   "📍"),
-            new(PageKeys.DesignPlot,      "剧情",   "📖"),
-            new(PageKeys.DesignMaterials, "创意素材", "💡"),
+            new(PageKeys.DesignWorld,     Label(PageKeys.DesignWorld),     "🌍"),
+            new(PageKeys.DesignCharacter, Label(PageKeys.DesignCharacter), "👤"),
+            new(PageKeys.DesignFaction,   Label(PageKeys.DesignFaction),   "⚔️"),
+            new(PageKeys.DesignLocation,  Label(PageKeys.DesignLocation),  "📍"),
+            new(PageKeys.DesignPlot,      Label(PageKeys.DesignPlot),      "📖"),
+            new(PageKeys.DesignMaterials, Label(PageKeys.DesignMaterials), "💡"),
         }));
 
         Groups.Add(new NavRailGroup("生成", new List<NavRailItem>
         {
-            new(PageKeys.GenerateOutline,   "战略大纲",   "📖"),
-            new(PageKeys.GenerateVolume,    "分卷设计",   "📚"),
-            new(PageKeys.GenerateChapter,   "章节规划",   "📑"),
-            new(PageKeys.GenerateBlueprint, "章节蓝图",   "🎬"),
-            new(PageKeys.GeneratePipeline,  "章节生成管道", "⚙️"),
+            new(PageKeys.GenerateOutline,   Label(PageKeys.GenerateOutline),   "📖"),
+            new(PageKeys.GenerateVolume,    Label(PageKeys.GenerateVolume),    "📚"),
+            new(PageKeys.GenerateChapter,   Label(PageKeys.GenerateChapter),   "📑"),
+            new(PageKeys.GenerateBlueprint, Label(PageKeys.GenerateBlueprint), "🎬"),
+            new(PageKeys.GeneratePipeline,  Label(PageKeys.GeneratePipeline),  "⚙️"),
         }));
 
         Groups.Add(new NavRailGroup("AI 管理", new List<NavRailItem>
         {
-            new(PageKeys.AIModels,   "模型",       "🤖"),
-            new(PageKeys.AIKeys,     "API 密钥",   "🔑"),
-            new(PageKeys.AIPrompts,  "提示词",     "📝"),
-            new(PageKeys.AIUsage,    "使用统计",   "📊"),
+            new(PageKeys.AIModels,  Label(PageKeys.AIModels),  "🤖"),
+            new(PageKeys.AIKeys,    Label(PageKeys.AIKeys),    "🔑"),
+            new(PageKeys.AIPrompts, Label(PageKeys.AIPrompts), "📝"),
+            new(PageKeys.AIUsage,   Label(PageKeys.AIUsage),   "📊"),
         }));
 
         Groups.Add(new NavRailGroup("工具", new List<NavRailItem>
         {
             new(new PageKey("conversation"),"AI 对话", "message-square", IsEnabled: false),
             new(new PageKey("validation"),  "校验",   "shield-check",   IsEnabled: false),
-            new(PageKeys.BookPipeline,      "一键成书", "📚"),
-            new(PageKeys.Packaging,         "打包",   "package"),
-            new(PageKeys.Settings,          "设置",   "settings"),
+            new(PageKeys.BookPipeline,      Label(PageKeys.BookPipeline), "📚"),
+            new(PageKeys.Packaging,         Label(PageKeys.Packaging),    "package"),
+            new(PageKeys.Settings,          Label(PageKeys.Settings),     "settings"),
         }));
     }
+
+    private string Label(PageKey key) => _pages.GetDisplayName(key);
 
     [RelayCommand]
     private async Task NavigateAsync(PageKey key)

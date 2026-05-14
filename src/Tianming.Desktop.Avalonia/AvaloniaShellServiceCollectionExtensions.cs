@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TM.Framework.Common.Models;
 using TM.Framework.Appearance;
+using TM.Framework.Notifications;
+using TM.Framework.SystemMonitor;
 using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
 using TM.Services.Framework.AI.Core;
 using TM.Services.Framework.AI.Core.Routing;
@@ -128,6 +130,81 @@ public static class AvaloniaShellServiceCollectionExtensions
             return new PortableThemeStateController(state, bridge.ApplyAsync);
         });
         s.AddSingleton<ThemeBridge>();
+        s.AddSingleton<IPortableSystemAppearanceProbe, MacOSSystemAppearanceProbe>();
+        s.AddSingleton<MacOSSystemAppearanceProbe>(sp =>
+            (MacOSSystemAppearanceProbe)sp.GetRequiredService<IPortableSystemAppearanceProbe>());
+        s.AddSingleton<IPortableSystemAppearanceMonitor>(sp =>
+            new MacOSSystemAppearanceMonitor(sp.GetRequiredService<IPortableSystemAppearanceProbe>()));
+        s.AddSingleton<MacOSSystemAppearanceMonitor>(sp =>
+            (MacOSSystemAppearanceMonitor)sp.GetRequiredService<IPortableSystemAppearanceMonitor>());
+        s.AddSingleton(_ =>
+        {
+            var settings = PortableSystemFollowSettings.CreateDefault();
+            settings.Enabled = true;
+            settings.AutoStart = true;
+            settings.DelaySeconds = 0;
+            settings.ShowNotification = false;
+            settings.EnableSmartDelay = false;
+            return settings;
+        });
+        s.AddSingleton<PortableSystemFollowController>(sp =>
+        {
+            var controller = sp.GetRequiredService<PortableThemeStateController>();
+            return new PortableSystemFollowController(
+                sp.GetRequiredService<PortableSystemFollowSettings>(),
+                () => controller.CurrentTheme,
+                async (theme, ct) =>
+                {
+                    await controller.SwitchThemeAsync(theme, cancellationToken: ct).ConfigureAwait(false);
+                });
+        });
+        s.AddSingleton<PortableSystemFollowRuntime>(sp =>
+            new PortableSystemFollowRuntime(
+                sp.GetRequiredService<PortableSystemFollowSettings>(),
+                sp.GetRequiredService<IPortableSystemAppearanceMonitor>(),
+                sp.GetRequiredService<PortableSystemFollowController>().HandleAppearanceChangedAsync));
+        s.AddSingleton<IPortableNotificationSink, MacOSNotificationSink>();
+        s.AddSingleton<MacOSNotificationSink>(sp =>
+            (MacOSNotificationSink)sp.GetRequiredService<IPortableNotificationSink>());
+        s.AddSingleton<IPortableSoundOutput, MacOSNotificationSoundOutput>();
+        s.AddSingleton<MacOSNotificationSoundOutput>(sp =>
+            (MacOSNotificationSoundOutput)sp.GetRequiredService<IPortableSoundOutput>());
+        s.AddSingleton<IPortableSpeechOutput, MacOSSpeechOutput>();
+        s.AddSingleton<MacOSSpeechOutput>(sp =>
+            (MacOSSpeechOutput)sp.GetRequiredService<IPortableSpeechOutput>());
+        s.AddSingleton(_ => new PortableNotificationSoundOptions
+        {
+            SoundScheme = PortableSoundSchemeData.CreateDefault(),
+            VolumeAndDevice = PortableVolumeAndDeviceData.CreateDefault(),
+            VoiceBroadcast = PortableVoiceBroadcastData.CreateDefault()
+        });
+        s.AddSingleton<IPortableNotificationSoundPlayer>(sp =>
+            new PortableNotificationSoundPlayer(
+                sp.GetRequiredService<PortableNotificationSoundOptions>(),
+                sp.GetRequiredService<IPortableSoundOutput>(),
+                sp.GetRequiredService<IPortableSpeechOutput>()));
+        s.AddSingleton<PortableNotificationSoundPlayer>(sp =>
+            (PortableNotificationSoundPlayer)sp.GetRequiredService<IPortableNotificationSoundPlayer>());
+        s.AddSingleton(sp =>
+            new FileNotificationHistoryStore(System.IO.Path.Combine(
+                sp.GetRequiredService<AppPaths>().AppSupportDirectory,
+                "notification_history.json")));
+        s.AddSingleton(_ => new PortableNotificationDispatcherOptions
+        {
+            EnableSystemNotification = true,
+            NotificationSound = true
+        });
+        s.AddSingleton(sp =>
+            new PortableNotificationDispatcher(
+                sp.GetRequiredService<PortableNotificationDispatcherOptions>(),
+                sp.GetRequiredService<FileNotificationHistoryStore>(),
+                sp.GetRequiredService<IPortableNotificationSink>(),
+                sp.GetRequiredService<IPortableNotificationSoundPlayer>()));
+        s.AddSingleton<IPortableSystemMonitorProbe, MacOSSystemMonitorProbe>();
+        s.AddSingleton<MacOSSystemMonitorProbe>(sp =>
+            (MacOSSystemMonitorProbe)sp.GetRequiredService<IPortableSystemMonitorProbe>());
+        s.AddSingleton(sp =>
+            new PortableSystemMonitorService(sp.GetRequiredService<IPortableSystemMonitorProbe>()));
 
         // Navigation
         s.AddSingleton<PageRegistry>(_ => RegisterPages(new PageRegistry()));
@@ -429,33 +506,33 @@ public static class AvaloniaShellServiceCollectionExtensions
 
     private static PageRegistry RegisterPages(PageRegistry reg)
     {
-        reg.Register<WelcomeViewModel,     WelcomeView>(PageKeys.Welcome);
-        reg.Register<DashboardViewModel,   DashboardView>(PageKeys.Dashboard);
-        reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Settings);
+        reg.Register<WelcomeViewModel,     WelcomeView>(PageKeys.Welcome, "欢迎");
+        reg.Register<DashboardViewModel,   DashboardView>(PageKeys.Dashboard, "仪表盘");
+        reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Settings, "设置");
 
         // M4.3 章节编辑器
-        reg.Register<EditorWorkspaceViewModel, EditorWorkspaceView>(PageKeys.Editor);
+        reg.Register<EditorWorkspaceViewModel, EditorWorkspaceView>(PageKeys.Editor, "草稿");
 
         // M4.1：6 设计页（VM 不同，View 全部用 DesignModulePage）
-        reg.Register<WorldRulesViewModel,        DesignModulePage>(PageKeys.DesignWorld);
-        reg.Register<CharacterRulesViewModel,    DesignModulePage>(PageKeys.DesignCharacter);
-        reg.Register<FactionRulesViewModel,      DesignModulePage>(PageKeys.DesignFaction);
-        reg.Register<LocationRulesViewModel,     DesignModulePage>(PageKeys.DesignLocation);
-        reg.Register<PlotRulesViewModel,         DesignModulePage>(PageKeys.DesignPlot);
-        reg.Register<CreativeMaterialsViewModel, DesignModulePage>(PageKeys.DesignMaterials);
+        reg.Register<WorldRulesViewModel,        DesignModulePage>(PageKeys.DesignWorld, "世界观");
+        reg.Register<CharacterRulesViewModel,    DesignModulePage>(PageKeys.DesignCharacter, "角色");
+        reg.Register<FactionRulesViewModel,      DesignModulePage>(PageKeys.DesignFaction, "势力");
+        reg.Register<LocationRulesViewModel,     DesignModulePage>(PageKeys.DesignLocation, "地点");
+        reg.Register<PlotRulesViewModel,         DesignModulePage>(PageKeys.DesignPlot, "剧情");
+        reg.Register<CreativeMaterialsViewModel, DesignModulePage>(PageKeys.DesignMaterials, "创意素材");
 
         // M4.2：4 schema 页（VM 不同，View 全部复用 DesignModulePage）+ 1 ChapterPipelinePage（独立 view）
-        reg.Register<OutlineViewModel,          DesignModulePage>(PageKeys.GenerateOutline);
-        reg.Register<VolumeDesignViewModel,     DesignModulePage>(PageKeys.GenerateVolume);
-        reg.Register<ChapterPlanningViewModel,  DesignModulePage>(PageKeys.GenerateChapter);
-        reg.Register<BlueprintViewModel,        DesignModulePage>(PageKeys.GenerateBlueprint);
-        reg.Register<ChapterPipelineViewModel,  ChapterPipelinePage>(PageKeys.GeneratePipeline);
-        reg.Register<BookPipelineViewModel,     BookPipelinePage>(PageKeys.BookPipeline);
-        reg.Register<ModelManagementViewModel,  ModelManagementPage>(PageKeys.AIModels);
-        reg.Register<ApiKeysViewModel,          ApiKeysPage>(PageKeys.AIKeys);
-        reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts);
-        reg.Register<UsageStatisticsViewModel,  UsageStatisticsPage>(PageKeys.AIUsage);
-        reg.Register<PackagingViewModel,        PackagingPage>(PageKeys.Packaging);
+        reg.Register<OutlineViewModel,          DesignModulePage>(PageKeys.GenerateOutline, "战略大纲");
+        reg.Register<VolumeDesignViewModel,     DesignModulePage>(PageKeys.GenerateVolume, "分卷设计");
+        reg.Register<ChapterPlanningViewModel,  DesignModulePage>(PageKeys.GenerateChapter, "章节规划");
+        reg.Register<BlueprintViewModel,        DesignModulePage>(PageKeys.GenerateBlueprint, "章节蓝图");
+        reg.Register<ChapterPipelineViewModel,  ChapterPipelinePage>(PageKeys.GeneratePipeline, "章节生成管道");
+        reg.Register<BookPipelineViewModel,     BookPipelinePage>(PageKeys.BookPipeline, "一键成书");
+        reg.Register<ModelManagementViewModel,  ModelManagementPage>(PageKeys.AIModels, "模型");
+        reg.Register<ApiKeysViewModel,          ApiKeysPage>(PageKeys.AIKeys, "API 密钥");
+        reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts, "提示词");
+        reg.Register<UsageStatisticsViewModel,  UsageStatisticsPage>(PageKeys.AIUsage, "使用统计");
+        reg.Register<PackagingViewModel,        PackagingPage>(PageKeys.Packaging, "打包");
         return reg;
     }
 

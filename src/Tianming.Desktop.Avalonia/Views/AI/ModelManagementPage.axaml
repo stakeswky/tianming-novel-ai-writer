@@ -17,8 +17,15 @@
           <Grid ColumnDefinitions="*,*">
             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
               <TextBlock Text="Provider" FontSize="12" FontWeight="SemiBold"/>
-              <ComboBox ItemsSource="{Binding ProviderIds}"
-                        SelectedItem="{Binding NewProviderId}"/>
+              <ComboBox ItemsSource="{Binding Providers}"
+                        SelectedValue="{Binding NewProviderId, Mode=TwoWay}"
+                        SelectedValueBinding="{Binding Id}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:DefaultAIProviderOption">
+                    <TextBlock Text="{Binding DisplayName}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
             </StackPanel>
             <StackPanel Grid.Column="1" Spacing="4" Margin="8,0,0,0">
               <TextBlock Text="Model" FontSize="12" FontWeight="SemiBold"/>

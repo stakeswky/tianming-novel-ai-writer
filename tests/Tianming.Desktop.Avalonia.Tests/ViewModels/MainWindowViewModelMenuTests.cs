@@ -98,19 +98,29 @@ public class MainWindowViewModelMenuTests
             System.IO.Path.GetTempPath(),
             "tianming-test-" + Guid.NewGuid().ToString("N"));
         var windowStore = new WindowStateStore(System.IO.Path.Combine(tmpRoot, "window.json"));
-        var leftNav = new LeftNavViewModel(nav);
+        var registry = BuildPageRegistry();
+        var leftNav = new LeftNavViewModel(nav, registry);
         var rightPanel = new RightConversationViewModel(
             new StubConversationOrchestrator(),
             new StubSessionStore(),
             new FakeDispatcherScheduler());
         var layout = new ThreeColumnLayoutViewModel(windowStore, nav, leftNav, rightPanel);
-        var breadcrumb = new NavigationBreadcrumbSource(nav);
+        var breadcrumb = new NavigationBreadcrumbSource(nav, registry);
         var chrome = new AppChromeViewModel(breadcrumb, nav);
         var statusBar = new AppStatusBarViewModel(
             new StubRuntimeInfo(),
             new StubProbe(),
             new StubProbe());
         return new MainWindowViewModel(layout, chrome, statusBar, nav);
+    }
+
+    private static PageRegistry BuildPageRegistry()
+    {
+        var registry = new PageRegistry();
+        registry.Register<object, object>(PageKeys.Welcome, "欢迎");
+        registry.Register<object, object>(PageKeys.Dashboard, "仪表盘");
+        registry.Register<object, object>(PageKeys.Settings, "设置");
+        return registry;
     }
 
     private sealed class FakeNavigationService : INavigationService

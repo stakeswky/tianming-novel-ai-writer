@@ -1,11 +1,16 @@
 using System.Net.Http;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Tianming.Desktop.Avalonia;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
 using Tianming.Desktop.Avalonia.Shell;
 using Tianming.Desktop.Avalonia.ViewModels;
+using Tianming.Desktop.Avalonia.ViewModels.Shell;
+using TM.Framework.Appearance;
+using TM.Framework.Notifications;
 using TM.Framework.Platform;
+using TM.Framework.SystemMonitor;
 using Xunit;
 
 namespace Tianming.Desktop.Avalonia.Tests.DI;
@@ -41,6 +46,20 @@ public class AppHostTests
     }
 
     [Fact]
+    public void Build_UsesPageRegistryDisplayNamesForLeftNav()
+    {
+        using var sp = (ServiceProvider)AppHost.Build();
+        var reg = sp.GetRequiredService<PageRegistry>();
+        var nav = sp.GetRequiredService<LeftNavViewModel>();
+
+        var item = nav.Groups
+            .SelectMany(group => group.Items)
+            .Single(item => item.Key == PageKeys.BookPipeline);
+
+        Assert.Equal(reg.GetDisplayName(PageKeys.BookPipeline), item.Label);
+    }
+
+    [Fact]
     public void Build_ResolvesAllInfraProbes()
     {
         using var sp = (ServiceProvider)AppHost.Build();
@@ -48,6 +67,24 @@ public class AppHostTests
         Assert.NotNull(sp.GetRequiredService<IBreadcrumbSource>());
         Assert.NotNull(sp.GetRequiredService<IKeychainHealthProbe>());
         Assert.NotNull(sp.GetRequiredService<IOnnxHealthProbe>());
+    }
+
+    [Fact]
+    public async Task Build_ResolvesMacOSPlatformSinks()
+    {
+        await using var sp = (ServiceProvider)AppHost.Build();
+        Assert.IsType<MacOSSystemAppearanceMonitor>(
+            sp.GetRequiredService<IPortableSystemAppearanceMonitor>());
+        Assert.NotNull(sp.GetRequiredService<PortableSystemFollowRuntime>());
+        Assert.IsType<MacOSNotificationSink>(
+            sp.GetRequiredService<IPortableNotificationSink>());
+        Assert.NotNull(sp.GetRequiredService<PortableNotificationDispatcher>());
+        Assert.IsType<MacOSSpeechOutput>(
+            sp.GetRequiredService<IPortableSpeechOutput>());
+        Assert.NotNull(sp.GetRequiredService<IPortableNotificationSoundPlayer>());
+        Assert.IsType<MacOSSystemMonitorProbe>(
+            sp.GetRequiredService<IPortableSystemMonitorProbe>());
+        Assert.NotNull(sp.GetRequiredService<PortableSystemMonitorService>());
     }
 
     [Fact]
