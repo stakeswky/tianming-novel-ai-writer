@@ -194,7 +194,8 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData>>(),
                 sp.GetRequiredService<ModuleDataAdapter<FactionRulesCategory, FactionRulesData>>(),
                 sp.GetRequiredService<ModuleDataAdapter<LocationRulesCategory, LocationRulesData>>(),
-                sp.GetRequiredService<ModuleDataAdapter<PlotRulesCategory, PlotRulesData>>()));
+                sp.GetRequiredService<ModuleDataAdapter<PlotRulesCategory, PlotRulesData>>(),
+                sp.GetRequiredService<ModuleDataAdapter<WorldRulesCategory, WorldRulesData>>()));
         s.AddSingleton<IDesignContextService>(sp =>
             new DesignContextService(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
         s.AddSingleton<IGenerationContextService>(sp =>

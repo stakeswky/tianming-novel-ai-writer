@@ -5,11 +5,13 @@ using TM.Services.Modules.ProjectData.Implementations.Tracking.Rules;
 using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
+using TM.Services.Modules.ProjectData.Models.Design.Worldview;
 using TM.Services.Modules.ProjectData.Models.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Models.Tracking;
 using TM.Services.Modules.ProjectData.Modules.Design.CharacterRules;
 using TM.Services.Modules.ProjectData.Modules.Design.FactionRules;
 using TM.Services.Modules.ProjectData.Modules.Design.LocationRules;
+using TM.Services.Modules.ProjectData.Modules.Design.WorldRules;
 using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Schema;
 using Xunit;
@@ -57,7 +59,8 @@ public class ValidationContextServiceTests
         var characterAdapter = new ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData>(new CharacterRulesSchema(), workspace.Path);
         var factionAdapter = new ModuleDataAdapter<FactionRulesCategory, FactionRulesData>(new FactionRulesSchema(), workspace.Path);
         var locationAdapter = new ModuleDataAdapter<LocationRulesCategory, LocationRulesData>(new LocationRulesSchema(), workspace.Path);
-        await SeedModuleDataAsync(chapterAdapter, characterAdapter, factionAdapter, locationAdapter);
+        var worldRuleAdapter = new ModuleDataAdapter<WorldRulesCategory, WorldRulesData>(new WorldRulesSchema(), workspace.Path);
+        await SeedModuleDataAsync(chapterAdapter, characterAdapter, factionAdapter, locationAdapter, worldRuleAdapter);
 
         var svc = new ValidationContextService(
             workspace.Path,
@@ -65,6 +68,7 @@ public class ValidationContextServiceTests
             characterAdapter,
             factionAdapter,
             locationAdapter,
+            worldRuleAdapter,
             new LedgerRuleSetProvider());
 
         var bundle = await svc.BuildAsync("chapter-current");
@@ -72,23 +76,28 @@ public class ValidationContextServiceTests
         Assert.Equal("chapter-current", bundle.ChapterId);
         Assert.True(bundle.RuleSet.EnableConflictFlowCheck);
         Assert.NotNull(bundle.FactSnapshot);
+        Assert.Equal("黑发", bundle.FactSnapshot.CharacterDescriptions["char-001"].HairColor);
+        Assert.Contains(bundle.FactSnapshot.WorldRuleConstraints, rule => rule.RuleId == "world-001");
     }
 
     private static async Task SeedModuleDataAsync(
         ModuleDataAdapter<ChapterCategory, ChapterData> chapterAdapter,
         ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData> characterAdapter,
         ModuleDataAdapter<FactionRulesCategory, FactionRulesData> factionAdapter,
-        ModuleDataAdapter<LocationRulesCategory, LocationRulesData> locationAdapter)
+        ModuleDataAdapter<LocationRulesCategory, LocationRulesData> locationAdapter,
+        ModuleDataAdapter<WorldRulesCategory, WorldRulesData> worldRuleAdapter)
     {
         await chapterAdapter.LoadAsync();
         await characterAdapter.LoadAsync();
         await factionAdapter.LoadAsync();
         await locationAdapter.LoadAsync();
+        await worldRuleAdapter.LoadAsync();
 
         await chapterAdapter.AddCategoryAsync(new ChapterCategory { Id = "chapter-cat", Name = "章节", IsEnabled = true });
         await characterAdapter.AddCategoryAsync(new CharacterRulesCategory { Id = "character-cat", Name = "角色", IsEnabled = true });
         await factionAdapter.AddCategoryAsync(new FactionRulesCategory { Id = "faction-cat", Name = "势力", IsEnabled = true });
         await locationAdapter.AddCategoryAsync(new LocationRulesCategory { Id = "location-cat", Name = "地点", IsEnabled = true });
+        await worldRuleAdapter.AddCategoryAsync(new WorldRulesCategory { Id = "world-cat", Name = "世界观", IsEnabled = true });
 
         await chapterAdapter.AddAsync(new ChapterData
         {
@@ -102,9 +111,34 @@ public class ValidationContextServiceTests
             ReferencedLocationNames = ["试炼台"],
             IsEnabled = true,
         });
-        await characterAdapter.AddAsync(new CharacterRulesData { Id = "char-001", Category = "角色", Name = "沈砚", IsEnabled = true });
+        await characterAdapter.AddAsync(new CharacterRulesData
+        {
+            Id = "char-001",
+            Category = "角色",
+            Name = "沈砚",
+            Appearance = "黑发剑客",
+            Identity = "试炼弟子",
+            Want = "点燃命火",
+            IsEnabled = true
+        });
         await factionAdapter.AddAsync(new FactionRulesData { Id = "faction-001", Category = "势力", Name = "青岚宗", IsEnabled = true });
-        await locationAdapter.AddAsync(new LocationRulesData { Id = "location-001", Category = "地点", Name = "试炼台", IsEnabled = true });
+        await locationAdapter.AddAsync(new LocationRulesData
+        {
+            Id = "location-001",
+            Category = "地点",
+            Name = "试炼台",
+            Description = "命火试炼核心场地",
+            Terrain = "悬空石台",
+            IsEnabled = true
+        });
+        await worldRuleAdapter.AddAsync(new WorldRulesData
+        {
+            Id = "world-001",
+            Category = "世界观",
+            Name = "命火铁律",
+            HardRules = "命火不可无代价燃烧",
+            IsEnabled = true
+        });
     }
 
     private sealed class TempDirectory : System.IDisposable

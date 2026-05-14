@@ -5,12 +5,14 @@ using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
 using TM.Services.Modules.ProjectData.Models.Design.Plot;
+using TM.Services.Modules.ProjectData.Models.Design.Worldview;
 using TM.Services.Modules.ProjectData.Models.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Models.Tracking;
 using TM.Services.Modules.ProjectData.Modules.Design.CharacterRules;
 using TM.Services.Modules.ProjectData.Modules.Design.FactionRules;
 using TM.Services.Modules.ProjectData.Modules.Design.LocationRules;
 using TM.Services.Modules.ProjectData.Modules.Design.PlotRules;
+using TM.Services.Modules.ProjectData.Modules.Design.WorldRules;
 using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Schema;
 using Xunit;
@@ -75,8 +77,9 @@ public class GenerationContextServiceTests
         var factionAdapter = new ModuleDataAdapter<FactionRulesCategory, FactionRulesData>(new FactionRulesSchema(), workspace.Path);
         var locationAdapter = new ModuleDataAdapter<LocationRulesCategory, LocationRulesData>(new LocationRulesSchema(), workspace.Path);
         var plotAdapter = new ModuleDataAdapter<PlotRulesCategory, PlotRulesData>(new PlotRulesSchema(), workspace.Path);
+        var worldRuleAdapter = new ModuleDataAdapter<WorldRulesCategory, WorldRulesData>(new WorldRulesSchema(), workspace.Path);
 
-        await SeedModuleDataAsync(chapterAdapter, characterAdapter, factionAdapter, locationAdapter, plotAdapter);
+        await SeedModuleDataAsync(chapterAdapter, characterAdapter, factionAdapter, locationAdapter, plotAdapter, worldRuleAdapter);
 
         var svc = new GenerationContextService(
             workspace.Path,
@@ -84,7 +87,8 @@ public class GenerationContextServiceTests
             characterAdapter,
             factionAdapter,
             locationAdapter,
-            plotAdapter);
+            plotAdapter,
+            worldRuleAdapter);
 
         var context = await svc.BuildAsync("chapter-current");
 
@@ -94,6 +98,9 @@ public class GenerationContextServiceTests
         Assert.Contains("试炼台", context.DesignElements.LocationNames);
         Assert.Contains("命火试炼", context.DesignElements.PlotKeyNames);
         Assert.Contains("第1章 命火初醒", context.PreviousChaptersSummary);
+        Assert.Equal("黑发", context.FactSnapshot.CharacterDescriptions["char-001"].HairColor);
+        Assert.Contains("试炼台", context.FactSnapshot.LocationDescriptions["location-001"].Name);
+        Assert.Contains(context.FactSnapshot.WorldRuleConstraints, rule => rule.RuleId == "world-001" && rule.Constraint == "命火不可无代价燃烧");
     }
 
     private static async Task SeedModuleDataAsync(
@@ -101,19 +108,22 @@ public class GenerationContextServiceTests
         ModuleDataAdapter<CharacterRulesCategory, CharacterRulesData> characterAdapter,
         ModuleDataAdapter<FactionRulesCategory, FactionRulesData> factionAdapter,
         ModuleDataAdapter<LocationRulesCategory, LocationRulesData> locationAdapter,
-        ModuleDataAdapter<PlotRulesCategory, PlotRulesData> plotAdapter)
+        ModuleDataAdapter<PlotRulesCategory, PlotRulesData> plotAdapter,
+        ModuleDataAdapter<WorldRulesCategory, WorldRulesData> worldRuleAdapter)
     {
         await chapterAdapter.LoadAsync();
         await characterAdapter.LoadAsync();
         await factionAdapter.LoadAsync();
         await locationAdapter.LoadAsync();
         await plotAdapter.LoadAsync();
+        await worldRuleAdapter.LoadAsync();
 
         await chapterAdapter.AddCategoryAsync(new ChapterCategory { Id = "chapter-cat", Name = "章节", IsEnabled = true });
         await characterAdapter.AddCategoryAsync(new CharacterRulesCategory { Id = "character-cat", Name = "角色", IsEnabled = true });
         await factionAdapter.AddCategoryAsync(new FactionRulesCategory { Id = "faction-cat", Name = "势力", IsEnabled = true });
         await locationAdapter.AddCategoryAsync(new LocationRulesCategory { Id = "location-cat", Name = "地点", IsEnabled = true });
         await plotAdapter.AddCategoryAsync(new PlotRulesCategory { Id = "plot-cat", Name = "剧情", IsEnabled = true });
+        await worldRuleAdapter.AddCategoryAsync(new WorldRulesCategory { Id = "world-cat", Name = "世界观", IsEnabled = true });
 
         await chapterAdapter.AddAsync(new ChapterData
         {
@@ -138,10 +148,35 @@ public class GenerationContextServiceTests
             ReferencedLocationNames = ["试炼台"],
             IsEnabled = true,
         });
-        await characterAdapter.AddAsync(new CharacterRulesData { Id = "char-001", Category = "角色", Name = "沈砚", IsEnabled = true });
+        await characterAdapter.AddAsync(new CharacterRulesData
+        {
+            Id = "char-001",
+            Category = "角色",
+            Name = "沈砚",
+            Appearance = "黑发剑客",
+            Identity = "试炼弟子",
+            Want = "点燃命火",
+            IsEnabled = true
+        });
         await factionAdapter.AddAsync(new FactionRulesData { Id = "faction-001", Category = "势力", Name = "青岚宗", IsEnabled = true });
-        await locationAdapter.AddAsync(new LocationRulesData { Id = "location-001", Category = "地点", Name = "试炼台", IsEnabled = true });
+        await locationAdapter.AddAsync(new LocationRulesData
+        {
+            Id = "location-001",
+            Category = "地点",
+            Name = "试炼台",
+            Description = "命火试炼核心场地",
+            Terrain = "悬空石台",
+            IsEnabled = true
+        });
         await plotAdapter.AddAsync(new PlotRulesData { Id = "plot-001", Category = "剧情", Name = "命火试炼", IsEnabled = true });
+        await worldRuleAdapter.AddAsync(new WorldRulesData
+        {
+            Id = "world-001",
+            Category = "世界观",
+            Name = "命火铁律",
+            HardRules = "命火不可无代价燃烧",
+            IsEnabled = true
+        });
     }
 
     private sealed class TempDirectory : System.IDisposable
