@@ -19,4 +19,14 @@ public interface IConversationTool
     /// <param name="ct">取消令牌。</param>
     /// <returns>工具执行结果文本。</returns>
     Task<string> InvokeAsync(IReadOnlyDictionary<string, object?> args, CancellationToken ct);
+
+    /// <summary>执行工具调用，返回可选结构化元数据。</summary>
+    /// <param name="args">从 OpenAI tool_call arguments 解析出的字典。</param>
+    /// <param name="ct">取消令牌。</param>
+    /// <returns>工具执行结果和附加元数据。</returns>
+    async Task<ConversationToolResult> InvokeStructuredAsync(IReadOnlyDictionary<string, object?> args, CancellationToken ct)
+        => new(await InvokeAsync(args, ct).ConfigureAwait(false));
 }
+
+/// <summary>工具执行结果，供 UI delta 携带非文本元数据。</summary>
+public sealed record ConversationToolResult(string ResultText, string? StagedId = null);

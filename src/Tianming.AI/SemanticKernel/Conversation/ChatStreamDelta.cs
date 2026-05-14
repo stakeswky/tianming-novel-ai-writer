@@ -18,7 +18,7 @@ public sealed record AnswerDelta(string Text) : ChatStreamDelta;
 public sealed record ToolCallDelta(string ToolCallId, string ToolName, string ArgumentsJson) : ChatStreamDelta;
 
 /// <summary>工具执行结果：工具被调用后返回的结果文本。</summary>
-public sealed record ToolResultDelta(string ToolCallId, string ResultText) : ChatStreamDelta;
+public sealed record ToolResultDelta(string ToolCallId, string ResultText, string? StagedId = null) : ChatStreamDelta;
 
 /// <summary>计划模式：AI 回答解析出的 PlanStep 列表。</summary>
 public sealed record PlanStepDelta(PlanStep Step) : ChatStreamDelta;
