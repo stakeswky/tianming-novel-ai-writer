@@ -12,6 +12,7 @@ using TM.Services.Framework.AI.SemanticKernel.Conversation.Mapping;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Parsing;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Thinking;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools;
+using TM.Services.Modules.ProjectData.Generation.Wal;
 using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
@@ -33,6 +34,10 @@ using TM.Services.Modules.ProjectData.Modules.Generate.ChapterPlanning;
 using TM.Services.Modules.ProjectData.Modules.Generate.Outline;
 using TM.Services.Modules.ProjectData.Modules.Generate.VolumeDesign;
 using TM.Services.Modules.ProjectData.Modules.Schema;
+using TM.Services.Modules.ProjectData.Humanize;
+using TM.Services.Modules.ProjectData.Humanize.Rules;
+using TM.Services.Modules.ProjectData.Tracking.Layers;
+using TM.Services.Modules.ProjectData.Tracking.Locator;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
 using Tianming.Desktop.Avalonia.Infrastructure;
 using Tianming.Desktop.Avalonia.Navigation;
@@ -177,6 +182,39 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton<ChapterGenerationStore>(sp =>
             new ChapterGenerationStore(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
 
+        // M6.2 Humanize + CHANGES Canonicalize
+        s.AddSingleton<FileHumanizeRulesStore>(sp =>
+        {
+            var paths = sp.GetRequiredService<AppPaths>();
+            return new FileHumanizeRulesStore(Path.Combine(paths.AppSupportDirectory, "Humanize"));
+        });
+        s.AddSingleton<IHumanizeRule>(sp =>
+        {
+            var cfg = sp.GetRequiredService<FileHumanizeRulesStore>().Load();
+            return new PhraseReplaceRule(cfg.PhraseReplacements);
+        });
+        s.AddSingleton<IHumanizeRule, PunctuationRule>();
+        s.AddSingleton<IHumanizeRule>(sp =>
+        {
+            var cfg = sp.GetRequiredService<FileHumanizeRulesStore>().Load();
+            return new SentenceLengthRule(cfg.SentenceLongThreshold);
+        });
+        s.AddSingleton<HumanizePipeline>(sp =>
+            new HumanizePipeline(sp.GetServices<IHumanizeRule>()));
+
+        // M6.3 WAL + 生成恢复
+        s.AddTransient<IGenerationJournal>(sp =>
+            new FileGenerationJournal(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton(sp =>
+            new GenerationRecoveryService(
+                () => new FileGenerationJournal(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot),
+                async (_, _, _) =>
+                {
+                    // M6.3 only discovers pending WAL entries at startup. Automatic
+                    // generation resume is intentionally left for a later lane.
+                    await Task.CompletedTask.ConfigureAwait(false);
+                }));
+
         // M6.1 Tracking 债务检测
         s.AddSingleton<ITrackingDebtDetector, EntityDriftDetector>();
         s.AddSingleton<ITrackingDebtDetector, OmissionDetector>();
@@ -184,6 +222,20 @@ public static class AvaloniaShellServiceCollectionExtensions
         s.AddSingleton<ITrackingDebtDetector, PledgeDetector>();
         s.AddSingleton<ITrackingDebtDetector, SecretRevealDetector>();
         s.AddSingleton(sp => new TrackingDebtRegistry(sp.GetServices<ITrackingDebtDetector>()));
+
+        // M6.4 校验分层 + 向量定位
+        s.AddSingleton(sp => new FileVectorSearchService(
+            sp.GetRequiredService<ICurrentProjectService>().ProjectRoot,
+            sp.GetRequiredService<ITextEmbedder>()));
+        s.AddSingleton<FileVectorSearchServiceAdapter>();
+        s.AddSingleton<IVectorSearchService>(sp => sp.GetRequiredService<FileVectorSearchServiceAdapter>());
+        s.AddSingleton<IConsistencyLayer, StructuralLayer>();
+        s.AddSingleton<IConsistencyLayer, EntityLayer>();
+        s.AddSingleton<IConsistencyLayer, ForeshadowLayer>();
+        s.AddSingleton<IConsistencyLayer, TimelineLayer>();
+        s.AddSingleton<IConsistencyLayer, RelationshipLayer>();
+        s.AddSingleton(sp => new LayeredConsistencyChecker(sp.GetServices<IConsistencyLayer>()));
+        s.AddSingleton(sp => new ConsistencyIssueLocator(sp.GetRequiredService<IVectorSearchService>()));
 
         s.AddTransient<OutlineViewModel>();
         s.AddTransient<VolumeDesignViewModel>();

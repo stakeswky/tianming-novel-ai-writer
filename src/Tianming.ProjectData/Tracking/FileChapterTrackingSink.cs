@@ -422,7 +422,9 @@ namespace TM.Services.Modules.ProjectData.Implementations
             var path = Path.Combine(_rootDirectory, relativePath);
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             var json = JsonSerializer.Serialize(value, _jsonOptions);
-            await File.WriteAllTextAsync(path, json).ConfigureAwait(false);
+            var tempPath = path + ".tmp";
+            await File.WriteAllTextAsync(tempPath, json).ConfigureAwait(false);
+            File.Move(tempPath, path, overwrite: true);
         }
 
         private static string VolumeFile(string prefix, string chapterId)

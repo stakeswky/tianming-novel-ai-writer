@@ -24,6 +24,7 @@ namespace TM.Services.Modules.ProjectData.Models.Tracking
         [JsonPropertyName("Failures")] public List<GateFailure> Failures { get; set; } = new();
         [JsonPropertyName("ParsedChanges")] public ChapterChanges? ParsedChanges { get; set; }
         [JsonPropertyName("ContentWithoutChanges")] public string? ContentWithoutChanges { get; set; }
+        [JsonPropertyName("LayeredIssues")] public List<ConsistencyIssue>? LayeredIssues { get; set; }
 
         public void AddFailure(FailureType type, IEnumerable<string> errors)
         {
