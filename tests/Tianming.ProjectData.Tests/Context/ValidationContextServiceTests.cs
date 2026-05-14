@@ -77,6 +77,7 @@ public class ValidationContextServiceTests
         Assert.True(bundle.RuleSet.EnableConflictFlowCheck);
         Assert.NotNull(bundle.FactSnapshot);
         Assert.Equal("黑发", bundle.FactSnapshot.CharacterDescriptions["char-001"].HairColor);
+        Assert.Contains("试炼台", bundle.FactSnapshot.LocationDescriptions["location-001"].Name);
         Assert.Contains(bundle.FactSnapshot.WorldRuleConstraints, rule => rule.RuleId == "world-001");
     }
 
