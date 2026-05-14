@@ -12,6 +12,7 @@ using Tianming.Desktop.Avalonia.ViewModels.Shell;
 using TM.Framework.UI.Workspace.RightPanel.Modes;
 using TM.Services.Framework.AI.SemanticKernel;
 using TM.Services.Framework.AI.SemanticKernel.Conversation;
+using TM.Services.Modules.ProjectData.StagedChanges;
 
 namespace Tianming.Desktop.Avalonia.ViewModels.Conversation;
 
@@ -21,6 +22,7 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
     private readonly IFileSessionStore? _sessionStore;
     private readonly BulkEmitter? _emitter;
     private readonly IReferenceSuggestionSource? _referenceSuggestionSource;
+    private readonly IStagedChangeApprover? _approver;
     private ConversationSession? _currentSession;
     private CancellationTokenSource? _cts;
     private CancellationTokenSource? _referenceSuggestionCts;
@@ -56,12 +58,14 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         IFileSessionStore sessionStore,
         IDispatcherScheduler scheduler,
         IReferenceSuggestionSource? referenceSuggestionSource = null,
+        IStagedChangeApprover? approver = null,
         bool seedSamples = false)
     {
         _orchestrator = orchestrator;
         _sessionStore = sessionStore;
         _emitter = new BulkEmitter(scheduler);
         _referenceSuggestionSource = referenceSuggestionSource;
+        _approver = approver;
         _emitter.Start(SampleBubbles);
         if (seedSamples)
             SeedSamples();
@@ -204,6 +208,28 @@ public partial class ConversationPanelViewModel : ObservableObject, IDisposable
         var item = SessionHistory.FirstOrDefault(session => session.Id == sessionId);
         if (item != null)
             SessionHistory.Remove(item);
+    }
+
+    [RelayCommand]
+    private async Task ApproveStagedAsync(string? stagedId)
+    {
+        if (_approver == null || string.IsNullOrWhiteSpace(stagedId))
+        {
+            return;
+        }
+
+        await _approver.ApproveAsync(stagedId).ConfigureAwait(false);
+    }
+
+    [RelayCommand]
+    private async Task RejectStagedAsync(string? stagedId)
+    {
+        if (_approver == null || string.IsNullOrWhiteSpace(stagedId))
+        {
+            return;
+        }
+
+        await _approver.RejectAsync(stagedId).ConfigureAwait(false);
     }
 
     partial void OnSelectedHistoryItemChanged(SessionListItemVm? value)
