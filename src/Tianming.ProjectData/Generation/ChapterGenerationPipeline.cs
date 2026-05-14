@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TM.Services.Modules.ProjectData.Generation.Wal;
 using TM.Services.Modules.ProjectData.Implementations.Tracking.Debts;
 using TM.Services.Modules.ProjectData.Models.Guides;
 using TM.Services.Modules.ProjectData.Models.Tracking;
@@ -20,6 +21,7 @@ namespace TM.Services.Modules.ProjectData.Implementations
         private readonly List<IChapterDerivedIndex> _derivedIndexes;
         private readonly IFactSnapshotGuideSource? _factSnapshotGuideSource;
         private readonly TrackingDebtRegistry? _debtRegistry;
+        private readonly IGenerationJournal? _journal;
 
         public ChapterGenerationPipeline(
             ContentGenerationPreparer preparer,
@@ -29,7 +31,8 @@ namespace TM.Services.Modules.ProjectData.Implementations
             FileChapterKeywordIndex? keywordIndex = null,
             IReadOnlyList<IChapterDerivedIndex>? derivedIndexes = null,
             IFactSnapshotGuideSource? factSnapshotGuideSource = null,
-            TrackingDebtRegistry? debtRegistry = null)
+            TrackingDebtRegistry? debtRegistry = null,
+            IGenerationJournal? journal = null)
         {
             _preparer = preparer;
             _contentStore = contentStore;
@@ -37,6 +40,7 @@ namespace TM.Services.Modules.ProjectData.Implementations
             _trackingDispatcher = trackingDispatcher;
             _factSnapshotGuideSource = factSnapshotGuideSource;
             _debtRegistry = debtRegistry;
+            _journal = journal;
             _derivedIndexes = new List<IChapterDerivedIndex>();
             if (keywordIndex != null)
                 _derivedIndexes.Add(keywordIndex);
@@ -54,6 +58,7 @@ namespace TM.Services.Modules.ProjectData.Implementations
         {
             var result = new GenerationResult { ChapterId = chapterId };
 
+            await AppendJournalStepAsync(chapterId, GenerationStep.PrepareStart).ConfigureAwait(false);
             var prepared = await _preparer.PrepareStrictAsync(
                 chapterId,
                 rawContent,
@@ -61,6 +66,7 @@ namespace TM.Services.Modules.ProjectData.Implementations
                 packagedTitle,
                 entityNameMap,
                 designElements: designElements).ConfigureAwait(false);
+            await AppendJournalStepAsync(chapterId, GenerationStep.PrepareDone).ConfigureAwait(false);
 
             if (!prepared.GateResult.Success)
             {
@@ -77,8 +83,10 @@ namespace TM.Services.Modules.ProjectData.Implementations
 
             try
             {
+                await AppendJournalStepAsync(chapterId, GenerationStep.GateDone).ConfigureAwait(false);
                 var isRewrite = _contentStore.ChapterExists(chapterId);
                 var saveResult = await _contentStore.SaveChapterAsync(chapterId, prepared.PersistedContent).ConfigureAwait(false);
+                await AppendJournalStepAsync(chapterId, GenerationStep.ContentSaved).ConfigureAwait(false);
                 if (prepared.ParsedChanges != null)
                 {
                     if (isRewrite)
@@ -104,11 +112,14 @@ namespace TM.Services.Modules.ProjectData.Implementations
                         }
                     }
                 }
+                await AppendJournalStepAsync(chapterId, GenerationStep.TrackingDone).ConfigureAwait(false);
                 await IndexDerivedDataForChapterAsync(
                     chapterId,
                     saveResult.FilePath,
                     prepared.PersistedContent,
                     prepared.ParsedChanges).ConfigureAwait(false);
+                await AppendJournalStepAsync(chapterId, GenerationStep.Done).ConfigureAwait(false);
+                await ClearJournalAsync(chapterId).ConfigureAwait(false);
 
                 result.Success = true;
                 result.Content = prepared.PersistedContent;
@@ -130,6 +141,26 @@ namespace TM.Services.Modules.ProjectData.Implementations
                 _statisticsRecorder.RecordGeneration(result);
                 return result;
             }
+        }
+
+        private Task AppendJournalStepAsync(string chapterId, GenerationStep step)
+        {
+            if (_journal == null)
+                return Task.CompletedTask;
+
+            return _journal.AppendAsync(new GenerationJournalEntry
+            {
+                ChapterId = chapterId,
+                Step = step
+            });
+        }
+
+        private Task ClearJournalAsync(string chapterId)
+        {
+            if (_journal == null)
+                return Task.CompletedTask;
+
+            return _journal.ClearAsync(chapterId);
         }
 
         public async Task<bool> DeleteChapterAsync(string chapterId)

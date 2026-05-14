@@ -12,6 +12,7 @@ using TM.Services.Framework.AI.SemanticKernel.Conversation.Mapping;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Parsing;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Thinking;
 using TM.Services.Framework.AI.SemanticKernel.Conversation.Tools;
+using TM.Services.Modules.ProjectData.Generation.Wal;
 using TM.Services.Modules.ProjectData.Models.Design.Characters;
 using TM.Services.Modules.ProjectData.Models.Design.Factions;
 using TM.Services.Modules.ProjectData.Models.Design.Location;
@@ -198,6 +199,19 @@ public static class AvaloniaShellServiceCollectionExtensions
         });
         s.AddSingleton<HumanizePipeline>(sp =>
             new HumanizePipeline(sp.GetServices<IHumanizeRule>()));
+
+        // M6.3 WAL + 生成恢复
+        s.AddTransient<IGenerationJournal>(sp =>
+            new FileGenerationJournal(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot));
+        s.AddSingleton(sp =>
+            new GenerationRecoveryService(
+                () => new FileGenerationJournal(sp.GetRequiredService<ICurrentProjectService>().ProjectRoot),
+                async (_, _, _) =>
+                {
+                    // M6.3 only discovers pending WAL entries at startup. Automatic
+                    // generation resume is intentionally left for a later lane.
+                    await Task.CompletedTask.ConfigureAwait(false);
+                }));
 
         // M6.1 Tracking 债务检测
         s.AddSingleton<ITrackingDebtDetector, EntityDriftDetector>();
