@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.IO;
 using TM.Framework.UI.Workspace.RightPanel.Modes;
 using TM.Services.Framework.AI.Core;
 using TM.Services.Framework.AI.Core.Routing;
@@ -44,6 +45,43 @@ public class ConversationOrchestratorRoutingTests
         Assert.Equal("https://chat-router.example.com/v1/chat/completions", handler.Request!.RequestUri!.ToString());
         using var document = JsonDocument.Parse(handler.Body);
         Assert.Equal("chat-model", document.RootElement.GetProperty("model").GetString());
+    }
+
+    [Fact]
+    public async Task SendAsync_in_ask_mode_uses_provider_endpoint_and_model_name_for_routed_config()
+    {
+        using var workspace = new TempDirectory();
+        var library = Path.Combine(workspace.Path, "Library");
+        var configs = Path.Combine(workspace.Path, "Configurations");
+        WriteLibrary(library);
+        var store = new FileAIConfigurationStore(library, configs);
+        var router = new StubRouter();
+        router.Map[AITaskPurpose.Chat] = new UserConfiguration
+        {
+            ProviderId = "openai",
+            ModelId = "gpt-id",
+            ApiKey = "ask-key",
+            CustomEndpoint = null,
+            Temperature = 0.25,
+            MaxTokens = 1500,
+        };
+        using var handler = new CapturingHandler(
+            HttpStatusCode.OK,
+            """
+            data: {"choices":[{"delta":{"content":"<answer>ok</answer>"}}]}
+
+            data: [DONE]
+
+            """,
+            "text/event-stream");
+        var orchestrator = CreateOrchestrator(handler, router, store);
+        var session = new ConversationSession { Mode = ChatMode.Ask };
+
+        await DrainAsync(orchestrator.SendAsync(session, "ping"));
+
+        Assert.Equal("https://api.example.test/v1/chat/completions", handler.Request!.RequestUri!.ToString());
+        using var document = JsonDocument.Parse(handler.Body);
+        Assert.Equal("gpt-real", document.RootElement.GetProperty("model").GetString());
     }
 
     [Fact]
@@ -139,7 +177,10 @@ public class ConversationOrchestratorRoutingTests
         Assert.Equal(2048, root.GetProperty("max_tokens").GetInt32());
     }
 
-    private static ConversationOrchestrator CreateOrchestrator(CapturingHandler handler, IAIModelRouter? router = null)
+    private static ConversationOrchestrator CreateOrchestrator(
+        CapturingHandler handler,
+        IAIModelRouter? router = null,
+        FileAIConfigurationStore? configurationStore = null)
     {
         return new ConversationOrchestrator(
             new OpenAICompatibleChatClient(new HttpClient(handler)),
@@ -149,7 +190,23 @@ public class ConversationOrchestratorRoutingTests
             new AskModeMapper(),
             new PlanModeMapper(new PlanStepParser()),
             new AgentModeMapper(),
-            router: router);
+            router: router,
+            configurationStore: configurationStore);
+    }
+
+    private static void WriteLibrary(string library)
+    {
+        Directory.CreateDirectory(library);
+        File.WriteAllText(Path.Combine(library, "providers.json"), """
+        { "Providers": [
+          { "Id": "openai", "Name": "OpenAI", "ApiEndpoint": "https://api.example.test", "Order": 1 }
+        ] }
+        """);
+        File.WriteAllText(Path.Combine(library, "models.json"), """
+        { "Models": [
+          { "Id": "gpt-id", "ProviderId": "openai", "Name": "gpt-real", "Order": 1 }
+        ] }
+        """);
     }
 
     private static async Task DrainAsync(IAsyncEnumerable<ChatStreamDelta> stream)
@@ -188,6 +245,22 @@ public class ConversationOrchestratorRoutingTests
                 ? string.Empty
                 : await request.Content.ReadAsStringAsync(cancellationToken);
             return _response;
+        }
+    }
+
+    private sealed class TempDirectory : IDisposable
+    {
+        public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"tianming-orchestrator-routing-{Guid.NewGuid():N}");
+
+        public TempDirectory()
+        {
+            Directory.CreateDirectory(Path);
+        }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(Path))
+                Directory.Delete(Path, recursive: true);
         }
     }
 }
