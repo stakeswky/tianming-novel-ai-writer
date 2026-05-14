@@ -439,16 +439,51 @@ View：Views/Settings/ThemeSettingsPage.axaml
 - 主题预览：建议 Custom 主题应用前先 dry-run（不影响当前应用主题），用户确认再 Commit
 - 字体页面：先做 UI 字体 + 编辑器字体两类，字体场景预设/性能分析/连字检测等高级功能放后续 milestone（plan 标 "deferred"）
 
-完成验收：
-- 启动 app，"设置 / 外观主题"页可见可点
+============== Lane 0 复核遗留（顺手做，作为本 Lane 的两个独立 commit） ==============
+
+【步骤 7】修 App.axaml:22 冷启动 Light 闪烁
+
+背景：Lane 0 让 ThemeBridge 真切 Dark，但 `src/Tianming.Desktop.Avalonia/App.axaml:22` 仍写死
+`RequestedThemeVariant="Light"`。冷启动到 `AppLifecycle.InitializeAsync` 这一帧之间窗口
+先出现 Light 再被 monitor 切到 Dark，视觉上有一帧闪烁。Lane A 建 ThemeSettingsPage 时
+顺手解：
+- 改 App.axaml:22 为 `RequestedThemeVariant="Default"` 或删除该属性（让 Avalonia 在
+  AppLifecycle 接管前默认随系统）
+- 跑 build-dev-bundle.sh 包装后用 Computer Use attach，确认冷启动那一帧不再是 Light
+- 测试：新增端到端单测，构造 ThemeBridge 在 Application 启动前 Dark 系统 →
+  Application.RequestedThemeVariant 启动时直接是 Dark（不是先 Light 再切）
+
+【步骤 8】补 manual-test-howto.md lsregister 兜底命令
+
+背景：Lane 0 codex 自承"fresh macOS user profile LaunchServices cache 行为未单独验证"。
+`Docs/macOS迁移/manual-test-howto.md` 当前缺 fresh profile 的 LS DB 重建命令。
+
+修法：在 manual-test-howto.md 的"Computer Use attach gate"段末加一段"Fresh profile 兜底"：
+
+```
+若 get_app_state 在 fresh macOS user profile 仍返回 appNotFound：
+1. 用 lsregister 重建 LaunchServices DB：
+   /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+       -kill -r -domain user
+2. 然后用 Finder 打开 ~/Applications/TianmingDev.app 一次（让 LS pick up 新签名）
+3. 重新跑 Computer Use list_apps + get_app_state
+```
+
+不需要测试，纯文档。
+
+============== 完成验收 ==============
+
+- 启动 app（用 Scripts/build-dev-bundle.sh 包装后启动），"设置 / 外观主题"页可见可点
 - 切换主题真生效（Lane 0 已让 monitor 跑起来 → ThemeBridge 真切换）
+- 冷启动时不再有 Light 闪烁（步骤 7 验收）
 - dotnet build 0 W / 0 E
-- dotnet test 全绿，新增 ≥12 条测试（6 个 page × 2）
+- dotnet test 全绿，新增 ≥13 条测试（6 个 page × 2 + 步骤 7 闪烁端到端测试 1）
+- Computer Use get_app_state 能读到"设置 / 外观主题"页主题切换控件
 
 完成输出：
 - 全部 commit + 标题
-- Task 1-6 完成状态
-- 启动 app 截图或日志关键行（设置入口可达性证明）
+- Task 1-8 完成状态（6 个 page + 步骤 7 闪烁 + 步骤 8 文档）
+- Computer Use accessibility 树关键节点（设置入口可达性证明）
 - 9 项矩阵能力的覆盖状态（哪几项做了/部分/deferred）
 - 附带发现
 
@@ -569,8 +604,8 @@ Lane R (真机回归)  →  Merge  →  Lane 0 (sink DI)  →  Merge  →  Lane 
 | Lane | 工作量 | 风险 |
 |---|---|---|
 | Lane R | 2-4 小时 | 中（3 个产品 bug 根因不一定容易找；R3 可能是 IME 平台限制）— **已 merge（commit 9991d26 → main）**|
-| Lane 0 | 8-12 小时 | 中（4 个 sink DI + 4 个 Lane R 复核遗留 task；Computer Use 工具闭环排查最不确定）|
-| Lane A | 1.5-2 天 | 中（建 Settings Shell + 6 个 page） |
+| Lane 0 | 8-12 小时 | 中（4 个 sink DI + 4 个 Lane R 复核遗留 task；Computer Use 工具闭环排查最不确定）— **已 merge（commit 4464627 → main）**|
+| Lane A | 1.5-2.5 天 | 中（建 Settings Shell + 6 个 page + Lane 0 复核遗留步骤 7-8） |
 | Lane B | 1-1.5 天 | 中（通知/声音相对独立） |
 | Lane C | 1.5-2 天 | 中-高（系统监控/代理/日志数据模型复杂） |
 
