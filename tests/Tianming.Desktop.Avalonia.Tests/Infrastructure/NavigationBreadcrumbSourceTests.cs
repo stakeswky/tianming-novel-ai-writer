@@ -16,16 +16,16 @@ public class NavigationBreadcrumbSourceTests
     private static (NavigationService nav, NavigationBreadcrumbSource src) Build()
     {
         var reg = new PageRegistry();
-        reg.Register<FakeVm, FakeView>(PageKeys.Welcome);
-        reg.Register<FakeVm, FakeView>(PageKeys.Dashboard);
-        reg.Register<FakeVm, FakeView>(PageKeys.Settings);
+        reg.Register<FakeVm, FakeView>(PageKeys.Welcome, "欢迎");
+        reg.Register<FakeVm, FakeView>(PageKeys.Dashboard, "仪表盘");
+        reg.Register<FakeVm, FakeView>(PageKeys.Settings, "设置");
 
         var services = new ServiceCollection();
         services.AddTransient<FakeVm>();
         var sp = services.BuildServiceProvider();
 
         var nav = new NavigationService(sp, reg);
-        var src = new NavigationBreadcrumbSource(nav);
+        var src = new NavigationBreadcrumbSource(nav, reg);
         return (nav, src);
     }
 
@@ -61,11 +61,28 @@ public class NavigationBreadcrumbSourceTests
         services.AddTransient<FakeVm>();
         var sp = services.BuildServiceProvider();
         var nav2 = new NavigationService(sp, registry);
-        var src2 = new NavigationBreadcrumbSource(nav2);
+        var src2 = new NavigationBreadcrumbSource(nav2, registry);
 
         await nav2.NavigateAsync(new PageKey("uncharted"));
 
         // 没有内置标签 → 退化到 PageKey.Id
         Assert.Equal("uncharted", src2.Current[1].Label);
+    }
+
+    [Fact]
+    public async System.Threading.Tasks.Task Navigate_UsesPageRegistryDisplayName()
+    {
+        var customKey = new PageKey("registry.display");
+        var registry = new PageRegistry();
+        registry.Register<FakeVm, FakeView>(customKey, "测试页面");
+        var services = new ServiceCollection();
+        services.AddTransient<FakeVm>();
+        var sp = services.BuildServiceProvider();
+        var nav = new NavigationService(sp, registry);
+        var src = new NavigationBreadcrumbSource(nav, registry);
+
+        await nav.NavigateAsync(customKey);
+
+        Assert.Equal("测试页面", src.Current[1].Label);
     }
 }

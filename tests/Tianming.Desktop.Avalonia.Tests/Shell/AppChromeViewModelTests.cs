@@ -15,13 +15,13 @@ public class AppChromeViewModelTests
     private static (NavigationService nav, AppChromeViewModel vm) Build()
     {
         var reg = new PageRegistry();
-        reg.Register<FakeVm, FakeView>(PageKeys.Welcome);
-        reg.Register<FakeVm, FakeView>(PageKeys.Dashboard);
+        reg.Register<FakeVm, FakeView>(PageKeys.Welcome, "欢迎");
+        reg.Register<FakeVm, FakeView>(PageKeys.Dashboard, "仪表盘");
         var services = new ServiceCollection();
         services.AddTransient<FakeVm>();
         var sp = services.BuildServiceProvider();
         var nav = new NavigationService(sp, reg);
-        var src = new NavigationBreadcrumbSource(nav);
+        var src = new NavigationBreadcrumbSource(nav, reg);
         return (nav, new AppChromeViewModel(src, nav));
     }
 

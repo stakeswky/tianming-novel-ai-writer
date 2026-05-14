@@ -506,33 +506,33 @@ public static class AvaloniaShellServiceCollectionExtensions
 
     private static PageRegistry RegisterPages(PageRegistry reg)
     {
-        reg.Register<WelcomeViewModel,     WelcomeView>(PageKeys.Welcome);
-        reg.Register<DashboardViewModel,   DashboardView>(PageKeys.Dashboard);
-        reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Settings);
+        reg.Register<WelcomeViewModel,     WelcomeView>(PageKeys.Welcome, "欢迎");
+        reg.Register<DashboardViewModel,   DashboardView>(PageKeys.Dashboard, "仪表盘");
+        reg.Register<PlaceholderViewModel, PlaceholderView>(PageKeys.Settings, "设置");
 
         // M4.3 章节编辑器
-        reg.Register<EditorWorkspaceViewModel, EditorWorkspaceView>(PageKeys.Editor);
+        reg.Register<EditorWorkspaceViewModel, EditorWorkspaceView>(PageKeys.Editor, "草稿");
 
         // M4.1：6 设计页（VM 不同，View 全部用 DesignModulePage）
-        reg.Register<WorldRulesViewModel,        DesignModulePage>(PageKeys.DesignWorld);
-        reg.Register<CharacterRulesViewModel,    DesignModulePage>(PageKeys.DesignCharacter);
-        reg.Register<FactionRulesViewModel,      DesignModulePage>(PageKeys.DesignFaction);
-        reg.Register<LocationRulesViewModel,     DesignModulePage>(PageKeys.DesignLocation);
-        reg.Register<PlotRulesViewModel,         DesignModulePage>(PageKeys.DesignPlot);
-        reg.Register<CreativeMaterialsViewModel, DesignModulePage>(PageKeys.DesignMaterials);
+        reg.Register<WorldRulesViewModel,        DesignModulePage>(PageKeys.DesignWorld, "世界观");
+        reg.Register<CharacterRulesViewModel,    DesignModulePage>(PageKeys.DesignCharacter, "角色");
+        reg.Register<FactionRulesViewModel,      DesignModulePage>(PageKeys.DesignFaction, "势力");
+        reg.Register<LocationRulesViewModel,     DesignModulePage>(PageKeys.DesignLocation, "地点");
+        reg.Register<PlotRulesViewModel,         DesignModulePage>(PageKeys.DesignPlot, "剧情");
+        reg.Register<CreativeMaterialsViewModel, DesignModulePage>(PageKeys.DesignMaterials, "创意素材");
 
         // M4.2：4 schema 页（VM 不同，View 全部复用 DesignModulePage）+ 1 ChapterPipelinePage（独立 view）
-        reg.Register<OutlineViewModel,          DesignModulePage>(PageKeys.GenerateOutline);
-        reg.Register<VolumeDesignViewModel,     DesignModulePage>(PageKeys.GenerateVolume);
-        reg.Register<ChapterPlanningViewModel,  DesignModulePage>(PageKeys.GenerateChapter);
-        reg.Register<BlueprintViewModel,        DesignModulePage>(PageKeys.GenerateBlueprint);
-        reg.Register<ChapterPipelineViewModel,  ChapterPipelinePage>(PageKeys.GeneratePipeline);
-        reg.Register<BookPipelineViewModel,     BookPipelinePage>(PageKeys.BookPipeline);
-        reg.Register<ModelManagementViewModel,  ModelManagementPage>(PageKeys.AIModels);
-        reg.Register<ApiKeysViewModel,          ApiKeysPage>(PageKeys.AIKeys);
-        reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts);
-        reg.Register<UsageStatisticsViewModel,  UsageStatisticsPage>(PageKeys.AIUsage);
-        reg.Register<PackagingViewModel,        PackagingPage>(PageKeys.Packaging);
+        reg.Register<OutlineViewModel,          DesignModulePage>(PageKeys.GenerateOutline, "战略大纲");
+        reg.Register<VolumeDesignViewModel,     DesignModulePage>(PageKeys.GenerateVolume, "分卷设计");
+        reg.Register<ChapterPlanningViewModel,  DesignModulePage>(PageKeys.GenerateChapter, "章节规划");
+        reg.Register<BlueprintViewModel,        DesignModulePage>(PageKeys.GenerateBlueprint, "章节蓝图");
+        reg.Register<ChapterPipelineViewModel,  ChapterPipelinePage>(PageKeys.GeneratePipeline, "章节生成管道");
+        reg.Register<BookPipelineViewModel,     BookPipelinePage>(PageKeys.BookPipeline, "一键成书");
+        reg.Register<ModelManagementViewModel,  ModelManagementPage>(PageKeys.AIModels, "模型");
+        reg.Register<ApiKeysViewModel,          ApiKeysPage>(PageKeys.AIKeys, "API 密钥");
+        reg.Register<PromptManagementViewModel, PromptManagementPage>(PageKeys.AIPrompts, "提示词");
+        reg.Register<UsageStatisticsViewModel,  UsageStatisticsPage>(PageKeys.AIUsage, "使用统计");
+        reg.Register<PackagingViewModel,        PackagingPage>(PageKeys.Packaging, "打包");
         return reg;
     }
 

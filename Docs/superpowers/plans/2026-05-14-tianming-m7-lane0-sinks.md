@@ -229,21 +229,21 @@ Commit with title: `Make the dev bundle attachable by Computer Use`.
 
 ## Step 6: Move display names into PageRegistry
 
-- [ ] **Step 6.1: Write red tests**
+- [x] **Step 6.1: Write red tests**
 
 Update `NavigationBreadcrumbSourceTests` to register a fake page with `displayName: "测试页面"` and assert breadcrumb uses it. Add an AppHost/LeftNav test that `PageRegistry.GetDisplayName(PageKeys.BookPipeline)` equals the left-nav item label for `PageKeys.BookPipeline`.
 
-- [ ] **Step 6.2: Run red**
+- [x] **Step 6.2: Run red**
 
 Run: `dotnet test tests/Tianming.Desktop.Avalonia.Tests/Tianming.Desktop.Avalonia.Tests.csproj --filter "DisplayName|BookPipeline"`
 
 Expected: FAIL because `PageRegistry` has no display-name API yet.
 
-- [ ] **Step 6.3: Implement**
+- [x] **Step 6.3: Implement**
 
 Extend `PageRegistry.Register<TViewModel,TView>(PageKey key, string displayName)` while preserving existing callers with optional/default display names. Update `RegisterPages` with every shipped page display name. Change `NavigationBreadcrumbSource` to take `PageRegistry` and read `GetDisplayName`. Change `LeftNavViewModel` constructor to accept `PageRegistry` and build `NavRailItem` labels from it.
 
-- [ ] **Step 6.4: Verify and commit**
+- [x] **Step 6.4: Verify and commit**
 
 Run focused tests and `dotnet build Tianming.MacMigration.sln`.
 
