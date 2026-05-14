@@ -184,7 +184,9 @@ public class ConversationPanelViewModelTests
             approver: approver,
             seedSamples: false);
 
-        await vm.ApproveStagedCommand.ExecuteAsync("stg-123");
+        var card = new ConversationToolCallVm { StagedId = "stg-123" };
+
+        await vm.ApproveStagedCommand.ExecuteAsync(card);
 
         Assert.Equal("stg-123", approver.ApprovedId);
     }
@@ -218,7 +220,9 @@ public class ConversationPanelViewModelTests
             approver: approver,
             seedSamples: false);
 
-        await vm.RejectStagedCommand.ExecuteAsync("stg-456");
+        var card = new ConversationToolCallVm { StagedId = "stg-456" };
+
+        await vm.RejectStagedCommand.ExecuteAsync(card);
 
         Assert.Equal("stg-456", approver.RejectedId);
     }

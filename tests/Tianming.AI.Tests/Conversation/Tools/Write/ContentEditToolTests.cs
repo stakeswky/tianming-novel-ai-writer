@@ -17,18 +17,20 @@ public sealed class ContentEditToolTests
         var store = new FileStagedChangeStore(root);
         var tool = new ContentEditTool(store);
 
-        var result = await tool.InvokeAsync(new Dictionary<string, object?>
+        var result = await tool.InvokeStructuredAsync(new Dictionary<string, object?>
         {
             ["chapterId"] = "ch-001",
             ["newContent"] = "new text",
             ["reason"] = "rewrite for clarity",
         }, default);
 
-        Assert.Contains("ch-001", result);
-        Assert.Contains("待审核", result);
+        Assert.Contains("ch-001", result.ResultText);
+        Assert.Contains("待审核", result.ResultText);
+        Assert.False(string.IsNullOrWhiteSpace(result.StagedId));
 
         var pending = await store.ListPendingAsync();
         var change = Assert.Single(pending);
+        Assert.Equal(result.StagedId, change.Id);
         Assert.Equal(StagedChangeType.ContentEdit, change.ChangeType);
         Assert.Equal("ch-001", change.TargetId);
         Assert.Equal("new text", change.NewContentSnippet);

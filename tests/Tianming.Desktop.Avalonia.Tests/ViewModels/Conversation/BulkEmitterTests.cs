@@ -62,7 +62,7 @@ public class BulkEmitterTests
         var emitter = new BulkEmitter();
 
         emitter.Apply(bubbles, new ToolCallDelta("tool-1", "content_edit", "{\"chapterId\":\"ch-001\"}"));
-        emitter.Apply(bubbles, new ToolResultDelta("tool-1", "已提议修改章节 ch-001（待审核：stg-abc123）。"));
+        emitter.Apply(bubbles, new ToolResultDelta("tool-1", "已提议修改章节 ch-001。", "stg-abc123"));
 
         var bubble = Assert.Single(bubbles);
         var card = Assert.Single(bubble.ToolCalls);
@@ -71,6 +71,35 @@ public class BulkEmitterTests
         Assert.Equal(ToolCallState.Pending, card.State);
         Assert.DoesNotContain("[tool:", bubble.Content);
         Assert.DoesNotContain("[result:", bubble.Content);
+    }
+
+    [Fact]
+    public void BulkEmitter_uses_structured_staged_id_not_text_scan()
+    {
+        var bubbles = new ObservableCollection<ConversationBubbleVm>();
+        var emitter = new BulkEmitter();
+
+        emitter.Apply(bubbles, new ToolCallDelta("tool-1", "workspace_edit", "{\"relativePath\":\"README.md\"}"));
+        emitter.Apply(bubbles, new ToolResultDelta("tool-1", "[result]", "stg-xyz"));
+
+        var bubble = Assert.Single(bubbles);
+        var card = Assert.Single(bubble.ToolCalls);
+        Assert.Equal("stg-xyz", card.StagedId);
+        Assert.Equal("workspace_edit", card.ToolName);
+    }
+
+    [Fact]
+    public void BulkEmitter_does_not_extract_staged_id_from_text_when_structured_field_is_missing()
+    {
+        var bubbles = new ObservableCollection<ConversationBubbleVm>();
+        var emitter = new BulkEmitter();
+
+        emitter.Apply(bubbles, new ToolCallDelta("tool-1", "content_edit", "{\"chapterId\":\"ch-001\"}"));
+        emitter.Apply(bubbles, new ToolResultDelta("tool-1", "stg-fake-not-from-tool"));
+
+        var bubble = Assert.Single(bubbles);
+        Assert.Empty(bubble.ToolCalls);
+        Assert.Contains("[result:tool-1] stg-fake-not-from-tool", bubble.Content);
     }
 
     [Fact]
