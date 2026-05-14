@@ -31,4 +31,7 @@ public static class PageKeys
     public static readonly PageKey AIKeys   = new("ai.keys");
     public static readonly PageKey AIPrompts = new("ai.prompts");
     public static readonly PageKey AIUsage   = new("ai.usage");
+
+    // M6.9 打包 + 备份
+    public static readonly PageKey Packaging = new("packaging");
 }

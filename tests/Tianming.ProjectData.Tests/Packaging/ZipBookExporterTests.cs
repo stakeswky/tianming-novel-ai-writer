@@ -56,6 +56,24 @@ public class ZipBookExporterTests
         Assert.DoesNotContain(zip.Entries, entry => entry.FullName.Contains("bin/"));
     }
 
+    [Fact]
+    public async Task Export_allows_output_zip_inside_project_root()
+    {
+        using var workspace = new TempDirectory("tm-exp");
+        var chaptersDir = Path.Combine(workspace.Path, "Generated", "chapters");
+        Directory.CreateDirectory(chaptersDir);
+        await File.WriteAllTextAsync(Path.Combine(chaptersDir, "ch-001.md"), "Chapter 1");
+        var output = Path.Combine(workspace.Path, "book-proof.zip");
+        var exporter = new ZipBookExporter();
+
+        await exporter.ExportAsync(workspace.Path, output);
+
+        Assert.True(File.Exists(output));
+        using var zip = ZipFile.OpenRead(output);
+        Assert.Contains(zip.Entries, entry => entry.FullName == "Generated/chapters/ch-001.md");
+        Assert.DoesNotContain(zip.Entries, entry => entry.FullName == "book-proof.zip");
+    }
+
     private sealed class TempDirectory : System.IDisposable
     {
         public TempDirectory(string prefix)

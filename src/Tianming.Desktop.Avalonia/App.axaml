@@ -6,12 +6,14 @@
              xmlns:vmd="using:Tianming.Desktop.Avalonia.ViewModels.Design"
              xmlns:vmg="using:Tianming.Desktop.Avalonia.ViewModels.Generate"
              xmlns:vmai="using:Tianming.Desktop.Avalonia.ViewModels.AI"
+             xmlns:vmpkg="using:Tianming.Desktop.Avalonia.ViewModels.Packaging"
              xmlns:v="using:Tianming.Desktop.Avalonia.Views"
              xmlns:vcv="using:Tianming.Desktop.Avalonia.Views.Conversation"
              xmlns:vsh="using:Tianming.Desktop.Avalonia.Views.Shell"
              xmlns:vd="using:Tianming.Desktop.Avalonia.Views.Design"
              xmlns:vg="using:Tianming.Desktop.Avalonia.Views.Generate"
              xmlns:vai="using:Tianming.Desktop.Avalonia.Views.AI"
+             xmlns:vpkg="using:Tianming.Desktop.Avalonia.Views.Packaging"
              xmlns:vme="using:Tianming.Desktop.Avalonia.ViewModels.Editor"
              xmlns:ve="using:Tianming.Desktop.Avalonia.Views.Editor"
              x:Class="Tianming.Desktop.Avalonia.App"
@@ -83,6 +85,9 @@
     </DataTemplate>
     <DataTemplate DataType="vmai:UsageStatisticsViewModel">
       <vai:UsageStatisticsPage/>
+    </DataTemplate>
+    <DataTemplate DataType="vmpkg:PackagingViewModel">
+      <vpkg:PackagingPage/>
     </DataTemplate>
     <!-- M4.3 章节编辑器 -->
     <DataTemplate DataType="vme:EditorWorkspaceViewModel">

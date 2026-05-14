@@ -65,7 +65,7 @@ public partial class LeftNavViewModel : ObservableObject
         {
             new(new PageKey("conversation"),"AI 对话", "message-square", IsEnabled: false),
             new(new PageKey("validation"),  "校验",   "shield-check",   IsEnabled: false),
-            new(new PageKey("packaging"),   "打包",   "package",        IsEnabled: false),
+            new(PageKeys.Packaging,         "打包",   "package"),
             new(PageKeys.Settings,          "设置",   "settings"),
         }));
     }

@@ -34,9 +34,10 @@ public sealed class ZipBookExporter : IBookExporter
         if (File.Exists(outputZipPath))
             File.Delete(outputZipPath);
 
+        var outputFullPath = Path.GetFullPath(outputZipPath);
         using var stream = File.Create(outputZipPath);
         using var archive = new ZipArchive(stream, ZipArchiveMode.Create);
-        foreach (var file in EnumerateFiles(projectRoot, ct))
+        foreach (var file in EnumerateFiles(projectRoot, outputFullPath, ct))
         {
             var relativePath = Path.GetRelativePath(projectRoot, file).Replace('\\', '/');
             archive.CreateEntryFromFile(file, relativePath, CompressionLevel.Optimal);
@@ -45,11 +46,14 @@ public sealed class ZipBookExporter : IBookExporter
         return Task.CompletedTask;
     }
 
-    private static IEnumerable<string> EnumerateFiles(string root, CancellationToken ct)
+    private static IEnumerable<string> EnumerateFiles(string root, string outputFullPath, CancellationToken ct)
     {
         foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.TopDirectoryOnly))
         {
             ct.ThrowIfCancellationRequested();
+            if (string.Equals(Path.GetFullPath(file), outputFullPath, StringComparison.OrdinalIgnoreCase))
+                continue;
+
             yield return file;
         }
 
