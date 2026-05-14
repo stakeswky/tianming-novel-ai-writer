@@ -18,8 +18,7 @@
              xmlns:vpkg="using:Tianming.Desktop.Avalonia.Views.Packaging"
              xmlns:vme="using:Tianming.Desktop.Avalonia.ViewModels.Editor"
              xmlns:ve="using:Tianming.Desktop.Avalonia.Views.Editor"
-             x:Class="Tianming.Desktop.Avalonia.App"
-             RequestedThemeVariant="Light">
+             x:Class="Tianming.Desktop.Avalonia.App">
   <Application.DataTemplates>
     <DataTemplate DataType="vm:WelcomeViewModel">
       <v:WelcomeView/>
