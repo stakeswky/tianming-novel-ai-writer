@@ -195,7 +195,7 @@ Commit with title: `Wire macOS system monitor probe into monitor service`.
 
 ## Step 5: Close Computer Use attach loop
 
-- [ ] **Step 5.1: Diagnose current bundle**
+- [x] **Step 5.1: Diagnose current bundle**
 
 Run:
 
@@ -207,7 +207,7 @@ codesign -dvv /tmp/TianmingDev.app 2>&1 || true
 
 Expected before fix: `Info.plist=not bound` or missing common bundle metadata.
 
-- [ ] **Step 5.2: Implement bundle metadata and signing**
+- [x] **Step 5.2: Implement bundle metadata and signing**
 
 Add at least `CFBundleDisplayName`, `CFBundleDevelopmentRegion`, `CFBundleSignature`, `LSMinimumSystemVersion`, `NSHighResolutionCapable`, `NSPrincipalClass`, and `NSHumanReadableCopyright` to the generated Info.plist. After writing the plist, run:
 
@@ -215,15 +215,15 @@ Add at least `CFBundleDisplayName`, `CFBundleDevelopmentRegion`, `CFBundleSignat
 codesign --force --deep -s - "$APP_DIR"
 ```
 
-- [ ] **Step 5.3: Update how-to**
+- [x] **Step 5.3: Update how-to**
 
 Document required plist fields, `codesign -dvv`, and the expected `get_app_state("dev.tianming.avalonia.manualtest")` result in `Docs/macOS迁移/manual-test-howto.md`.
 
-- [ ] **Step 5.4: Verify with Computer Use**
+- [x] **Step 5.4: Verify with Computer Use**
 
 Run `Scripts/build-dev-bundle.sh`, `open /tmp/TianmingDev.app`, then call Computer Use `get_app_state` for `dev.tianming.avalonia.manualtest`. Expected: a window tree, not `appNotFound`.
 
-- [ ] **Step 5.5: Commit**
+- [x] **Step 5.5: Commit**
 
 Commit with title: `Make the dev bundle attachable by Computer Use`.
 
