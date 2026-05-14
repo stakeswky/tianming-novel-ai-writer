@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TM.Services.Modules.ProjectData.Humanize;
 using TM.Services.Modules.ProjectData.Models.Tracking;
 
 namespace TM.Services.Modules.ProjectData.Implementations
@@ -11,6 +13,7 @@ namespace TM.Services.Modules.ProjectData.Implementations
     public sealed class ContentGenerationPreparer
     {
         private readonly GenerationGate _generationGate;
+        private readonly HumanizePipeline? _humanize;
 
         private static readonly Regex RegexTagBlock = new(
             @"<\s*(think|thinking|analysis)\b[^>]*>[\s\S]*?<\s*/\s*\1\s*>",
@@ -24,9 +27,14 @@ namespace TM.Services.Modules.ProjectData.Implementations
             @"(?m)^\s*</?\s*(think|thinking|analysis)\b[^>]*>\s*$",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        public ContentGenerationPreparer(GenerationGate generationGate)
+        private static readonly Regex RegexChangesSeparatorLine = new(
+            @"(?m)^\s*[-\u2010\u2011\u2012\u2013\u2014\u2212]{3}\s*CHANGES\s*[-\u2010\u2011\u2012\u2013\u2014\u2212]{3}\s*$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        public ContentGenerationPreparer(GenerationGate generationGate, HumanizePipeline? humanize = null)
         {
             _generationGate = generationGate;
+            _humanize = humanize;
         }
 
         public async Task<PreparedContentGeneration> PrepareStrictAsync(
@@ -38,6 +46,8 @@ namespace TM.Services.Modules.ProjectData.Implementations
             GateResult? gateResult = null,
             DesignElementNames? designElements = null)
         {
+            rawContent = await NormalizeRawContentAsync(chapterId, rawContent).ConfigureAwait(false);
+
             var effectiveGateResult = gateResult != null && gateResult.Success
                 ? gateResult
                 : await _generationGate.ValidateAsync(chapterId, rawContent, factSnapshot, designElements);
@@ -68,6 +78,42 @@ namespace TM.Services.Modules.ProjectData.Implementations
                 PersistedContent = persistedContent,
                 Summary = summary
             };
+        }
+
+        private async Task<string> NormalizeRawContentAsync(string chapterId, string rawContent)
+        {
+            if (string.IsNullOrEmpty(rawContent))
+                return rawContent;
+
+            if (TrySplitRawContent(rawContent, out var contentPart, out var changesPart, out var format))
+            {
+                if (_humanize != null)
+                {
+                    contentPart = await _humanize.RunAsync(
+                        contentPart,
+                        new HumanizeContext
+                        {
+                            ChapterId = chapterId,
+                            InputText = contentPart
+                        }).ConfigureAwait(false);
+                }
+
+                var canonicalChanges = ChangesCanonicalizer.Canonicalize(changesPart);
+                return format == ChangesSectionFormat.Separated
+                    ? $"{contentPart.TrimEnd()}\n{ChangesProtocolParser.ChangesSeparator}\n{canonicalChanges}"
+                    : $"{contentPart.TrimEnd()}\n{canonicalChanges}";
+            }
+
+            if (_humanize == null)
+                return rawContent;
+
+            return await _humanize.RunAsync(
+                rawContent,
+                new HumanizeContext
+                {
+                    ChapterId = chapterId,
+                    InputText = rawContent
+                }).ConfigureAwait(false);
         }
 
         public static string NormalizePersistedContent(string chapterId, string content, string? packagedTitle = null)
@@ -158,6 +204,105 @@ namespace TM.Services.Modules.ProjectData.Implementations
             return content.Trim();
         }
 
+        private static bool TrySplitRawContent(
+            string rawContent,
+            out string contentPart,
+            out string changesPart,
+            out ChangesSectionFormat format)
+        {
+            var separatorIndex = rawContent.IndexOf(ChangesProtocolParser.ChangesSeparator, StringComparison.Ordinal);
+            if (separatorIndex >= 0)
+            {
+                contentPart = rawContent[..separatorIndex].TrimEnd();
+                changesPart = rawContent[(separatorIndex + ChangesProtocolParser.ChangesSeparator.Length)..].Trim();
+                format = ChangesSectionFormat.Separated;
+                return true;
+            }
+
+            var separatorMatch = RegexChangesSeparatorLine.Match(rawContent);
+            if (separatorMatch.Success)
+            {
+                contentPart = rawContent[..separatorMatch.Index].TrimEnd();
+                changesPart = rawContent[(separatorMatch.Index + separatorMatch.Length)..].Trim();
+                format = ChangesSectionFormat.Separated;
+                return true;
+            }
+
+            var trailingJsonStart = FindTrailingJsonStart(rawContent);
+            if (trailingJsonStart >= 0)
+            {
+                contentPart = rawContent[..trailingJsonStart].TrimEnd();
+                changesPart = rawContent[trailingJsonStart..].Trim();
+                format = ChangesSectionFormat.TrailingJson;
+                return true;
+            }
+
+            contentPart = rawContent;
+            changesPart = string.Empty;
+            format = ChangesSectionFormat.Separated;
+            return false;
+        }
+
+        private static int FindTrailingJsonStart(string rawContent)
+        {
+            var lastBrace = rawContent.LastIndexOf('}');
+            if (lastBrace < 0)
+                return -1;
+
+            var braceCount = 0;
+            for (var i = lastBrace; i >= 0; i--)
+            {
+                var c = rawContent[i];
+                if (c == '}')
+                {
+                    braceCount++;
+                }
+                else if (c == '{')
+                {
+                    braceCount--;
+                    if (braceCount == 0)
+                    {
+                        var candidateJson = rawContent[i..(lastBrace + 1)];
+                        try
+                        {
+                            using var doc = JsonDocument.Parse(candidateJson, new JsonDocumentOptions
+                            {
+                                CommentHandling = JsonCommentHandling.Skip,
+                                AllowTrailingCommas = true
+                            });
+
+                            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                                return -1;
+
+                            return HasChangesSignature(doc.RootElement) ? i : -1;
+                        }
+                        catch (JsonException)
+                        {
+                            return -1;
+                        }
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        private static bool HasChangesSignature(JsonElement root)
+        {
+            foreach (var property in root.EnumerateObject())
+            {
+                if (property.Name is "CharacterStateChanges" or "ConflictProgress" or "ForeshadowingActions" or
+                    "NewPlotPoints" or "LocationStateChanges" or "FactionStateChanges" or "TimeProgression" or
+                    "CharacterMovements" or "ItemTransfers" or "角色状态变化" or "冲突进度" or "伏笔动作" or
+                    "新增剧情" or "地点状态变化" or "势力状态变化" or "时间推进" or "角色移动" or "物品流转")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static string BuildStructuredSummary(
             string content,
             ChapterChanges changes,
@@ -240,6 +385,12 @@ namespace TM.Services.Modules.ProjectData.Implementations
                 return cutRegion[..(lastSentenceEnd + 1)] + "……";
 
             return cutRegion + "……";
+        }
+
+        private enum ChangesSectionFormat
+        {
+            Separated,
+            TrailingJson
         }
     }
 
