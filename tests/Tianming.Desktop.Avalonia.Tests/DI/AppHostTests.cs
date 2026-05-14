@@ -6,6 +6,7 @@ using Tianming.Desktop.Avalonia.Navigation;
 using Tianming.Desktop.Avalonia.Shell;
 using Tianming.Desktop.Avalonia.ViewModels;
 using TM.Framework.Appearance;
+using TM.Framework.Notifications;
 using TM.Framework.Platform;
 using Xunit;
 
@@ -58,6 +59,9 @@ public class AppHostTests
         Assert.IsType<MacOSSystemAppearanceMonitor>(
             sp.GetRequiredService<IPortableSystemAppearanceMonitor>());
         Assert.NotNull(sp.GetRequiredService<PortableSystemFollowRuntime>());
+        Assert.IsType<MacOSNotificationSink>(
+            sp.GetRequiredService<IPortableNotificationSink>());
+        Assert.NotNull(sp.GetRequiredService<PortableNotificationDispatcher>());
     }
 
     [Fact]

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TM.Framework.Common.Models;
 using TM.Framework.Appearance;
+using TM.Framework.Notifications;
 using TM.Modules.AIAssistant.PromptTools.PromptManagement.Services;
 using TM.Services.Framework.AI.Core;
 using TM.Services.Framework.AI.Core.Routing;
@@ -161,6 +162,23 @@ public static class AvaloniaShellServiceCollectionExtensions
                 sp.GetRequiredService<PortableSystemFollowSettings>(),
                 sp.GetRequiredService<IPortableSystemAppearanceMonitor>(),
                 sp.GetRequiredService<PortableSystemFollowController>().HandleAppearanceChangedAsync));
+        s.AddSingleton<IPortableNotificationSink, MacOSNotificationSink>();
+        s.AddSingleton<MacOSNotificationSink>(sp =>
+            (MacOSNotificationSink)sp.GetRequiredService<IPortableNotificationSink>());
+        s.AddSingleton(sp =>
+            new FileNotificationHistoryStore(System.IO.Path.Combine(
+                sp.GetRequiredService<AppPaths>().AppSupportDirectory,
+                "notification_history.json")));
+        s.AddSingleton(_ => new PortableNotificationDispatcherOptions
+        {
+            EnableSystemNotification = true,
+            NotificationSound = true
+        });
+        s.AddSingleton(sp =>
+            new PortableNotificationDispatcher(
+                sp.GetRequiredService<PortableNotificationDispatcherOptions>(),
+                sp.GetRequiredService<FileNotificationHistoryStore>(),
+                sp.GetRequiredService<IPortableNotificationSink>()));
 
         // Navigation
         s.AddSingleton<PageRegistry>(_ => RegisterPages(new PageRegistry()));

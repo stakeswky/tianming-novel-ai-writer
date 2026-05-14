@@ -108,7 +108,7 @@ Commit with title: `Wire macOS appearance monitor into theme runtime`.
 
 ## Step 2: Wire MacOSNotificationSink to PortableNotificationDispatcher
 
-- [ ] **Step 2.1: Write red tests**
+- [x] **Step 2.1: Write red tests**
 
 Extend `Build_ResolvesMacOSPlatformSinks` to assert:
 
@@ -119,17 +119,17 @@ Assert.NotNull(sp.GetRequiredService<PortableNotificationDispatcher>());
 
 Add a unit test in a desktop DI/platform test that constructs `PortableNotificationDispatcher` with a `RecordingNotificationSink`, dispatches with `EnableSystemNotification = true`, and asserts `RecordingNotificationSink.Delivered.Count == 1`.
 
-- [ ] **Step 2.2: Run red**
+- [x] **Step 2.2: Run red**
 
 Run: `dotnet test tests/Tianming.Desktop.Avalonia.Tests/Tianming.Desktop.Avalonia.Tests.csproj --filter "Build_ResolvesMacOSPlatformSinks|Dispatcher_delivers_to_registered_sink"`
 
 Expected: DI assertion fails before registration.
 
-- [ ] **Step 2.3: Implement**
+- [x] **Step 2.3: Implement**
 
 Register `IPortableNotificationSink` as `MacOSNotificationSink`, `FileNotificationHistoryStore`, `PortableNotificationDispatcherOptions`, and `PortableNotificationDispatcher`.
 
-- [ ] **Step 2.4: Verify and commit**
+- [x] **Step 2.4: Verify and commit**
 
 Run the focused filter and `dotnet build Tianming.MacMigration.sln`.
 
