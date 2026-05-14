@@ -93,6 +93,7 @@ R1. `book.pipeline` 导航状态与中心内容不同步。
 - 观察：breadcrumb 更新为 `book.pipeline`，但中心内容仍是使用统计页。
 - 影响：一键成书入口不可用或展示错误页面。
 - 建议：检查 `NavigationService` 的页面切换绑定、`BookPipelineView`/`BookPipelineViewModel` 注册、以及内容宿主是否复用旧 DataContext。
+- Lane R 处理：已修复/锁定（commit `f13be48`）。新增测试确认 `AIUsage -> BookPipeline` 后中心区为 `BookPipelineViewModel`；实际代码层中心切换已通过，补充修复了 breadcrumb raw id，`book.pipeline` 改为用户可见「一键成书」。
 
 R2. AI Provider 下拉无可见选项。
 
@@ -100,6 +101,7 @@ R2. AI Provider 下拉无可见选项。
 - 观察：下拉弹层出现，但没有可选 provider 文本。
 - 影响：用户无法配置模型或密钥，因此对话发送只能返回「无启用模型配置」错误。
 - 建议：检查 `ModelManagementViewModel` / `ApiKeysViewModel` 的 provider source 初始化与 ComboBox Items 绑定。
+- Lane R 处理：已修复（commit `fd25784`）。空模型库目录下 `ModelManagementViewModel.ProviderIds` 和 `ApiKeysViewModel.Providers` 会回退到内置 provider 列表，首屏即可看到 OpenAI/Anthropic/Google/Azure OpenAI/DeepSeek/Cherry Studio 选项。
 
 R3. 右侧对话 `@` 引用建议未显示。
 
@@ -107,6 +109,7 @@ R3. 右侧对话 `@` 引用建议未显示。
 - 观察：输入保留，但未出现引用候选。
 - 影响：项目数据引用入口可能不可见；本轮不能确认是无匹配数据还是弹层/数据源问题。
 - 建议：增加一个已知 fixture 或使用现有项目中文关键词复测，并确认 `ReferenceSuggestionSource.SuggestAsync` 是否返回候选。
+- Lane R 处理：代码层已排除数据源问题（commit `6422510`）。新增 fixture 测试确认项目内存在 `ch001` 章节时，`ReferenceSuggestionSource.SuggestAsync("ch")` 返回 Chapter 候选；原巡检仍需要用同类 fixture 项目做 Computer Use 实机复跑，以区分无匹配数据、输入法候选条遮挡或弹层视觉问题。
 
 ## 未覆盖项
 

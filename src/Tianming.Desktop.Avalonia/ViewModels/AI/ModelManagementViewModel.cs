@@ -52,8 +52,12 @@ public partial class ModelManagementViewModel : ObservableObject
     private void LoadProviders()
     {
         var providers = _store.GetAllProviders();
-        foreach (var p in providers)
-            ProviderIds.Add(p.Id);
+        var providerIds = providers.Count == 0
+            ? DefaultAIProviders.Options.Select(provider => provider.Id)
+            : providers.Select(provider => provider.Id);
+
+        foreach (var providerId in providerIds)
+            ProviderIds.Add(providerId);
     }
 
     private void LoadModels()

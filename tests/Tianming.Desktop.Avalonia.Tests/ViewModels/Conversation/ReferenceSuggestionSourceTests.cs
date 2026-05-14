@@ -59,6 +59,30 @@ public class ReferenceSuggestionSourceTests
         Assert.Equal(10, results.Count);
     }
 
+    [Fact]
+    public async Task SuggestAsync_ch_returns_matching_chapter_fixture()
+    {
+        using var workspace = new TempDirectory();
+        var adapter = new ModuleDataAdapter<ChapterCategory, ChapterData>(new ChapterPlanningSchema(), workspace.Path);
+        await adapter.LoadAsync();
+        await adapter.AddCategoryAsync(new ChapterCategory { Id = "chapter-cat", Name = "章节", IsEnabled = true });
+        await adapter.AddAsync(new ChapterData
+        {
+            Id = "chapter-ch001",
+            Category = "章节",
+            Name = "ch001 破局",
+            ChapterTitle = "ch001 破局",
+            IsEnabled = true,
+        });
+        var source = new ReferenceSuggestionSource(new StubCurrentProjectService(workspace.Path));
+
+        var results = await source.SuggestAsync("ch");
+
+        Assert.Contains(results, item =>
+            item.Category == "Chapter"
+            && item.Name.Contains("ch001", StringComparison.OrdinalIgnoreCase));
+    }
+
     private static async Task SeedProjectDataAsync(string root)
     {
         var chapterAdapter = new ModuleDataAdapter<ChapterCategory, ChapterData>(new ChapterPlanningSchema(), root);
