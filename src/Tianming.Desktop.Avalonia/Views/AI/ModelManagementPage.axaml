@@ -11,6 +11,27 @@
   <ScrollViewer Padding="24">
     <StackPanel Spacing="20">
 
+      <!-- 兼容性提示（巡检后增补，HTTP 404 user 教育） -->
+      <Border Background="{DynamicResource SurfaceContainerBrush}"
+              BorderBrush="{DynamicResource BorderSubtleBrush}"
+              BorderThickness="1" CornerRadius="8" Padding="14">
+        <StackPanel Spacing="6">
+          <TextBlock Text="ℹ️ 端点兼容性说明"
+                     FontWeight="SemiBold" FontSize="13"/>
+          <TextBlock TextWrapping="Wrap" FontSize="12"
+                     Foreground="{DynamicResource TextSecondaryBrush}">
+            当前只支持 OpenAI 兼容协议（路径 /v1/chat/completions）。
+            OpenAI / DeepSeek / Cherry Studio / 一票 OpenAI-compatible 代理均可直接使用；
+            Anthropic / Google Gemini / Azure OpenAI 等原生 SDK 协议尚未实装，
+            请配置 OpenAI 兼容代理 endpoint，否则调用会返回 HTTP 404。
+          </TextBlock>
+          <TextBlock TextWrapping="Wrap" FontSize="12"
+                     Foreground="{DynamicResource TextSecondaryBrush}">
+            Base URL 必须以 https:// 或 http:// 开头；若已含 /v1 则不会重复追加。
+          </TextBlock>
+        </StackPanel>
+      </Border>
+
       <!-- 添加模型表单 -->
       <controls:SectionCard Header="添加模型" Subtitle="配置新的 AI 模型连接">
         <StackPanel Spacing="12">
