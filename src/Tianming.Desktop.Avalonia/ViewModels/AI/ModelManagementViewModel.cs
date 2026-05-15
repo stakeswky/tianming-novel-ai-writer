@@ -165,6 +165,36 @@ public partial class ModelManagementViewModel : ObservableObject
         EditingItem = null;
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// 把指定 model 在列表中向上移一格（仅 in-memory，重启不保持）。
+    /// 持久化（UserConfiguration.Order 字段 + store 排序）留后续 milestone。
+    /// </summary>
+    [RelayCommand]
+    private Task MoveModelUpAsync(string configId)
+    {
+        var index = -1;
+        for (var i = 0; i < Models.Count; i++)
+        {
+            if (Models[i].Id == configId) { index = i; break; }
+        }
+        if (index > 0)
+            Models.Move(index, index - 1);
+        return Task.CompletedTask;
+    }
+
+    [RelayCommand]
+    private Task MoveModelDownAsync(string configId)
+    {
+        var index = -1;
+        for (var i = 0; i < Models.Count; i++)
+        {
+            if (Models[i].Id == configId) { index = i; break; }
+        }
+        if (index >= 0 && index < Models.Count - 1)
+            Models.Move(index, index + 1);
+        return Task.CompletedTask;
+    }
 }
 
 public partial class ModelConfigItem : ObservableObject

@@ -107,6 +107,57 @@ public class ModelManagementViewModelTests
     }
 
     [Fact]
+    public async Task MoveModelUpCommand_swaps_with_previous_item()
+    {
+        using var workspace = new TempDirectory();
+        var store = new FileAIConfigurationStore(
+            Path.Combine(workspace.Path, "Library"),
+            Path.Combine(workspace.Path, "Configurations"));
+        store.AddConfiguration(new UserConfiguration { ProviderId = "openai", ModelId = "gpt-1" });
+        store.AddConfiguration(new UserConfiguration { ProviderId = "openai", ModelId = "gpt-2" });
+        var vm = new ModelManagementViewModel(store);
+        var second = vm.Models[1];
+
+        await vm.MoveModelUpCommand.ExecuteAsync(second.Id);
+
+        Assert.Equal(second.Id, vm.Models[0].Id);
+    }
+
+    [Fact]
+    public async Task MoveModelUpCommand_at_top_is_noop()
+    {
+        using var workspace = new TempDirectory();
+        var store = new FileAIConfigurationStore(
+            Path.Combine(workspace.Path, "Library"),
+            Path.Combine(workspace.Path, "Configurations"));
+        store.AddConfiguration(new UserConfiguration { ProviderId = "openai", ModelId = "gpt-1" });
+        store.AddConfiguration(new UserConfiguration { ProviderId = "openai", ModelId = "gpt-2" });
+        var vm = new ModelManagementViewModel(store);
+        var first = vm.Models[0];
+
+        await vm.MoveModelUpCommand.ExecuteAsync(first.Id);
+
+        Assert.Equal(first.Id, vm.Models[0].Id);  // 仍在第一位
+    }
+
+    [Fact]
+    public async Task MoveModelDownCommand_swaps_with_next_item()
+    {
+        using var workspace = new TempDirectory();
+        var store = new FileAIConfigurationStore(
+            Path.Combine(workspace.Path, "Library"),
+            Path.Combine(workspace.Path, "Configurations"));
+        store.AddConfiguration(new UserConfiguration { ProviderId = "openai", ModelId = "gpt-1" });
+        store.AddConfiguration(new UserConfiguration { ProviderId = "openai", ModelId = "gpt-2" });
+        var vm = new ModelManagementViewModel(store);
+        var first = vm.Models[0];
+
+        await vm.MoveModelDownCommand.ExecuteAsync(first.Id);
+
+        Assert.Equal(first.Id, vm.Models[1].Id);
+    }
+
+    [Fact]
     public void Empty_library_exposes_default_provider_display_names()
     {
         using var workspace = new TempDirectory();
