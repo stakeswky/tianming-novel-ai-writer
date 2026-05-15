@@ -151,6 +151,9 @@ public sealed class OpenAICompatibleChatClient
         if (string.IsNullOrWhiteSpace(request.BaseUrl))
             return Fail("端点地址为空");
 
+        if (TryValidateBaseUrlScheme(request.BaseUrl, out var schemeError))
+            return Fail(schemeError!);
+
         if (string.IsNullOrWhiteSpace(request.Model))
             return Fail("未指定测试模型");
 
@@ -165,11 +168,13 @@ public sealed class OpenAICompatibleChatClient
 
             if (!response.IsSuccessStatusCode)
             {
+                var requestUri = httpRequest.RequestUri?.ToString() ?? "<unknown>";
+                var baseMessage = ParseErrorMessage(body) ?? $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
                 return new OpenAICompatibleChatResult
                 {
                     Success = false,
                     StatusCode = (int)response.StatusCode,
-                    ErrorMessage = ParseErrorMessage(body) ?? $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}"
+                    ErrorMessage = $"{baseMessage} (请求 URL: {requestUri})"
                 };
             }
 
@@ -196,6 +201,12 @@ public sealed class OpenAICompatibleChatClient
         if (request == null)
             throw new ArgumentNullException(nameof(request));
 
+        if (string.IsNullOrWhiteSpace(request.BaseUrl))
+            throw new OpenAICompatibleChatException("端点地址为空", 0);
+
+        if (TryValidateBaseUrlScheme(request.BaseUrl, out var schemeError))
+            throw new OpenAICompatibleChatException(schemeError!, 0);
+
         using var httpRequest = BuildRequest(request, stream: true);
         using var response = await _httpClient.SendAsync(
             httpRequest,
@@ -205,8 +216,10 @@ public sealed class OpenAICompatibleChatClient
         if (!response.IsSuccessStatusCode)
         {
             var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            var requestUri = httpRequest.RequestUri?.ToString() ?? "<unknown>";
+            var baseMessage = ParseErrorMessage(errorBody) ?? $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
             throw new OpenAICompatibleChatException(
-                ParseErrorMessage(errorBody) ?? $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}",
+                $"{baseMessage} (请求 URL: {requestUri})",
                 (int)response.StatusCode);
         }
 
@@ -423,6 +436,24 @@ public sealed class OpenAICompatibleChatClient
             return normalized;
 
         return normalized.TrimEnd('/') + "/v1";
+    }
+
+    /// <summary>
+    /// 校验 BaseUrl 必须含 http/https scheme。返回 true 表示有错误，
+    /// 错误信息通过 out 参数返回；返回 false 表示通过校验。
+    /// 历史背景：Round 3 Lane B 复核发现 new Uri(无 scheme) 会抛 UriFormatException
+    /// 没被 CompleteAsync catch 列表覆盖，错误冒泡到 UI 显示原始堆栈。
+    /// </summary>
+    private static bool TryValidateBaseUrlScheme(string baseUrl, out string? error)
+    {
+        if (!Uri.TryCreate(baseUrl.Trim(), UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            error = $"端点地址必须以 http:// 或 https:// 开头：{baseUrl}";
+            return true;
+        }
+        error = null;
+        return false;
     }
 
     private static void ApplyStandardHeaders(HttpRequestMessage request, string apiKey)

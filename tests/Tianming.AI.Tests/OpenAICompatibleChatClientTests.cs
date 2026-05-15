@@ -105,7 +105,8 @@ public class OpenAICompatibleChatClientTests
         });
 
         Assert.False(result.Success);
-        Assert.Equal("rate limit exceeded", result.ErrorMessage);
+        Assert.Contains("rate limit exceeded", result.ErrorMessage);
+        Assert.Contains("请求 URL", result.ErrorMessage);  // 404 体验改善：附完整 URL
         Assert.Equal((int)HttpStatusCode.TooManyRequests, result.StatusCode);
     }
 
@@ -220,7 +221,8 @@ public class OpenAICompatibleChatClientTests
             }
         });
 
-        Assert.Equal("invalid api key", ex.Message);
+        Assert.Contains("invalid api key", ex.Message);
+        Assert.Contains("请求 URL", ex.Message);  // 404 体验改善：错误附完整 URL
         Assert.Equal(401, ex.StatusCode);
     }
 
@@ -276,7 +278,52 @@ public class OpenAICompatibleChatClientTests
 
         Assert.False(result.Success);
         Assert.Empty(result.Content);
-        Assert.Equal("invalid api key", result.ErrorMessage);
+        Assert.Contains("invalid api key", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task CompleteAsync_rejects_baseUrl_without_scheme_with_friendly_error()
+    {
+        // 回归测试：Round 3 Lane B 复核发现 new Uri(无 scheme) 会抛 UriFormatException
+        // 没被 catch 列表覆盖。修复后前置 scheme 校验，返回友好错误。
+        using var httpClient = new HttpClient(new CapturingHandler(new HttpResponseMessage(HttpStatusCode.OK)));
+        var client = new OpenAICompatibleChatClient(httpClient);
+
+        var result = await client.CompleteAsync(new OpenAICompatibleChatRequest
+        {
+            BaseUrl = "api.openai.com/v1",  // 缺 https://
+            Model = "model",
+            Messages = [new OpenAICompatibleChatMessage("user", "test")]
+        });
+
+        Assert.False(result.Success);
+        Assert.Contains("http://", result.ErrorMessage);
+        Assert.Contains("api.openai.com/v1", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task CompleteAsync_includes_request_url_in_4xx_error_message()
+    {
+        // 巡检后 404 用户体验改善：错误信息附完整请求 URL，让用户立刻能判断
+        // "我选了 Anthropic 但实际调的是 /v1/chat/completions" 这种 mismatch。
+        using var handler = new CapturingHandler(new HttpResponseMessage(HttpStatusCode.NotFound)
+        {
+            Content = new StringContent("Not Found", Encoding.UTF8, "text/plain")
+        });
+        using var httpClient = new HttpClient(handler);
+        var client = new OpenAICompatibleChatClient(httpClient);
+
+        var result = await client.CompleteAsync(new OpenAICompatibleChatRequest
+        {
+            BaseUrl = "https://api.anthropic.com",
+            Model = "claude-3-haiku",
+            Messages = [new OpenAICompatibleChatMessage("user", "ping")]
+        });
+
+        Assert.False(result.Success);
+        Assert.Equal(404, result.StatusCode);
+        Assert.Contains("https://api.anthropic.com/v1/chat/completions", result.ErrorMessage);
+        Assert.Contains("请求 URL", result.ErrorMessage);
     }
 
     private sealed class CapturingHandler : HttpMessageHandler
