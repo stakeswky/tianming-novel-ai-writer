@@ -57,8 +57,9 @@ public partial class LeftNavViewModel : ObservableObject
 
         Groups.Add(new NavRailGroup("AI 管理", new List<NavRailItem>
         {
+            // 模型 page 已合并 API Key 管理（问题 #3），LeftNav 不再单列 AIKeys 入口；
+            // PageRegistry / ApiKeysPage 保留以防破坏旧 navigation history / 直接路由
             new(PageKeys.AIModels,  Label(PageKeys.AIModels),  "🤖"),
-            new(PageKeys.AIKeys,    Label(PageKeys.AIKeys),    "🔑"),
             new(PageKeys.AIPrompts, Label(PageKeys.AIPrompts), "📝"),
             new(PageKeys.AIUsage,   Label(PageKeys.AIUsage),   "📊"),
         }));
