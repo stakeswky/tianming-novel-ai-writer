@@ -44,6 +44,22 @@ public partial class ModelManagementPage : UserControl
         }
     }
 
+    private void OnSaveKeyClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string id } && DataContext is ModelManagementViewModel vm)
+        {
+            vm.SaveKeyCommand.Execute(id);
+        }
+    }
+
+    private void OnClearKeyClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string id } && DataContext is ModelManagementViewModel vm)
+        {
+            vm.ClearKeyCommand.Execute(id);
+        }
+    }
+
     private async void OnPurposeDropDownClosed(object? sender, EventArgs e)
     {
         if (sender is ComboBox { DataContext: ModelConfigItem item } && DataContext is ModelManagementViewModel vm)

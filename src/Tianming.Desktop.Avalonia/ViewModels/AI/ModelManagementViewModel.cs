@@ -40,9 +40,12 @@ public partial class ModelManagementViewModel : ObservableObject
     public ObservableCollection<string> ProviderIds { get; } = new();
     public ObservableCollection<DefaultAIProviderOption> Providers { get; } = new();
 
-    public ModelManagementViewModel(FileAIConfigurationStore store)
+    private readonly IApiKeySecretStore? _secretStore;
+
+    public ModelManagementViewModel(FileAIConfigurationStore store, IApiKeySecretStore? secretStore = null)
     {
         _store = store;
+        _secretStore = secretStore;
         LoadProviders();
         LoadModels();
         Models.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoModels));
@@ -72,6 +75,7 @@ public partial class ModelManagementViewModel : ObservableObject
         Models.Clear();
         foreach (var config in _store.GetAllConfigurations())
         {
+            var savedKey = _secretStore?.GetSecret(config.Id) ?? string.Empty;
             Models.Add(new ModelConfigItem
             {
                 Id = config.Id,
@@ -83,9 +87,57 @@ public partial class ModelManagementViewModel : ObservableObject
                 IsActive = config.IsActive,
                 DisplayName = config.GetDisplayName(),
                 Name = config.Name,
-                Purpose = string.IsNullOrWhiteSpace(config.Purpose) ? "Default" : config.Purpose
+                Purpose = string.IsNullOrWhiteSpace(config.Purpose) ? "Default" : config.Purpose,
+                HasKey = !string.IsNullOrEmpty(savedKey),
+                MaskedKey = MaskKey(savedKey)
             });
         }
+    }
+
+    private static string MaskKey(string? key)
+    {
+        if (string.IsNullOrEmpty(key))
+            return string.Empty;
+        if (key.Length <= 4)
+            return "****";
+        return "****" + key[^4..];
+    }
+
+    /// <summary>
+    /// 把 API Key 保存到 IApiKeySecretStore（Mac 端走 Keychain），并刷新 model
+    /// 列表显示。问题 #3 合并：让 user 在模型管理页同时配置 endpoint + key。
+    /// </summary>
+    [RelayCommand]
+    private Task SaveKeyAsync(string configId)
+    {
+        if (_secretStore is null)
+            return Task.CompletedTask;
+        var item = Models.FirstOrDefault(m => m.Id == configId);
+        if (item is null || string.IsNullOrWhiteSpace(item.NewKeyInput))
+            return Task.CompletedTask;
+
+        _secretStore.SaveSecret(configId, item.NewKeyInput);
+
+        // 刷新本行 masked 状态，清空输入框
+        item.HasKey = true;
+        item.MaskedKey = MaskKey(item.NewKeyInput);
+        item.NewKeyInput = string.Empty;
+        return Task.CompletedTask;
+    }
+
+    [RelayCommand]
+    private Task ClearKeyAsync(string configId)
+    {
+        if (_secretStore is null)
+            return Task.CompletedTask;
+        _secretStore.DeleteSecret(configId);
+        var item = Models.FirstOrDefault(m => m.Id == configId);
+        if (item is not null)
+        {
+            item.HasKey = false;
+            item.MaskedKey = string.Empty;
+        }
+        return Task.CompletedTask;
     }
 
     [RelayCommand]
@@ -209,6 +261,10 @@ public partial class ModelConfigItem : ObservableObject
     [ObservableProperty] private string _displayName = string.Empty;
     [ObservableProperty] private string _name = string.Empty;
     [ObservableProperty] private string _purpose = "Default";
+    // 问题 #3 合并 ApiKeysPage：每行嵌入 key 管理
+    [ObservableProperty] private bool _hasKey;
+    [ObservableProperty] private string _maskedKey = string.Empty;
+    [ObservableProperty] private string _newKeyInput = string.Empty;
 
     public IReadOnlyList<string> PurposeOptions { get; } = ModelManagementViewModel.PurposeChoices;
 }

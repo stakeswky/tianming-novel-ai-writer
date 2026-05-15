@@ -98,9 +98,12 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
+                <!-- 每行包含两个子 Grid：第 1 row 模型基础信息 + 操作按钮，
+                     第 2 row API Key 管理（问题 #3 合并 ApiKeysPage）。 -->
+                <StackPanel Spacing="4" Margin="0,6">
                 <!-- 相对宽度：Endpoint 2* 占主要空间，其他元素 Auto 按内容大小，
                      保证最右侧操作按钮在任意 Center 宽度下都可见（问题 #1 真因）。 -->
-                <Grid ColumnDefinitions="*,*,2*,Auto,Auto,Auto,Auto" Margin="0,6">
+                <Grid ColumnDefinitions="*,*,2*,Auto,Auto,Auto,Auto">
                   <TextBlock Grid.Column="0" Text="{Binding ProviderId}" VerticalAlignment="Center"
                              TextTrimming="CharacterEllipsis"/>
                   <TextBlock Grid.Column="1" Text="{Binding ModelId}" VerticalAlignment="Center"
@@ -138,6 +141,33 @@
                             Classes="danger"/>
                   </StackPanel>
                 </Grid>
+
+                <!-- 第 2 row：API Key 管理（合并 ApiKeysPage 内容）-->
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="20,0,0,0">
+                  <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
+                             FontSize="12">
+                    <Run Text="🔑"/>
+                    <Run Text=" API Key:"/>
+                  </TextBlock>
+                  <TextBox Grid.Column="1"
+                           Text="{Binding NewKeyInput, Mode=TwoWay}"
+                           Watermark="{Binding MaskedKey, StringFormat='当前: {0}（输入新 Key 替换）'}"
+                           PasswordChar="●"
+                           FontSize="12"/>
+                  <Button Grid.Column="2" Content="保存"
+                          Click="OnSaveKeyClick"
+                          Tag="{Binding Id}"
+                          Margin="6,0,0,0"
+                          FontSize="12"/>
+                  <Button Grid.Column="3" Content="清除"
+                          Click="OnClearKeyClick"
+                          Tag="{Binding Id}"
+                          IsVisible="{Binding HasKey}"
+                          Margin="4,0,0,0"
+                          FontSize="12"
+                          Classes="danger"/>
+                </Grid>
+                </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
