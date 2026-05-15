@@ -98,20 +98,27 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Grid ColumnDefinitions="120,120,180,80,110,80,*" Margin="0,6">
-                  <TextBlock Grid.Column="0" Text="{Binding ProviderId}" VerticalAlignment="Center"/>
-                  <TextBlock Grid.Column="1" Text="{Binding ModelId}" VerticalAlignment="Center"/>
+                <!-- 相对宽度：Endpoint 2* 占主要空间，其他元素 Auto 按内容大小，
+                     保证最右侧操作按钮在任意 Center 宽度下都可见（问题 #1 真因）。 -->
+                <Grid ColumnDefinitions="*,*,2*,Auto,Auto,Auto,Auto" Margin="0,6">
+                  <TextBlock Grid.Column="0" Text="{Binding ProviderId}" VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Grid.Column="1" Text="{Binding ModelId}" VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis"/>
                   <TextBlock Grid.Column="2" Text="{Binding Endpoint}" VerticalAlignment="Center"
                              Foreground="{DynamicResource TextSecondaryBrush}"
-                             TextTrimming="CharacterEllipsis"/>
-                  <TextBlock Grid.Column="3" Text="{Binding Temperature, StringFormat=F1}" VerticalAlignment="Center"/>
+                             TextTrimming="CharacterEllipsis"
+                             ToolTip.Tip="{Binding Endpoint}"/>
+                  <TextBlock Grid.Column="3" Text="{Binding Temperature, StringFormat=F1}"
+                             VerticalAlignment="Center" Margin="4,0"/>
                   <ComboBox Grid.Column="4"
                             ItemsSource="{Binding PurposeOptions}"
                             SelectedItem="{Binding Purpose, Mode=TwoWay}"
                             DropDownClosed="OnPurposeDropDownClosed"
                             MinWidth="100"/>
                   <TextBlock Grid.Column="5" Text="默认" Foreground="Green" FontWeight="SemiBold"
-                             VerticalAlignment="Center" IsVisible="{Binding IsActive}"/>
+                             VerticalAlignment="Center" Margin="6,0"
+                             IsVisible="{Binding IsActive}"/>
                   <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <Button Content="设为默认"
                             Click="OnSetActiveClick"
