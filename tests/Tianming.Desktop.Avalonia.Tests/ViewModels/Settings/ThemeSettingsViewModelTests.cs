@@ -31,27 +31,35 @@ public class ThemeSettingsViewModelTests
     }
 
     [Fact]
-    public async Task ApplyTheme_skips_when_value_unchanged()
+    public async Task ApplyTheme_skips_lib_short_circuit_when_value_unchanged()
     {
         var (controller, applyCalls) = BuildController(PortableThemeType.Light);
         var vm = new ThemeSettingsViewModel(controller);
 
-        // 不改 SelectedTheme，直接 apply
+        // 不改 SelectedTheme，直接 apply。VM 不再前置短路（删除是为了让 Auto 支持
+        // re-trigger 解析），但 lib PortableThemeStateController.SwitchThemeAsync 内部
+        // 在 plan.ThemeType == _state.CurrentTheme 时短路，不会触发实际 apply。
         await vm.ApplyThemeCommand.ExecuteAsync(null);
 
-        Assert.Empty(applyCalls); // controller 内部短路（CurrentTheme == plan.ThemeType）
+        Assert.Empty(applyCalls);
     }
 
     [Fact]
-    public async Task Controller_ThemeChanged_updates_SelectedTheme()
+    public async Task Apply_Auto_then_SelectedTheme_stays_Auto_in_VM()
     {
+        // 回归测试：之前 VM 订阅 controller.ThemeChanged 自动覆盖 SelectedTheme，
+        // 选 Auto 应用后 controller 把 Auto resolve 成 Light/Dark，ThemeChanged 事件
+        // 把 SelectedTheme 改回 Light → UI 回显错误（巡检 P2）。
+        // 修复后 VM 不订阅 controller.ThemeChanged，SelectedTheme 保持用户选择的 Auto。
         var (controller, _) = BuildController(PortableThemeType.Light);
         var vm = new ThemeSettingsViewModel(controller);
 
-        // 模拟外部（如 SystemFollow / 调度服务）切换主题
-        await controller.SwitchThemeAsync(PortableThemeType.Dark);
+        vm.SelectedTheme = PortableThemeType.Auto;
+        await vm.ApplyThemeCommand.ExecuteAsync(null);
 
-        Assert.Equal(PortableThemeType.Dark, vm.SelectedTheme);
+        Assert.Equal(PortableThemeType.Auto, vm.SelectedTheme);
+        // controller 内部把 Auto resolve 成 Light/Dark（lib 行为），但 VM 不跟随
+        Assert.NotEqual(PortableThemeType.Auto, controller.CurrentTheme);
     }
 
     private static (PortableThemeStateController controller, List<PortableThemeApplicationRequest> applyCalls) BuildController(PortableThemeType initial)

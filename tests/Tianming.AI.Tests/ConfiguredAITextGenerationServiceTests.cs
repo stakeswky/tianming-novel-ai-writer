@@ -96,7 +96,7 @@ public class ConfiguredAITextGenerationServiceTests
         PromptGenerationAiResult result = await service.GenerateAsync("写一章");
 
         Assert.False(result.Success);
-        Assert.Equal("invalid api key", result.ErrorMessage);
+        Assert.Contains("invalid api key", result.ErrorMessage);  // 404 体验改善：附 URL 后缀
         Assert.Equal("https://custom.example.test/v1/chat/completions", handler.Request!.RequestUri!.ToString());
         using var document = JsonDocument.Parse(handler.Body);
         Assert.Equal("missing-model", document.RootElement.GetProperty("model").GetString());
@@ -170,7 +170,7 @@ public class ConfiguredAITextGenerationServiceTests
         Assert.Equal("gpt-real", record.ModelName);
         Assert.Equal("openai", record.Provider);
         Assert.False(record.Success);
-        Assert.Equal("server exploded", record.ErrorMessage);
+        Assert.Contains("server exploded", record.ErrorMessage);
         Assert.True(record.ResponseTimeMs >= 0);
     }
 
@@ -460,7 +460,7 @@ public class ConfiguredAITextGenerationServiceTests
         Assert.Equal("gpt-real", record.ModelName);
         Assert.Equal("openai", record.Provider);
         Assert.False(record.Success);
-        Assert.Equal("invalid api key", record.ErrorMessage);
+        Assert.Contains("invalid api key", record.ErrorMessage);
         Assert.True(record.ResponseTimeMs >= 0);
     }
 
